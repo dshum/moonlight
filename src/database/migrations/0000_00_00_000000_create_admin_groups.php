@@ -13,8 +13,7 @@ class CreateAdminGroups extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('admin_groups', function(Blueprint $table)
-		{
+		Schema::create('admin_groups', function(Blueprint $table) {
 			$table->increments('id');
 			$table->string('name');
 			$table->string('default_permission')->nullable();
