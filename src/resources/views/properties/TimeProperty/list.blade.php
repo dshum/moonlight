@@ -1,0 +1,1 @@
+<td>{{ $value->format('H:i:s') }}</td>

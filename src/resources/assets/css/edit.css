@@ -1,0 +1,49 @@
+div.external-link .fa {
+  position: relative;
+  top: 2px;
+  margin-right: 0.5rem;
+  width: 1rem;
+  color: rgb(75, 135, 75);
+}
+
+div.item {
+  display: none;
+}
+
+div.item.active ul.header li.h2 span {
+  border-bottom: none;
+  cursor: unset;
+}
+
+.buttons {
+  width: auto;
+  margin-bottom: 1.5rem;
+}
+
+.buttons .button {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  border: 1px solid transparent;
+  padding: 0.75rem 1rem 0.5rem 1rem;
+  color: #999;
+}
+
+.buttons .button .fa {
+  display: block;
+  margin-right: 0;
+  margin-bottom: 0.5rem;
+  width: auto;
+}
+
+.edit .mce-tinymce {
+  margin-top: 0.2rem;
+}
+
+.btn.copy {
+  background-color: teal;
+}
+
+.btn.move {
+  background-color: seagreen;
+}

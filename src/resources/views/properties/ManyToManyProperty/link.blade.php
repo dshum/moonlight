@@ -1,0 +1,1 @@
+<div class="label many"><i class="fa fa-tags"></i><span>{{ $title }}</span></div>

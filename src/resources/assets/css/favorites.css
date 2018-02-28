@@ -1,0 +1,74 @@
+.main .elements {
+  display: table;
+  margin-bottom: 1.5rem;
+}
+  
+.main .elements .h2 {
+  display: block;
+  margin: 0;
+  padding: 0;
+  color: royalblue;
+  font-size: 1.3rem;
+}
+
+.main .elements .h2 span.title {
+  cursor: move;
+}
+
+.main .elements ul {
+  margin: -0.25rem 0 0 0;
+  padding: 0;
+}
+
+.main .elements ul li {
+  display: table;
+  margin: 0.5rem 0;
+  padding: 0;
+}
+
+.main .elements ul li span.element {
+  cursor: move;
+}
+
+.remove {
+  margin-left: 1rem;
+}
+
+.remove.enabled {
+  cursor: pointer;
+}
+
+.remove .fa {
+  position: relative;
+  color: silver;
+}
+
+.remove.enabled .fa {
+  color: crimson;
+}
+
+.main .elements .h2 .remove .fa {
+  top: 1px;
+}
+
+.main .elements ul li .remove .fa {
+  top: 1px;
+}
+
+.chosen {
+  margin: 0 -1rem;
+  padding: 0 1rem;
+  border-radius: 2px;
+  background-color: #cdf;
+}
+
+.main .elements ul li.chosen {
+  margin: 0.5rem -1rem;
+  padding: 0 1rem;
+  border-radius: 2px;
+  background-color: #cdf;
+}
+
+.dragging {
+  background-color: white;
+}

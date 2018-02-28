@@ -1,0 +1,1 @@
+<td>{!! nl2br($value) !!}</td>

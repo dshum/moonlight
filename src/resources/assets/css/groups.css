@@ -1,0 +1,19 @@
+table.groups.elements {
+  width: auto;
+}
+
+table.groups td {
+  padding: 1rem 1rem;
+}
+  
+table.groups th.remove,
+table.groups td.remove {
+  text-align: center;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  cursor: pointer;
+}
+
+table.groups td.remove .fa {
+  color: crimson;
+}

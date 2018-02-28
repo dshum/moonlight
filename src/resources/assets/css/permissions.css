@@ -1,0 +1,68 @@
+div.search-field {
+  margin: 1rem 0;
+}
+
+.empty {
+  margin: 2rem 0;
+}
+
+table.permissions.elements {
+  width: auto;
+}
+
+table.permissions.elements tr {
+  vertical-align: middle;
+}
+
+table.permissions.elements th.title,
+table.permissions.elements td.title {
+  width: 20rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+table.permissions.elements th,
+table.permissions.elements td {
+  width: 5rem;
+  text-align: center;
+}
+
+table.permissions.elements td {
+  padding: 0.75rem 1rem;
+}
+
+table.permissions.elements td span {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid silver;
+  border-radius: 50%;
+  background-color: #fff;
+  transition: .5s ease-out;
+  cursor: pointer;
+}
+
+table.permissions.elements td.title small {
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
+table.permissions.elements td.deny.active span {
+  background-color: darkorchid;
+  border-color: darkorchid;
+}
+
+table.permissions.elements td.view.active span {
+  background-color: #64a7a0;
+  border-color: #64a7a0;
+}
+
+table.permissions.elements td.update.active span {
+  background-color: goldenrod;
+  border-color: goldenrod;
+}
+
+table.permissions.elements td.delete.active span {
+  background-color: crimson;
+  border-color: crimson;
+}

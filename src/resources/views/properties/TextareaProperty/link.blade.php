@@ -1,0 +1,1 @@
+<div class="label textarea"><i class="fa fa-comment"></i><span>{{ $title }}</span></div>
