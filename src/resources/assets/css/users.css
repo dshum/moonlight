@@ -6,6 +6,10 @@ table.users td {
   padding: 1rem 1rem;
 }
 
+table.users td div {
+  margin-bottom: 0.5rem;
+}
+
 table.users th.remove,
 table.users td.remove {
   text-align: center;

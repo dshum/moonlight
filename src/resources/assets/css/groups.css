@@ -5,6 +5,10 @@ table.groups.elements {
 table.groups td {
   padding: 1rem 1rem;
 }
+
+table.users td div {
+  margin-bottom: 0.5rem;
+}
   
 table.groups th.remove,
 table.groups td.remove {
