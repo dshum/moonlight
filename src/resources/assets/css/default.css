@@ -11,6 +11,7 @@ body {
   line-height: 1.5;
   color: black;
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 body::-webkit-scrollbar {
@@ -211,7 +212,7 @@ nav {
   display: block;
   height: 5rem;
   line-height: 5rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #ddd;
 }
 
 nav .logo {
@@ -219,6 +220,15 @@ nav .logo {
   margin-left: 2rem;
   color: black;
   font-size: 1.5rem;
+}
+
+nav .sidebar-toggler {
+  display: none;
+  margin-right: 0.5rem;
+  width: 2rem;
+  color: black;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 
 nav .logo a {
@@ -333,8 +343,11 @@ nav .dropdown ul > li span {
 
 .sidebar {
   position: absolute;
+  top: 5rem;
+  left: 0;
   width: 20%;
   margin: 0;
+  margin-top: 3px;
   padding: 0;
   overflow-x: none;
 }
@@ -533,9 +546,11 @@ nav .dropdown ul > li span {
 
 .main {
   position: absolute;
+  top: 5rem;
   left: 20%;
   width: 80%;
   margin: 0;
+  margin-top: 3px;
   padding: 0;
 }
 
@@ -586,6 +601,19 @@ div.path div.part a.edit .fa {
 }
 
 /* Table header */
+
+div[item] {
+  overflow-x: auto;
+}
+
+div[item]::-webkit-scrollbar {
+  width: 20px;
+  background-color: rgba(127, 127, 127, 0.1);
+}
+
+div[item]::-webkit-scrollbar-thumb {
+  background-color: rgba(150, 180, 210, 0.7);
+}
 
 div.item {
   display: table;
@@ -1929,6 +1957,17 @@ form .loadfile .reset {
   text-align: center;
 }
 
+.sidebar-block-ui {
+  display: none;
+  position: fixed;
+  z-index: 99;
+  top: 5rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
 /* Autocomplete */
 
 .autocomplete-container {
@@ -2050,17 +2089,33 @@ form .loadfile .reset {
 
 /* Media */
 
-@media (max-width: 1280px) {
+@media (max-width: 1200px) {
+  nav .sidebar-toggler {
+    display: inline-block;
+  }
+
   .sidebar {
-    display: none;
+    left: -33%;
+    width: 33%;
+    background-color: white;
+    transition: 0.2s all;
+  }
+
+  .sidebar.moved {
+    left: 0;
   }
 
   .main {
     left: 0;
     width: 100%;
+    transition: 0.2s all;
+  }
+
+  .main.moved {
+    left: 33%;
   }
 
   .main > .container {
-    padding: 1rem 2rem;
+    padding: 1rem 1rem 1rem 2rem;
   }
 }

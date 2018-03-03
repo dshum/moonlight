@@ -34,10 +34,11 @@
 <body>
 @section('nav')
 @show
-@section('body')
-@show
 @section('sidebar')
 @show
+@section('body')
+@show
+    <div class="sidebar-block-ui"></div>
     <div class="block-ui">
         <div class="container">
             <div class="wrapper">

@@ -104,4 +104,16 @@ $(function() {
     $('body').on('click', '.confirm .cancel', function() {
         $('.confirm').fadeOut('fast');
     });
+
+    $('.sidebar-toggler').click(function() {
+        var display = $('.sidebar').attr('display');
+
+        if (display == 'show') {
+            $('.sidebar').attr('display', 'hide').removeClass('moved');
+            $('.main').removeClass('moved');
+        } else {
+            $('.sidebar').attr('display', 'show').addClass('moved');
+            $('.main').addClass('moved');
+        }
+    });
 });
