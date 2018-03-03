@@ -32,7 +32,7 @@
                     <tr group="{{ $group->id }}">
                         <td><a href="{{ route('moonlight.group', $group->id) }}">{{ $group->name }}</a></td>
                         <td>
-                            <a href="{{ route('moonlight.group.items', $group->id) }}">{{ $group->getPermissionTitle() }}</a>
+                            <div><a href="{{ route('moonlight.group.items', $group->id) }}">{{ $group->getPermissionTitle() }}</a></div>
                             @if ($group->hasAccess('admin'))
                             <div><small>Управление пользователями</small></div>
                             @endif

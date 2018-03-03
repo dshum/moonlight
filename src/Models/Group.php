@@ -19,7 +19,7 @@ class Group extends Model {
 	 *
 	 * @var string
 	 */
-	protected $pivotTable = 'admin_users_groups_pvot';
+	protected $pivotTable = 'admin_users_groups_pivot';
 
 	/**
      * All of the relationships to be touched.

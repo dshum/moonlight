@@ -2090,10 +2090,13 @@ form .loadfile .reset {
 /* Media */
 
 @media (max-width: 1200px) {
+<<<<<<< HEAD
   nav .sidebar-toggler {
     display: inline-block;
   }
 
+=======
+>>>>>>> 3d9c5697c6792f2c89b2b27910511e6669b17be9
   .sidebar {
     left: -33%;
     width: 33%;

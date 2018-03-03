@@ -13,8 +13,7 @@ class CreateAdminUsersGroupsPivot extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('admin_users_groups_pivot', function(Blueprint $table)
-		{
+		Schema::create('admin_users_groups_pivot', function(Blueprint $table) {
 			$table->integer('user_id')->unsigned()->index();
 			$table->integer('group_id')->unsigned()->index();
 			$table->engine = 'InnoDB';

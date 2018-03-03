@@ -13,8 +13,7 @@ class CreateAdminUsers extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('admin_users', function(Blueprint $table)
-		{
+		Schema::create('admin_users', function(Blueprint $table) {
 			$table->increments('id');
 			$table->string('login');
 			$table->string('password');
