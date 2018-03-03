@@ -2050,7 +2050,7 @@ form .loadfile .reset {
 
 /* Media */
 
-@media (max-width: 1280px) {
+@media (max-width: 1200px) {
   .sidebar {
     display: none;
   }
