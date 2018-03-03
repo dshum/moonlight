@@ -106,13 +106,17 @@ $(function() {
     });
 
     $('.sidebar-toggler').click(function() {
-        var display = $('.sidebar').attr('display');
+        if (! $('.sidebar').length) return false;
+        
+        var display = $(this).attr('display');
 
         if (display == 'show') {
-            $('.sidebar').attr('display', 'hide').removeClass('moved');
+            $(this).attr('display', 'hide');
+            $('.sidebar').removeClass('moved');
             $('.main').removeClass('moved');
         } else {
-            $('.sidebar').attr('display', 'show').addClass('moved');
+            $(this).attr('display', 'show');
+            $('.sidebar').addClass('moved');
             $('.main').addClass('moved');
         }
     });

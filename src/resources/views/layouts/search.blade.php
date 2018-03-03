@@ -2,7 +2,7 @@
 
 @section('nav')
 <nav>
-    <div class="logo"><a href="{{ route('moonlight.home') }}">Moonlight</a></div>
+    <div class="logo"><span class="sidebar-toggler"><i class="fa fa-bars"></i></span><a href="{{ route('moonlight.home') }}">Moonlight</a></div>
     <ul class="menu">
         <li><a href="{{ route('moonlight.browse') }}">Страницы</a></li>
         <li class="search active"><a href="{{ route('moonlight.search') }}">Поиск</a></li>
