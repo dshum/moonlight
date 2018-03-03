@@ -189,13 +189,13 @@ class Item
 		return $this;
 	}
 
-	public function addTimestamps()
+	public function addTimestamps($readonly = true)
 	{
 		$this->
 		addProperty(
 			DatetimeProperty::create('created_at')->
 			setTitle('Создано')->
-            setReadonly(true)->
+            setReadonly($readonly)->
 			setShow(true)
 		)->
 		addProperty(
