@@ -28,9 +28,9 @@ class UserController extends Controller
         
 		$user = User::find($id);
         
-        if ( ! $loggedUser->hasAccess('admin')) {
+        if (! $loggedUser->hasAccess('admin')) {
             $scope['error'] = 'У вас нет прав на управление пользователями.';
-        } elseif ( ! $user) {
+        } elseif (! $user) {
             $scope['error'] = 'Пользователь не найден.';
         } elseif ($user->id == $loggedUser->id) {
             $scope['error'] = 'Нельзя удалить самого себя.';
@@ -73,7 +73,7 @@ class UserController extends Controller
         
         $loggedUser = Auth::guard('moonlight')->user();
         
-        if ( ! $loggedUser->hasAccess('admin')) {
+        if (! $loggedUser->hasAccess('admin')) {
             $scope['error'] = 'У вас нет прав на управление пользователями.';
         } else {
             $scope['error'] = null;
@@ -188,9 +188,9 @@ class UserController extends Controller
         
 		$user = User::find($id);
         
-        if ( ! $loggedUser->hasAccess('admin')) {
+        if (! $loggedUser->hasAccess('admin')) {
             $scope['error'] = 'У вас нет прав на управление пользователями.';
-        } elseif ( ! $user) {
+        } elseif (! $user) {
             $scope['error'] = 'Пользователь не найден.';
         } elseif ($user->id == $loggedUser->id) {
             $scope['error'] = 'Нельзя редактировать самого себя.';
@@ -296,7 +296,7 @@ class UserController extends Controller
         
         $loggedUser = Auth::guard('moonlight')->user();
         
-        if ( ! $loggedUser->hasAccess('admin')) {
+        if (! $loggedUser->hasAccess('admin')) {
             return redirect()->route('moonlight.home');
         }
         
@@ -320,13 +320,13 @@ class UserController extends Controller
         
         $loggedUser = Auth::guard('moonlight')->user();
         
-        if ( ! $loggedUser->hasAccess('admin')) {
+        if (! $loggedUser->hasAccess('admin')) {
             return redirect()->route('moonlight.home');
         }
         
         $user = User::find($id);
         
-        if ( ! $user) {
+        if (! $user) {
             return redirect()->route('moonlight.users');
         }
         
@@ -356,7 +356,7 @@ class UserController extends Controller
         
         $loggedUser = Auth::guard('moonlight')->user();
         
-        if ( ! $loggedUser->hasAccess('admin')) {
+        if (! $loggedUser->hasAccess('admin')) {
             return redirect()->route('moonlight.home');
         }
         

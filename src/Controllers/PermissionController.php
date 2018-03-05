@@ -117,15 +117,13 @@ class PermissionController extends Controller
         $loggedUser = Auth::guard('moonlight')->user();
 
         if (! $loggedUser->hasAccess('admin')) {
-            $scope['state'] = 'error_admin_access_denied';
-            return response()->json($scope);
+            return redirect()->route('moonlight.home');
         }
 
         $group = Group::find($id);
 
         if (! $group) {
-            $scope['state'] = 'error_group_not_found';
-            return response()->json($scope);
+            return redirect()->route('moonlight.groups');
         }
 
         $site = \App::make('site');
@@ -133,8 +131,7 @@ class PermissionController extends Controller
         $item = $site->getItemByName($class);
         
         if (! $item) {
-            $scope['state'] = 'error_item_not_found';
-            return response()->json($scope);
+            return redirect()->route('moonlight.groups');
         }
 
         $elementList =
@@ -274,7 +271,7 @@ class PermissionController extends Controller
         $group = Group::find($id);
 
         if (! $group) {
-            return redirect()->route('moonlight.group');
+            return redirect()->route('moonlight.groups');
         }
 
         $site = \App::make('site');

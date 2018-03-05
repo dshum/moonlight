@@ -617,7 +617,7 @@ div[item]::-webkit-scrollbar-thumb {
 
 div.item {
   display: table;
-  margin: 2rem 0 1rem 0;
+  margin: 2rem 0 0 0;
   min-width: 40rem;
 }
 
@@ -1244,7 +1244,7 @@ ul.pager > li.page input {
 
 .search-form {
   display: table;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   border-radius: 4px;
   background-color: #dee;
   padding: 1rem;

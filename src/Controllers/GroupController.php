@@ -39,9 +39,9 @@ class GroupController extends Controller
         
 		$group = Group::find($id);
         
-        if ( ! $loggedUser->hasAccess('admin')) {
+        if (! $loggedUser->hasAccess('admin')) {
             $scope['error'] = 'У вас нет прав на управление пользователями.';
-        } elseif ( ! $group) {
+        } elseif (! $group) {
             $scope['error'] = 'Группа не найдена.';
         } elseif ($loggedUser->inGroup($group)) {
             $scope['error'] = 'Нельзя удалить группу, в которой вы состоите.';
@@ -76,7 +76,7 @@ class GroupController extends Controller
         
         $loggedUser = Auth::guard('moonlight')->user();
         
-        if ( ! $loggedUser->hasAccess('admin')) {
+        if (! $loggedUser->hasAccess('admin')) {
             $scope['error'] = 'У вас нет прав на управление пользователями.';
         } else {
             $scope['error'] = null;
@@ -146,9 +146,9 @@ class GroupController extends Controller
         
 		$group = Group::find($id);
         
-        if ( ! $loggedUser->hasAccess('admin')) {
+        if (! $loggedUser->hasAccess('admin')) {
             $scope['error'] = 'У вас нет прав на управление пользователями.';
-        } elseif ( ! $group) {
+        } elseif (! $group) {
             $scope['error'] = 'Группа не найдена.';
         } elseif ($loggedUser->inGroup($group)) {
             $scope['error'] = 'Нельзя редактировать группу, в которой вы состоите.';
@@ -217,7 +217,7 @@ class GroupController extends Controller
         $loggedUser = Auth::guard('moonlight')->user();
         
         if ( ! $loggedUser->hasAccess('admin')) {
-            return redirect()->route('home');
+            return redirect()->route('moonlight.home');
         }
         
         $scope['group'] = null;
@@ -236,8 +236,8 @@ class GroupController extends Controller
         
         $loggedUser = Auth::guard('moonlight')->user();
         
-        if ( ! $loggedUser->hasAccess('admin')) {
-            return redirect()->route('home');
+        if (! $loggedUser->hasAccess('admin')) {
+            return redirect()->route('moonlight.home');
         }
         
         $group = Group::find($id);
@@ -263,7 +263,7 @@ class GroupController extends Controller
         $loggedUser = Auth::guard('moonlight')->user();
         
         if (! $loggedUser->hasAccess('admin')) {
-            return redirect()->route('home');
+            return redirect()->route('moonlight.home');
         }
         
         $groups = Group::orderBy('name', 'asc')->get();
