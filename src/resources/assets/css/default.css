@@ -602,16 +602,16 @@ div.path div.part a.edit .fa {
 
 /* Table header */
 
-div[item] {
+.main > .container > div[item] {
   overflow-x: auto;
 }
 
-div[item]::-webkit-scrollbar {
+.main > .container > div[item]::-webkit-scrollbar {
   width: 20px;
   background-color: rgba(127, 127, 127, 0.1);
 }
 
-div[item]::-webkit-scrollbar-thumb {
+.main > .container > div[item]::-webkit-scrollbar-thumb {
   background-color: rgba(150, 180, 210, 0.7);
 }
 

@@ -61,6 +61,16 @@ $(function() {
         $(this).toggleClass('active');
         $('.search-form-params div.block[name="' + name + '"]').toggleClass('active');
 
+        if (active) {
+            $('.search-form-params div.block[name="' + name + '"]')
+                .find('input, select')
+                .removeAttr('disabled');
+        } else {
+            $('.search-form-params div.block[name="' + name + '"]')
+                .find('input, select')
+                .attr('disabled', 'disabled');
+        }
+
         $.post('/moonlight/search/active/' + item + '/' + name, {
             active: active
         });
@@ -72,11 +82,18 @@ $(function() {
 
         $('.search-form-links div.link[name="' + name + '"]').removeClass('active');
         $('.search-form-params div.block[name="' + name + '"]').removeClass('active');
+        $('.search-form-params div.block[name="' + name + '"]')
+            .find('input, select')
+            .attr('disabled', 'disabled');
 
         $.post('/moonlight/search/active/' + item + '/' + name, {
             active: false
         });
     });
+
+    $('.search-form-params div.block[name]:not(.active)')
+        .find('input, select')
+        .attr('disabled', 'disabled');
 
     $('.search-form-params input[name].date').calendar({
         dateFormat: '%Y-%m-%d'
