@@ -15,8 +15,8 @@
 <style>
 body {background-image: url(/assets/background.jpg?{{ date('Y-m-d-H-00') }});}
 </style>
-<script src="/packages/moonlight/js/jquery-3.2.1.min.js"></script>
-<script src="/packages/moonlight/js/jquery.form.min.js"></script>
+<script src="/packages/moonlight/js/jquery/jquery-3.2.1.min.js"></script>
+<script src="/packages/moonlight/js/jquery/jquery.form.min.js"></script>
 <script src="/packages/moonlight/js/common.js"></script>
 @section('js')
 @show
