@@ -6,7 +6,7 @@
 @endsection
 
 @section('js')
-<script src="/packages/moonlight/js/password.js"></script>
+<script src="/packages/moonlight/js/password.min.js"></script>
 @endsection
 
 @section('body')

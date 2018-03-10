@@ -3,11 +3,11 @@
 @section('title', $group->name)
 
 @section('css')
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/permissions.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/permissions.min.css">
 @endsection
 
 @section('js')
-<script src="/packages/moonlight/js/permissions.js"></script>
+<script src="/packages/moonlight/js/permissions.min.js"></script>
 @endsection
 
 @section('body')

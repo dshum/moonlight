@@ -3,11 +3,11 @@
 @section('title', 'Избранное')
 
 @section('css')
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/favorites.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/favorites.min.css">
 @endsection
 
 @section('js')
-<script src="/packages/moonlight/js/favorites.js"></script>
+<script src="/packages/moonlight/js/favorites.min.js"></script>
 @endsection
 
 @section('body')

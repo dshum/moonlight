@@ -3,7 +3,7 @@
 @section('title', 'Moonlight')
 
 @section('js')
-<script src="/packages/moonlight/js/login.js"></script>
+<script src="/packages/moonlight/js/login.min.js"></script>
 @endsection
 
 @section('content')

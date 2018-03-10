@@ -3,11 +3,11 @@
 @section('title', 'Журнал')
 
 @section('css')
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/log.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/log.min.css">
 @endsection
 
 @section('js')
-<script src="/packages/moonlight/js/log.js"></script>
+<script src="/packages/moonlight/js/log.min.js"></script>
 @endsection
 
 @section('body')

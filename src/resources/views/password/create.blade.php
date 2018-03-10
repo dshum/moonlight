@@ -3,7 +3,7 @@
 @section('title', 'Сброс пароля')
 
 @section('js')
-<script src="/packages/moonlight/js/reset.js"></script>
+<script src="/packages/moonlight/js/reset.min.js"></script>
 @endsection
 
 @section('content')

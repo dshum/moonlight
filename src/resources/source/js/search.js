@@ -10,6 +10,7 @@ $(function() {
             var parent = $(this).parents('div.row');
             var relatedItem = $(this).attr('item');
             var name = $(this).attr('property');
+            var width = $(this).outerWidth() - 2;
     
             $(this).autocomplete({
                 serviceUrl: '/moonlight/elements/autocomplete',
@@ -23,12 +24,13 @@ $(function() {
                     parent.find('input:hidden[name="' + name + '"]').val(suggestion.id);
                     parent.find('span[container][name="' + name + '"]').html(suggestion.value);
                 },
+                width: width,
                 minChars: 0
             });
         });
     };
 
-    var getElements = function(item, addition = null) {
+    var getElements = function(item, addition) {
         var params = {
             item: item
         };
@@ -152,6 +154,7 @@ $(function() {
         var parent = $(this).parents('div.row');
         var item = $(this).attr('item');
         var name = $(this).attr('property');
+        var width = $(this).outerWidth() - 2;
 
         $(this).autocomplete({
             serviceUrl: '/moonlight/elements/autocomplete',
@@ -164,6 +167,7 @@ $(function() {
             onSelect: function (suggestion) {
                 parent.find('input:hidden[name="' + name + '"]').val(suggestion.id);
             },
+            width: width,
             minChars: 0
         });
     });

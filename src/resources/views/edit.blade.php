@@ -3,12 +3,12 @@
 @section('title', $element->$mainProperty)
 
 @section('css')
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/edit.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/edit.min.css">
 @endsection
 
 @section('js')
 <script src="/packages/moonlight/js/tinymce/js/tinymce/tinymce.min.js"></script>
-<script src="/packages/moonlight/js/edit.js"></script>
+<script src="/packages/moonlight/js/edit.min.js"></script>
 @endsection
 
 @section('body')

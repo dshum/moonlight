@@ -5,7 +5,7 @@ jQuery.expr[':'].contains = function(a, i, m) {
 $(function() {
     var checked = {};
 
-    var getElements = function(item, addition = null) {
+    var getElements = function(item, addition) {
         var params = {
             item: item
         };
@@ -103,6 +103,7 @@ $(function() {
         var parent = $(this).parents('div.row');
         var item = $(this).attr('item');
         var name = $(this).attr('property');
+        var width = $(this).outerWidth() - 2;
 
         $(this).autocomplete({
             serviceUrl: '/moonlight/elements/autocomplete',
@@ -112,6 +113,7 @@ $(function() {
             onSelect: function (suggestion) {
                 parent.find('input:hidden[name="' + name + '"]').val(suggestion.id);
             },
+            width: width,
             minChars: 0
         });
     });

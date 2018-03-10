@@ -3,11 +3,11 @@
 @section('title', 'Поиск')
 
 @section('css')
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/search.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/search.min.css">
 @endsection
 
 @section('js')
-<script src="/packages/moonlight/js/search.js"></script>
+<script src="/packages/moonlight/js/search.min.js"></script>
 @endsection
 
 @section('body')

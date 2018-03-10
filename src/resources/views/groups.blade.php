@@ -3,11 +3,11 @@
 @section('title', 'Группы')
 
 @section('css')
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/groups.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/groups.min.css">
 @endsection
 
 @section('js')
-<script src="/packages/moonlight/js/groups.js"></script>
+<script src="/packages/moonlight/js/groups.min.js"></script>
 @endsection
 
 @section('body')

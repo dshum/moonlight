@@ -3,11 +3,11 @@
 @section('title', 'Пользователи')
 
 @section('css')
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/users.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/users.min.css">
 @endsection
 
 @section('js')
-<script src="/packages/moonlight/js/users.js"></script>
+<script src="/packages/moonlight/js/users.min.js"></script>
 @endsection
 
 @section('body')

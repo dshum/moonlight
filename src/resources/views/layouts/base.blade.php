@@ -7,10 +7,10 @@
 <title>@yield('title')</title>
 <link rel="shortcut icon" href="/packages/moonlight/img/moonlight16.png" type="image/x-icon">
 <link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/font-awesome.min.css">
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/default.css">
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/loader.css">
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/js/calendar/jquery.calendar.css">
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/js/autocomplete/jquery.autocomplete.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/default.min.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/loader.min.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/calendar.min.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/autocomplete.min.css">
 @section('css')
 @show
 @if (isset($styles))
@@ -22,8 +22,8 @@
 <script src="/packages/moonlight/js/jquery/jquery.form.min.js"></script>
 <script src="/packages/moonlight/js/autocomplete/jquery.autocomplete.min.js"></script>
 <script src="/packages/moonlight/js/sortable/sortable.min.js"></script>
-<script src="/packages/moonlight/js/calendar/jquery.calendar.js"></script>
-<script src="/packages/moonlight/js/common.js"></script>
+<script src="/packages/moonlight/js/calendar/jquery.calendar.min.js"></script>
+<script src="/packages/moonlight/js/common.min.js"></script>
 @section('js')
 @show
 @if (isset($scripts))

@@ -3,11 +3,11 @@
 @section('title', 'Корзина')
 
 @section('css')
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/trash.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/trash.min.css">
 @endsection
 
 @section('js')
-<script src="/packages/moonlight/js/trash.js"></script>
+<script src="/packages/moonlight/js/trash.min.js"></script>
 @endsection
 
 @section('body')

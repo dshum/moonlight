@@ -3,11 +3,11 @@
 @section('title', $element->$mainProperty)
 
 @section('css')
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/trashed.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/trashed.min.css">
 @endsection
 
 @section('js')
-<script src="/packages/moonlight/js/trashed.js"></script>
+<script src="/packages/moonlight/js/trashed.min.js"></script>
 @endsection
 
 @section('body')

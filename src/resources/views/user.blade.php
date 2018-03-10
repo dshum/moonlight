@@ -3,7 +3,7 @@
 @section('title', $user ? $user->login : 'Новый пользователь')
 
 @section('js')
-<script src="/packages/moonlight/js/user.js"></script>
+<script src="/packages/moonlight/js/user.min.js"></script>
 @endsection
 
 @section('body')

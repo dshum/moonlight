@@ -3,11 +3,11 @@
 @section('title', 'Moonlight')
 
 @section('css')
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/home.css">
+<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/home.min.css">
 @endsection
 
 @section('js')
-<script src="/packages/moonlight/js/home.js"></script>
+<script src="/packages/moonlight/js/home.min.js"></script>
 @endsection
 
 @section('body')
