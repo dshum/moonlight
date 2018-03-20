@@ -955,7 +955,7 @@ class BrowseController extends Controller
         }
 
 		if (isset($scope['restricted'])) {
-            $scope['error'] = 'Сначала удалите вложенные элементы следующих элементов:<br>'
+            $scope['error'] = 'Сначала удалите элементы, связанные со следующими элементами:<br>'
                 .implode('<br>', $scope['restricted']);
             
             return response()->json($scope);
@@ -981,6 +981,8 @@ class BrowseController extends Controller
             if (cache()->has("trash_item_{$currentItem->getNameId()}")) {
                 cache()->forget("trash_item_{$currentItem->getNameId()}");
             }
+        } else {
+            $scope['error'] = 'Не удалось удалить элемент.';
         }
         
         return response()->json($scope);

@@ -352,7 +352,7 @@ class EditController extends Controller
 						count();
 
 					if ($count) {
-                        $scope['error'] = 'Сначала удалите вложенные элементы.';
+                        $scope['error'] = 'Сначала удалите связанные элементы.';
             
                         return response()->json($scope);
                     }
