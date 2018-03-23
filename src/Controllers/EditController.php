@@ -427,7 +427,7 @@ class EditController extends Controller
             
             $value = $property->setRequest($request)->buildInput();
 
-			if ($value) $inputs[$propertyName] = $value;
+			if ($value !== null) $inputs[$propertyName] = $value;
             
             foreach ($property->getRules() as $rule => $message) {
                 $rules[$propertyName][] = $rule;
@@ -553,7 +553,7 @@ class EditController extends Controller
             
             $value = $property->setRequest($request)->buildInput();
             
-            if ($value) $inputs[$propertyName] = $value;
+            if ($value !== null) $inputs[$propertyName] = $value;
 
 			foreach ($property->getRules() as $rule => $message) {
                 $rules[$propertyName][] = $rule;
