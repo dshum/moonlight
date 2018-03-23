@@ -215,7 +215,7 @@ class BrowseController extends Controller
                 $name = $property->getName();
                 $value = $editing[$element->id][$property->getName()];
 
-                if ($value) $inputs[$name] = $value;
+                if ($value !== null) $inputs[$name] = $value;
 
                 foreach ($property->getRules() as $rule => $message) {
                     $rules[$name][] = $rule;
