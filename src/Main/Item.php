@@ -196,7 +196,7 @@ class Item
 			DatetimeProperty::create('created_at')->
 			setTitle('Создано')->
 			setReadonly($readonly)->
-			setFillNow()->
+			setRequired()->
 			setShow(true)
 		)->
 		addProperty(

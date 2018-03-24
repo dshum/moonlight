@@ -1,20 +1,43 @@
-<label>{{ $title }}:</label>
 @if ($readonly && $value)
-{{ $value->format('H:i:s') }}
+<div>
+    <label>{{ $title }}:</label> {{ $value->format('H:i:s') }}
+</div>
 @elseif ($readonly)
-<span class="grey">Не определено</span>
+<div>
+    <label>{{ $title }}:</label> Не определено
+</div>
 @else
-<script>
-$(function() {
-    $('span[name="{{ $name }}"][reset]').click(function() { 
-        $(':text[name="{{ $name }}_hour"]').val('');
-        $(':text[name="{{ $name }}_minute"]').val('');
-        $(':text[name="{{ $name }}_second"]').val('');
-    });
-});
-</script>
-<input type="text" name="{{ $name }}_hour" class="time" value="{{ $value ? $value->format('H') : null }}"> : 
-<input type="text" name="{{ $name }}_minute" class="time" value="{{ $value ? $value->format('i') : null }}"> : 
-<input type="text" name="{{ $name }}_second" class="time" value="{{ $value ? $value->format('s') : null }}">
-<span class="reset" name="{{ $name }}" reset>&#215;</span>
+<input type="hidden" name="{{ $name }}" property="{{ $name }}" value="{{ $value ? $value->format('H:i:s') : '' }}" class="time">
+<div>
+    <label>{{ $title }}:</label>
+    <span class="datetime-container" property="{{ $name }}">
+    @if ($value)
+    <span class="timepicker" property="{{ $name }}">{{ $value->format('H:i:s') }}</span>
+    @else
+    <span class="timepicker" property="{{ $name }}">Не определено</span>
+    @endif
+    </span>
+    <span name="{{ $name }}" class="error"></span>
+</div>
+<div class="timepicker-popup" property="{{ $name }}">
+    <div class="block">
+        <div class="title hours">Часы</div>
+        <table class="hours">
+            @for ($i = 0; $i < 6; $i++)<tr>@for ($j = 0; $j < 4; $j++)<td value="{{ sprintf('%02d', $i * 4 + $j) }}" class="{{ $value && $value->format('H') == $i * 4 + $j ? 'active' : '' }}">{{ sprintf('%02d', $i * 4 + $j) }}</td>@endfor</tr>@endfor
+        </table>
+    </div>
+    <div class="block">
+        <div class="title minutes">Минуты</div>
+        <table class="minutes">
+            @for ($i = 0; $i < 6; $i++)<tr>@for ($j = 0; $j < 10; $j++)<td value="{{ sprintf('%02d', $i * 10 + $j) }}" class="{{ $j % 5 ? 'add hide' : '' }} {{ $value && $value->format('i') == $i * 10 + $j ? 'active' : '' }}">{{ sprintf('%02d', $i * 10 + $j) }}</td>@endfor</tr>@endfor
+        </table>
+    </div>
+    <div class="block">
+        <div class="title seconds">Секунды</div>
+        <table class="seconds">
+            @for ($i = 0; $i < 6; $i++)<tr>@for ($j = 0; $j < 10; $j++)<td value="{{ sprintf('%02d', $i * 10 + $j) }}" class="{{ $j % 5 ? 'add hide' : '' }} {{ $value && $value->format('s') == $i * 10 + $j ? 'active' : '' }}">{{ sprintf('%02d', $i * 10 + $j) }}</td>@endfor</tr>
+            @endfor
+        </table>
+    </div>
+</div>
 @endif

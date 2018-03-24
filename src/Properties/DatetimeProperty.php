@@ -114,15 +114,13 @@ class DatetimeProperty extends BaseProperty
         $name = $this->getName();
         
         $date = $request->input($name.'_date');
-        $hours = $request->input($name.'_hours');
-        $minutes = $request->input($name.'_minutes');
-        $seconds = $request->input($name.'_seconds');
+        $time = $request->input($name.'_time');
         
         if ( ! mb_strlen($date)) $date = null;
         if ( $date === 'null') $date = null;
 
         $value = $date
-            ? $date.' '.$hours.':'.$minutes.':'.$seconds
+            ? $date.' '.$time
             : null;
         
         return $value;

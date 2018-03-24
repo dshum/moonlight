@@ -2,8 +2,32 @@ $(function() {
     var element = {};
 
     var init = function() {
-        $('input[name].date').calendar({
-            dateFormat: '%Y-%m-%d'
+        $('input.date[property]').each(function() {
+            var dateInput = $(this);
+            var name = dateInput.attr('property');
+            var timeInput = $('input.time[property="' + name +'"]');
+            var datepicker = $('.datepicker[property="' + name + '"]');
+            var datetimeContainer = $('.datetime-container[property="' + name + '"]');
+            var popup = $('.timepicker-popup[property="' + name +'"]');
+
+            dateInput.calendar({
+                triggerElement: '.datepicker[property="' + name + '"]',
+                dateFormat: '%Y-%m-%d',
+                selectHandler: function() {
+                    datepicker.html(this.date.print('%d.%m.%Y'));
+                    dateInput.val(this.date.print(this.dateFormat));
+
+                    if (! timeInput.val()) {
+                        timeInput.val('00:00:00');
+
+                        popup.find('table.hours td[value="00"]').addClass('active');
+                        popup.find('table.minutes td[value="00"]').addClass('active');
+                        popup.find('table.seconds td[value="00"]').addClass('active');
+
+                        datepicker.after(', <span class="timepicker" property="' + name + '">' + timeInput.val() + '</span>');
+                    }
+                }
+            });
         });
 
         $('input.one').each(function() {
@@ -52,37 +76,87 @@ $(function() {
                 minChars: 0
             });
         });
+    };
 
-        $('.addition.unset[property]').click(function() {
-            var parent = $(this).parents('div.row');
-            var name = $(this).attr('property');
-    
-            parent.find('input:hidden[name="' + name + '"]').val('');
-            parent.find('input:text[name="' + name + '_autocomplete"]').val('');
-            parent.find('span[container][name="' + name + '"]').html('Не определено');
-        });
+    $('body').on('click', '.timepicker[property]', function(event) {
+        event.stopPropagation();
 
-        $('.addition.add[property]').click(function() {
-            var parent = $(this).parents('div.row');
-            var name = $(this).attr('property');
-            var elements = $('.many.elements[name="' + name + '"]');
-    
-            if (element.id) {
-                var checkbox = $('input:checkbox[name="' + name + '[]"][id="' + element.classId + '"]');
+        var timepicker = $(this);
+        var name = timepicker.attr('property');
+        var popup = $('.timepicker-popup[property="' + name +'"]');
+        var timeInput = $('input.time[property="' + name +'"]');
+        var main = $('.main');
+        var left = timepicker.offset().left - main.offset().left;
+        var top = timepicker.offset().top - main.offset().top;
 
-                if (checkbox.length) {
-                    checkbox.prop('checked', true);
-                } else {
-                    elements.append('<p><input type="checkbox" name="' + name + '[]" id="' + element.classId + '" checked value="' + element.id + '"><label for="' + element.classId + '">' + element.value + '</label></p>');
-                }
+        popup.css({
+            left: left + 'px',
+            top: top + 'px'
+        }).fadeToggle(200);
+    });
 
-                element = {};
+    $('body').on('click', '.timepicker-popup', function(event) {
+        event.stopPropagation();
+    });
+
+    $('body').on('click', '.timepicker-popup .title.minutes', function(event) {
+        $('.timepicker-popup table.minutes td.add').toggleClass('hide');
+    });
+
+    $('body').on('click', '.timepicker-popup .title.seconds', function(event) {
+        $('.timepicker-popup table.seconds td.add').toggleClass('hide');
+    });
+
+    $('body').on('click', '.timepicker-popup table.hours td, .timepicker-popup table.minutes td, .timepicker-popup table.seconds td', function(event) {
+        var td = $(this);
+        var table = td.parents('table');
+        var popup = td.parents('.timepicker-popup');
+        var name = popup.attr('property');
+        var value = td.text();
+        var timeInput = $('input.time[property="' + name + '"]');
+        var timepicker = $('.timepicker[property="' + name + '"]');
+
+        table.find('td.active').removeClass('active');
+        td.addClass('active');
+
+        var hours = popup.find('table.hours td.active').text();
+        var minutes = popup.find('table.minutes td.active').text();
+        var seconds = popup.find('table.seconds td.active').text();
+        var time = hours + ':' + minutes + ':' + seconds;
+
+        timepicker.html(time);
+        timeInput.val(time);
+    });
+
+    $('body').on('click', '.addition.unset[property]', function(event) {
+        var parent = $(this).parents('div.row');
+        var name = $(this).attr('property');
+
+        parent.find('input:hidden[name="' + name + '"]').val('');
+        parent.find('input:text[name="' + name + '_autocomplete"]').val('');
+        parent.find('span[container][name="' + name + '"]').html('Не определено');
+    });
+
+    $('body').on('click', '.addition.add[property]', function(event) {
+        var parent = $(this).parents('div.row');
+        var name = $(this).attr('property');
+        var elements = $('.many.elements[name="' + name + '"]');
+
+        if (element.id) {
+            var checkbox = $('input:checkbox[name="' + name + '[]"][id="' + element.classId + '"]');
+
+            if (checkbox.length) {
+                checkbox.prop('checked', true);
+            } else {
+                elements.append('<p><input type="checkbox" name="' + name + '[]" id="' + element.classId + '" checked value="' + element.id + '"><label for="' + element.classId + '">' + element.value + '</label></p>');
             }
 
-            parent.find('input:text[name="' + name + '_autocomplete"]').val('');
-            parent.find('span[container][name="' + name + '"]').html('');
-        });
-    };
+            element = {};
+        }
+
+        parent.find('input:text[name="' + name + '_autocomplete"]').val('');
+        parent.find('span[container][name="' + name + '"]').html('');
+    });
 
     $('body').on('change', '.loadfile :file', function(e) {
         var name = $(this).attr('name');

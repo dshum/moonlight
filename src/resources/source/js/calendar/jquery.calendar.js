@@ -336,7 +336,6 @@
 		},
 
 		create: function(parent) {
-
 			// If no parent was specified, assume that we are creating a popup calendar.
 			this.isPopup = false;
 			if (!parent) {
@@ -361,7 +360,7 @@
 			row = $('<tr />');
 			this._drawButtonCell(row, '&#x00ab;', 1, Calendar.NAV_PREVIOUS_YEAR);
 			this._drawButtonCell(row, '&#x2039;', 1, Calendar.NAV_PREVIOUS_MONTH);
-			this._drawButtonCell(row, Calendar.TODAY,    3, Calendar.NAV_TODAY);
+			this._drawButtonCell(row, Calendar.TODAY, 3, Calendar.NAV_TODAY);
 			this._drawButtonCell(row, '&#x203a;', 1, Calendar.NAV_NEXT_MONTH);
 			this._drawButtonCell(row, '&#x00bb;', 1, Calendar.NAV_NEXT_YEAR);
 			thead.append(row);
@@ -458,7 +457,7 @@
 		 */
 		show: function() {
 			this.callShowHandler();
-			this.container.show();
+			this.container.fadeIn(200);
 			if (this.isPopup) {
 				window._popupCalendar = this;
 				$(document).mousedown(Calendar._checkCalendar);
@@ -494,7 +493,7 @@
 			if (this.isPopup) {
 				$(document).unbind('mousedown', Calendar._checkCalendar);
 			}
-			this.container.hide();
+			this.container.fadeOut(200);
 		},
 
 		/**

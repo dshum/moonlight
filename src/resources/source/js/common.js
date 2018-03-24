@@ -72,6 +72,7 @@ $(function() {
     }).click(function() {
         $('nav .dropdown').fadeOut(200);
         $('.sidebar .contextmenu').fadeOut(200);
+        $('.main .timepicker-popup').fadeOut(200);
     }).contextmenu(function() {
         $('nav .dropdown').fadeOut(200);
         $('.sidebar .contextmenu').fadeOut(200);

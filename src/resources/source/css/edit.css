@@ -5,7 +5,7 @@ div.external-link .fa {
   width: 1rem;
   color: rgb(75, 135, 75);
 }
-
+  
 div.item {
   display: none;
 }
@@ -46,4 +46,79 @@ div.item.active ul.header li.h2 span {
 
 .btn.move {
   background-color: seagreen;
+}
+
+.datepicker {
+  border-bottom: 1px dashed black;
+  cursor: hand;
+}
+
+.timepicker {
+  border-bottom: 1px dashed black;
+  cursor: hand;
+}
+
+div.calendar.popup {
+  margin-top: 1.5rem;
+}
+
+div.timepicker-popup {
+  display: none;
+  position: absolute;
+  z-index: 9999;
+  margin-top: 1.5rem;
+  box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
+  border: none;
+  border-collapse: separate;
+  border-spacing: 1px;
+  background-color: white;
+  padding: 0;
+}
+
+div.timepicker-popup .block {
+  display: inline-block;
+  margin: 1rem;
+}
+
+div.timepicker-popup .block .title {
+  display: inline-block;
+  font-size: 1rem;
+}
+
+div.timepicker-popup .block .title.minutes,
+div.timepicker-popup .block .title.seconds {
+  border-bottom: 1px dashed black;
+  cursor: pointer;
+}
+
+div.timepicker-popup .block table {
+  margin-top: 0.5rem;
+  margin-left: -0.5rem;
+  border-collapse: collapse;
+  font-size: 1rem;
+}
+
+div.timepicker-popup .block table tr {
+  vertical-align: middle;
+}
+
+div.timepicker-popup .block table td {
+  border: 1px solid transparent;
+  padding: 0.5rem;
+  cursor: pointer;
+  text-align: center;
+}
+
+div.timepicker-popup .block table td:hover {
+  border-color: #ff7e00;
+}
+
+div.timepicker-popup .block table td.active {
+  background-color: royalblue;
+  color: white;
+  font-weight: bold;
+}
+
+div.timepicker-popup .block table td.hide {
+  display: none;
 }
