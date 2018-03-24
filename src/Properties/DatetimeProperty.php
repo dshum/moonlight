@@ -25,9 +25,9 @@ class DatetimeProperty extends BaseProperty
 		return new self($name);
 	}
 
-	public function setFillNow()
+	public function setFillNow($fillNow = true)
 	{
-		$this->fillNow = true;
+		$this->fillNow = $fillNow;
 
 		return $this;
 	}

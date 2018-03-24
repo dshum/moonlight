@@ -25,7 +25,7 @@ class TimeProperty extends BaseProperty
 		return new self($name);
 	}
 
-	public function setFillNow($fillNow)
+	public function setFillNow($fillNow = true)
 	{
 		$this->fillNow = $fillNow;
 
