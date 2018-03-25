@@ -29,14 +29,15 @@ class MainProperty extends BaseProperty
     public function set()
 	{
         $name = $this->getName();
+        $item = $this->getItem();
         $value = $this->buildInput();
 
         if ($value) {
             $this->element->$name = $value;
         } else {
             $this->element->$name = $this->element->id
-                ? Element::getClassId($this->element)
-                : 'Element';
+                ? $item->getTitle().'.'.$this->element->id
+                : $item->getTitle();
         }
 
 		return $this;
