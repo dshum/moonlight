@@ -31,7 +31,9 @@
         </div>
         @endif
         @if ($browsePluginView)
+        <div class="browse-plugin">
             {!! $browsePluginView !!}
+        </div>
         @endif
         @foreach ($items as $item)
         <div classId="{{ $classId }}" item="{{ $item['id'] }}"></div>
