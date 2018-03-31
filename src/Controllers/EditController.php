@@ -763,6 +763,11 @@ class EditController extends Controller
         $scope['editPluginView'] = $editPluginView;
         $scope['views'] = $views;
         $scope['rubrics'] = $rubrics;
+
+        view()->share([
+            'styles' => $styles,
+            'scripts' => $scripts,
+        ]);
         
         return view('moonlight::create', $scope);
     }
