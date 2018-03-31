@@ -28,10 +28,17 @@
             <a href="{{ $element->getHref() }}" target="_blank"><i class="fa fa-external-link"></i>Смотреть на сайте</a>
         </div>
         @endif
+        @if ($itemPluginView)
+        <div class="item-plugin">
+            {!! $itemPluginView !!}
+        </div>
+        @endif
+        @if ($editPluginView)
+        <div class="edit-plugin">
+            {!! $editPluginView !!}
+        </div>
+        @endif
         <div class="item active">
-            @if ($itemPluginView)
-                {!! $itemPluginView !!}
-            @endif
             <ul class="header">
                 <li class="h2"><span>Редактирование элемента типа &laquo;{{ $currentItem->getTitle() }}&raquo;</span></li>
             </ul>

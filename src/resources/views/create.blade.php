@@ -23,6 +23,16 @@
             @endforeach
             <div class="part"><span>Новый элемент</span></div>
         </div>
+        @if ($itemPluginView)
+        <div class="item-plugin">
+            {!! $itemPluginView !!}
+        </div>
+        @endif
+        @if ($editPluginView)
+        <div class="edit-plugin">
+            {!! $editPluginView !!}
+        </div>
+        @endif
         <div class="item active">
             <ul class="header">
                 <li class="h2"><span>Создание элемента типа &laquo;{{ $currentItem->getTitle() }}&raquo;</span></li>
