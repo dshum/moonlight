@@ -670,6 +670,61 @@ class EditController extends Controller
             }
         }
 
+        $styles = [];
+        $scripts = [];
+
+        /*
+         * Item styles and scripts
+         */
+
+        $styles = array_merge($styles, $site->getItemStyles($class));
+        $scripts = array_merge($scripts, $site->getItemScripts($class));
+
+        /*
+         * Item plugin
+         */
+        
+        $itemPluginView = null;
+         
+        $itemPlugin = $site->getItemPlugin($class);
+
+        if ($itemPlugin) {
+            $view = \App::make($itemPlugin)->index($currentItem);
+
+            if ($view) {
+                $itemPluginView = is_string($view)
+                    ? $view : $view->render();
+            }
+        }
+
+        /*
+         * Edit styles and scripts
+         */
+
+        $styles = array_merge($styles, $site->getEditStyles($class));
+        $scripts = array_merge($scripts, $site->getEditScripts($class));
+
+        /*
+         * Edit plugin
+         */
+        
+        $editPluginView = null;
+         
+        $editPlugin = $site->getEditPlugin($class);
+
+        if ($editPlugin) {
+            $view = \App::make($editPlugin)->index($element);
+
+            if ($view) {
+                $editPluginView = is_string($view)
+                    ? $view : $view->render();
+            }
+        }
+
+        /*
+         * Views
+         */
+
         $propertyList = $currentItem->getPropertyList();
 
         $properties = [];
@@ -704,6 +759,8 @@ class EditController extends Controller
         $scope['element'] = $element;
         $scope['parents'] = $parents;
         $scope['currentItem'] = $currentItem;
+        $scope['itemPluginView'] = $itemPluginView;
+        $scope['editPluginView'] = $editPluginView;
         $scope['views'] = $views;
         $scope['rubrics'] = $rubrics;
         
