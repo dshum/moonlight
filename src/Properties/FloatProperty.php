@@ -44,6 +44,15 @@ class FloatProperty extends BaseProperty
 		return $query;
 	}
 
+	public function buildInput()
+    {
+        $value = parent::buildInput();
+
+		$value = str_replace(',', '.', $value);
+        
+        return $value;
+    }
+
 	public function getEditableView()
 	{
 		$scope = array(
