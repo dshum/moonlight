@@ -20,7 +20,6 @@ use Moonlight\Properties\FileProperty;
 use Moonlight\Properties\ImageProperty;
 use Moonlight\Properties\ManyToManyProperty;
 use Moonlight\Properties\PasswordProperty;
-use Moonlight\Properties\PluginProperty;
 use Moonlight\Properties\VirtualProperty;
 use Carbon\Carbon;
 
@@ -355,7 +354,6 @@ class BrowseController extends Controller
 
                 if (
                     $property instanceof ManyToManyProperty
-                    || $property instanceof PluginProperty
                     || $property instanceof VirtualProperty
                 ) {
                     continue;
@@ -374,6 +372,12 @@ class BrowseController extends Controller
                 if (
                     $property instanceof ImageProperty
                     && ! $property->getRequired()
+                ) continue;
+
+                if (
+                    $propertyName == 'created_at'
+                    || $propertyName == 'updated_at'
+                    || $propertyName == 'deleted_at'
                 ) continue;
     
                 if (
