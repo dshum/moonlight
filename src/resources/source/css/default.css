@@ -275,6 +275,23 @@ nav .avatar img {
   border-radius: 50%;
 }
 
+nav .avatar .round-letter {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 4rem;
+  font-family: sans-serif;
+  font-size: 2rem;
+  background-color: silver;
+  color: white;
+  overflow: hidden;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 nav .dropdown {
   display: none;
   position: absolute;
@@ -1525,11 +1542,10 @@ ul.pager > li.page input {
   line-height: 25px;
   font-size: 1rem;
   transition: .28s ease;
-  /* webkit (konqueror) browsers */
   -webkit-user-select: none;
-   -moz-user-select: none;
-    -ms-user-select: none;
-      user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 [type="radio"] + label:before,
@@ -1616,13 +1632,9 @@ ul.pager > li.page input {
   line-height: 25px;
   font-size: 1rem;
   -webkit-user-select: none;
-  /* webkit (safari, chrome) browsers */
   -moz-user-select: none;
-  /* mozilla browsers */
-  -khtml-user-select: none;
-  /* webkit (konqueror) browsers */
   -ms-user-select: none;
-  /* IE10+ */
+  user-select: none;
 }
 
 [type="checkbox"] + label:before {

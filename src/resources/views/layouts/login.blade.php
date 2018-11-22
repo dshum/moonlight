@@ -5,7 +5,6 @@
 <meta name="msapplication-tap-highlight" content="no">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>@yield('title')</title>
-<link rel="shortcut icon" href="/packages/moonlight/img/moonlight16.png" type="image/x-icon">
 <link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/font-awesome.min.css">
 <link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/default.min.css">
 <link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/loader.min.css">

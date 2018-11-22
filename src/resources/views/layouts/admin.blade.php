@@ -15,7 +15,7 @@
         @if ($loggedUser->photoExists())
         <img src="{{ $loggedUser->getPhotoSrc() }}">
         @else
-        <img src="/packages/moonlight/img/avatar.png">
+        <div class="round-letter" style="background-color: #{{ $loggedUser->getHexColor() }}">{{ mb_strtoupper(mb_substr($loggedUser->login, 0, 1)) }}</div>
         @endif
     </div>
     <div class="dropdown">

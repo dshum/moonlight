@@ -11,8 +11,10 @@
             <li>
                 @if ($userAction->user && $userAction->user->photoExists())
                 <div class="avatar"><img src="{{ $userAction->user->getPhotoSrc() }}" /></div>
+                @elseif ($userAction->user)
+                <div class="avatar"><div class="round-letter" style="background-color: #{{ $userAction->user->getHexColor() }}">{{ mb_strtoupper(mb_substr($userAction->user->login, 0, 1)) }}</div></div>
                 @else
-                <div class="avatar"><img src="/packages/moonlight/img/avatar.png" /></div>
+                <div class="avatar"><div class="round-letter">?</div></div>
                 @endif
                 <div class="date">{{ $userAction->created_at->format('d.m.Y') }}<br><span class="time">{{ $userAction->created_at->format('H:i:s') }}</span></div>
                 @if ($userAction->user)

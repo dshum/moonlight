@@ -298,5 +298,13 @@ class User extends Authenticatable
 			&& file_exists($this->getPhotoAbsPath())
             ? asset($this->getFolder().DIRECTORY_SEPARATOR.$this->getPhoto())
             : null;
-    }
+	}
+	
+	public function getHexColor()
+	{
+		$code = base_convert(crc32($this->login), 10, 12);
+		$code = substr($code, 0, 6);
+
+		return $code;
+	}
 }
