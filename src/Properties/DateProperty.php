@@ -50,10 +50,6 @@ class DateProperty extends BaseProperty
 		if ( ! $this->value && $this->getFillNow()) {
 			$this->value = Carbon::today();
 		}
-        
-        if ($this->value) {
-            $this->value = $this->value->format('c');
-        }
 
 		return $this;
 	}
