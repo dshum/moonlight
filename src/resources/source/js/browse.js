@@ -870,7 +870,7 @@ $(function() {
             if (page < 1) page = 1;
             if (page > last) page = last;
 
-            getElements(item, classId, page);
+            getElements(item, classId, {page: page});
         }
     });
 
