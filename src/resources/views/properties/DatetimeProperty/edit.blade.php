@@ -7,7 +7,7 @@
     <label>{{ $title }}:</label> Не определено
 </div>
 @else
-<input type="hidden" name="{{ $name }}_date" property="{{ $name }}" value="{{ $value ? $value->format('Y-m-d') : '' }}" class="date">
+<input type="hidden" name="{{ $name }}_date" property="{{ $name }}" value="{{ $value ? $value->format('Y-m-d') : '' }}" class="datetime">
 <input type="hidden" name="{{ $name }}_time" property="{{ $name }}" value="{{ $value ? $value->format('H:i:s') : '' }}" class="time">
 <div>
     <label>{{ $title }}:</label>

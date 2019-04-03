@@ -2,12 +2,11 @@ $(function() {
     var element = {};
 
     var init = function() {
-        $('input.date[property]').each(function() {
+        $('input.datetime[property]').each(function() {
             var dateInput = $(this);
             var name = dateInput.attr('property');
             var timeInput = $('input.time[property="' + name +'"]');
             var datepicker = $('.datepicker[property="' + name + '"]');
-            var datetimeContainer = $('.datetime-container[property="' + name + '"]');
             var popup = $('.timepicker-popup[property="' + name +'"]');
 
             dateInput.calendar({
@@ -26,6 +25,21 @@ $(function() {
 
                         datepicker.after(', <span class="timepicker" property="' + name + '">' + timeInput.val() + '</span>');
                     }
+                }
+            });
+        });
+
+        $('input.date[property]').each(function() {
+            var dateInput = $(this);
+            var name = dateInput.attr('property');
+            var datepicker = $('.datepicker[property="' + name + '"]');
+
+            dateInput.calendar({
+                triggerElement: '.datepicker[property="' + name + '"]',
+                dateFormat: '%Y-%m-%d',
+                selectHandler: function() {
+                    datepicker.html(this.date.print('%d.%m.%Y'));
+                    dateInput.val(this.date.print(this.dateFormat));
                 }
             });
         });
