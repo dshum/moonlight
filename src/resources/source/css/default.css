@@ -383,7 +383,8 @@ nav .dropdown ul > li span {
   white-space: normal;
 }
 
-.sidebar ul li.active a {
+.sidebar ul li.active > span.wrap > a
+.sidebar ul li.active > a {
   color: dodgerblue;
 }
 
