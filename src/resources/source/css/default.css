@@ -373,8 +373,14 @@ nav .dropdown ul > li span {
   padding: 2rem;
 }
 
+.sidebar ul li span.wrap {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .sidebar ul li a {
   color: black;
+  white-space: normal;
 }
 
 .sidebar ul li.active > a {
