@@ -24,10 +24,6 @@ class MoonlightServiceProvider extends ServiceProvider
         if (file_exists($path = __DIR__.'/helpers.php')) {
 			include $path;
 		}
-
-		if (file_exists($path = app_path().'/Http/site.php')) {
-			include $path;
-		}
         
         $this->loadViewsFrom(__DIR__.'/resources/views', 'moonlight');
         
@@ -52,6 +48,10 @@ class MoonlightServiceProvider extends ServiceProvider
 
         Config::set('auth.guards', $authGuards);
         Config::set('auth.providers', $authProviders);
+
+        if (file_exists($path = app_path().'/Http/site.php')) {
+			include $path;
+		}
         
         include __DIR__.'/routes.php';
     }
