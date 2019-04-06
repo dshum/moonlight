@@ -36,8 +36,6 @@ class MoonlightServiceProvider extends ServiceProvider
             __DIR__.'/database/seeds' => $this->app->databasePath().'/seeds',
             __DIR__.'/resources/assets' => public_path('packages/moonlight'),
         ], 'moonlight');
-        
-        DB::enableQueryLog();
 
         $authGuards = Config::get('auth.guards');
         $authProviders = Config::get('auth.providers');

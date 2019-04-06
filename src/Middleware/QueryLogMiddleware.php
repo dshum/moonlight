@@ -4,11 +4,14 @@ namespace Moonlight\Middleware;
 
 use Log;
 use Closure;
+use Illuminate\Support\Facades\DB;
 
 class QueryLogMiddleware
 {
     public function handle($request, Closure $next)
     {
+        DB::enableQueryLog();
+
         $response = $next($request);
 
         if ($request->has('log_sql_report')) {
