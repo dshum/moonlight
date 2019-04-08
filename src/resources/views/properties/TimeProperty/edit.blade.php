@@ -35,8 +35,7 @@
     <div class="block">
         <div class="title seconds">Секунды</div>
         <table class="seconds">
-            @for ($i = 0; $i < 6; $i++)<tr>@for ($j = 0; $j < 10; $j++)<td value="{{ sprintf('%02d', $i * 10 + $j) }}" class="{{ $j % 5 ? 'add hide' : '' }} {{ $value && $value->format('s') == $i * 10 + $j ? 'active' : '' }}">{{ sprintf('%02d', $i * 10 + $j) }}</td>@endfor</tr>
-            @endfor
+            @for ($i = 0; $i < 6; $i++)<tr>@for ($j = 0; $j < 10; $j++)<td value="{{ sprintf('%02d', $i * 10 + $j) }}" class="{{ $j % 5 ? 'add hide' : '' }} {{ $value && $value->format('s') == $i * 10 + $j ? 'active' : '' }}">{{ sprintf('%02d', $i * 10 + $j) }}</td>@endfor</tr>@endfor
         </table>
     </div>
 </div>
