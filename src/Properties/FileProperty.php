@@ -9,12 +9,14 @@ class FileProperty extends BaseProperty
 	protected $folderPath = null;
 	protected $folderWebPath = null;
 
-	protected $maxSize = 8192;
-	protected $allowedMimeTypes = array(
-		'txt', 'pdf', 'xls', 'xlsx', 'ppt', 'doc', 'docx', 'xml',
+	protected $assetsName = 'assets';
+
+	protected $maxSize = 2048;
+	protected $allowedMimeTypes = [
+		'txt', 'pdf', 'xls', 'xlsx', 'ppt', 'doc', 'docx', 'xml', 'rtf',
 		'gif', 'jpeg', 'pjpeg', 'png', 'tiff', 'ico',
 		'zip', 'rar', 'tar',
-	);
+	];
 
 	public function __construct($name) {
 		parent::__construct($name);
@@ -70,10 +72,9 @@ class FileProperty extends BaseProperty
 	public function path()
 	{
 		return asset(
-			trim(
-				$this->getItemClass()->getFolder(),
-				DIRECTORY_SEPARATOR
-			)
+			$this->getAssetsName()
+			.DIRECTORY_SEPARATOR
+			.$this->getFolderName()
 			.DIRECTORY_SEPARATOR
 			.$this->getValue()
 		);
@@ -82,11 +83,11 @@ class FileProperty extends BaseProperty
 	public function abspath()
 	{
 		return
-			public_path().DIRECTORY_SEPARATOR
-			.trim(
-				$this->getItemClass()->getFolder(),
-				DIRECTORY_SEPARATOR
-			)
+			public_path()
+			.DIRECTORY_SEPARATOR
+			.$this->getAssetsName()
+			.DIRECTORY_SEPARATOR
+			.$this->getFolderName()
 			.DIRECTORY_SEPARATOR
 			.$this->getValue();
 	}
@@ -125,7 +126,7 @@ class FileProperty extends BaseProperty
 	{
 		return is_dir($this->folder_path());
 	}
-    
+
     public function buildInput()
     {
         $request = $this->getRequest();
@@ -150,35 +151,38 @@ class FileProperty extends BaseProperty
 
 				if ( ! $extension) $extension = 'txt';
 
-				$filename = sprintf('%s_%s.%s',
-					$name,
-					substr(md5(rand()), 0, 8),
-					$extension
-				);
-
 				$folderPath =
-					public_path().DIRECTORY_SEPARATOR
-					.trim(
-						$this->element->getFolder(),
-						DIRECTORY_SEPARATOR
-					)
+					public_path()
+					.DIRECTORY_SEPARATOR
+					.$this->getAssetsName()
+					.DIRECTORY_SEPARATOR
+					.$this->getFolderName()
 					.DIRECTORY_SEPARATOR;
 
-				if ( ! file_exists($folderPath)) {
+				if (! file_exists($folderPath)) {
 					mkdir($folderPath, 0755);
 				}
 
+				$hash = substr(md5(rand()), 0, 8);
+
+				$filename = sprintf('%s_%s.%s',
+					$name,
+					$hash,
+					$extension
+				);
+
 				$folderHash =
-					trim(
+					method_exists($this->element, 'getFolderHash')
+					? trim(
 						$this->element->getFolderHash(),
 						DIRECTORY_SEPARATOR
-					);
+					) : '';
 
 				$destination = $folderHash
 					? $folderPath.DIRECTORY_SEPARATOR.$folderHash
 					: $folderPath;
 
-				if ( ! file_exists($destination)) {
+				if (! file_exists($destination)) {
 					mkdir($destination, 0755);
 				}
 
@@ -188,7 +192,10 @@ class FileProperty extends BaseProperty
 					? $folderHash.DIRECTORY_SEPARATOR.$filename
 					: $filename;
 			}
-		} elseif ($request->has($name.'_drop')) {
+		} elseif (
+            $request->has($name.'_drop') 
+            && $request->input($name.'_drop')
+        ) {
 			$this->drop();
 
 			$this->element->$name = null;
@@ -212,11 +219,9 @@ class FileProperty extends BaseProperty
 		}
 	}
 
-	public function getBrowseView()
+	public function getListView()
 	{
 		$scope = array(
-            'name' => $this->getName(),
-			'title' => $this->getTitle(),
 			'exists' => $this->exists(),
 			'path' => $this->path(),
 			'filename' => $this->filename(),
