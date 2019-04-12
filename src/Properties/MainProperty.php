@@ -36,7 +36,7 @@ class MainProperty extends BaseProperty
             $this->element->$name = $value;
         } else {
             $this->element->$name = $this->element->id
-                ? $item->getTitle().'.'.$this->element->id
+                ? $item->getTitle().' '.$this->element->id
                 : $item->getTitle();
         }
 

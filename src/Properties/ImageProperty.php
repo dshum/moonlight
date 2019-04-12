@@ -2,6 +2,7 @@
 
 namespace Moonlight\Properties;
 
+use Exception;
 use Moonlight\Utils\Image;
 
 class ImageProperty extends BaseProperty
@@ -147,7 +148,7 @@ class ImageProperty extends BaseProperty
 					$width, $height, $type, $attr
 				) = getimagesize($this->abspath($name));
 				return $width;
-			} catch (BaseException $e) {}
+			} catch (Exception $e) {}
 		}
 
 		return 0;
@@ -161,7 +162,7 @@ class ImageProperty extends BaseProperty
 					$width, $height, $type, $attr
 				) = getimagesize($this->abspath($name));
 				return $height;
-			} catch (BaseException $e) {}
+			} catch (Exception $e) {}
 		}
 
 		return 0;
