@@ -42,6 +42,21 @@ class TimeProperty extends BaseProperty
 		return $this->value ? $this->value->format($format) : null;
 	}
 
+	public function hour()
+	{
+		return $this->value ? $this->value->format('H') : null;
+	}
+
+	public function minute()
+	{
+		return $this->value ? $this->value->format('i') : null;
+	}
+
+	public function second()
+	{
+		return $this->value ? $this->value->format('s') : null;
+	}
+
 	public function setElement(Model $element)
 	{
 		parent::setElement($element);
