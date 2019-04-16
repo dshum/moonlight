@@ -37,6 +37,11 @@ class TimeProperty extends BaseProperty
 		return $this->fillNow;
 	}
 
+	public function format($format)
+	{
+		return $this->value ? $this->value->format($format) : null;
+	}
+
 	public function setElement(Model $element)
 	{
 		parent::setElement($element);
