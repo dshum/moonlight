@@ -88,6 +88,8 @@ $(function() {
                 init(item);
 
                 empty = false;
+
+                $(document).trigger('item-loaded', [item, classId]);
             }
 
             itemCount++;
@@ -123,6 +125,8 @@ $(function() {
                 $('.main div[item="' + item + '"]').html(data.html);
 
                 init(item);
+
+                $(document).trigger('item-loaded', [item, classId]);
             } else {
                 $('.main div[item="' + item + '"]').fadeOut(200, function() {
                     itemCount--;
@@ -191,6 +195,8 @@ $(function() {
                     $('.main div[item="' + item + '"]').html(data.html);
 
                     init(item);
+
+                    $(document).trigger('item-loaded', [item, classId]);
                 }
             });
         }
@@ -323,6 +329,8 @@ $(function() {
                     if (! count) {
                         itemContainer.find('.button.save:not(.disabled)').removeClass('enabled');
                     }
+
+                    $(document).trigger('item-saved', [item, classId]);
                 }
             },
             error: function(data) {

@@ -54,6 +54,8 @@ $(function() {
                     $('.list-container').html(data.html);
 
                     init(item);
+
+                    $(document).trigger('item-loaded', [item]);
                 }
             },
             error: function(data) {
