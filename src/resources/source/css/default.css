@@ -1053,7 +1053,7 @@ table.elements td.date {
 }
 
 table.elements td.editable .view-container {
-  display: inline-block;
+  display: inline;
   border-bottom: 1px dashed #666;
   cursor: pointer;
 }
