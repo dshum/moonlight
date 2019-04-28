@@ -108,7 +108,7 @@
                     @endforeach
                 </tbody>
             </table>
-            <input type="submit">
+            <input type="submit" class="dnone">
         </form>
         @if ($lastPage > 1)
         <ul class="pager" classId="{{ isset($classId) ? $classId : ''}}" item="{{ $currentItem->getNameId() }}" page="{{ $currentPage }}" last="{{ $lastPage }}">

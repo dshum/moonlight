@@ -645,10 +645,6 @@ div.item {
   min-width: 40rem;
 }
 
-div.item div[list] form input[type="submit"] {
-  display: none;
-}
-
 ul.header {
   margin: 0;
 }
