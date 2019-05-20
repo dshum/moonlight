@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateAdminGroups extends Migration {
+class CreateAdminUserActionsTable extends Migration {
 
 	/**
 	 * Run the migrations.
@@ -13,14 +13,14 @@ class CreateAdminGroups extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('admin_groups', function(Blueprint $table) {
+		Schema::create('admin_user_actions', function (Blueprint $table) {
 			$table->increments('id');
-			$table->string('name');
-			$table->string('default_permission')->nullable();
-			$table->text('permissions')->nullable();
+			$table->integer('user_id')->unsigned()->index();
+			$table->string('action_type_id')->index();
+			$table->text('comments');
+			$table->string('url');
 			$table->timestamps();
-			$table->engine = 'InnoDB';
-			$table->unique('name');
+            $table->engine = 'InnoDB';
 		});
 	}
 
@@ -31,7 +31,7 @@ class CreateAdminGroups extends Migration {
 	 */
 	public function down()
 	{
-		Schema::dropIfExists('admin_groups');
+		Schema::dropIfExists('admin_user_actions');
 	}
 
 }

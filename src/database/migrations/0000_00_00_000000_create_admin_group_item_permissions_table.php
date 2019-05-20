@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateAdminFavorites extends Migration {
+class CreateAdminGroupItemPermissionsTable extends Migration {
 
 	/**
 	 * Run the migrations.
@@ -13,14 +13,13 @@ class CreateAdminFavorites extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('admin_favorites', function (Blueprint $table) {
+		Schema::create('admin_group_item_permissions', function (Blueprint $table) {
 			$table->increments('id');
-			$table->integer('user_id')->unsigned()->index();
-            $table->integer('rubric_id')->unsigned()->index();
-			$table->string('class_id');
-            $table->integer('order');
-			$table->timestamps();
+			$table->integer('group_id')->unsigned()->index();
+			$table->string('class')->index();
+			$table->string('permission');
             $table->engine = 'InnoDB';
+			$table->unique(array('group_id', 'class'));
 		});
 	}
 
@@ -31,7 +30,7 @@ class CreateAdminFavorites extends Migration {
 	 */
 	public function down()
 	{
-		Schema::dropIfExists('admin_favorites');
+		Schema::dropIfExists('admin_group_item_permissions');
 	}
 
 }

@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateAdminFavoriteRubrics extends Migration {
+class CreateAdminUsersGroupsPivotTable extends Migration {
 
 	/**
 	 * Run the migrations.
@@ -13,13 +13,11 @@ class CreateAdminFavoriteRubrics extends Migration {
 	 */
 	public function up()
 	{
-        Schema::create('admin_favorite_rubrics', function(Blueprint $table) {
-			$table->increments('id');
+		Schema::create('admin_users_groups_pivot', function(Blueprint $table) {
 			$table->integer('user_id')->unsigned()->index();
-            $table->string('name');
-            $table->integer('order');
-			$table->timestamps();
-            $table->engine = 'InnoDB';
+			$table->integer('group_id')->unsigned()->index();
+			$table->engine = 'InnoDB';
+			$table->primary(array('user_id', 'group_id'));
 		});
 	}
 
@@ -30,7 +28,7 @@ class CreateAdminFavoriteRubrics extends Migration {
 	 */
 	public function down()
 	{
-		Schema::dropIfExists('admin_favorite_rubrics');
+		Schema::dropIfExists('admin_users_groups_pivot');
 	}
 
 }
