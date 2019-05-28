@@ -1218,7 +1218,7 @@ class BrowseController extends Controller
         $order = $request->input('order');
         $direction = $request->input('direction');
         $resetorder = $request->input('resetorder');
-        $page = $request->input('page');
+        $page = (int)$request->input('page');
         
         $site = \App::make('site');
         
@@ -1235,7 +1235,7 @@ class BrowseController extends Controller
         }
 
         if ($page) {
-            cache()->put("page_{$loggedUser->id}_{$cid}_{$class}", $page, 60);
+            cache()->put("page_{$loggedUser->id}_{$cid}_{$class}", $page, 3600);
         }
 
         if ($order && in_array($direction, ['asc', 'desc'])) {
@@ -1246,7 +1246,7 @@ class BrowseController extends Controller
                     cache()->put("order_{$loggedUser->id}_{$class}", [
                         'field' => $order,
                         'direction' => $direction,
-                    ], 1440);
+                    ], 3600);
 
                     break;
                 }

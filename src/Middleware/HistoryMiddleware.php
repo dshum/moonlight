@@ -13,7 +13,7 @@ class HistoryMiddleware
         
         $historyUrl = $request->getRequestUri();
 
-        cache()->put("history_{$loggedUser->id}", $historyUrl, 1440);
+        cache()->put("history_{$loggedUser->id}", $historyUrl, 86400);
 
         return $next($request);
     }

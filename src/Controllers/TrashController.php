@@ -137,7 +137,7 @@ class TrashController extends Controller
                     cache()->put("order_{$loggedUser->id}_{$class}", [
                         'field' => $order,
                         'direction' => $direction,
-                    ], 1440);
+                    ], 3600);
 
                     break;
                 }
@@ -300,7 +300,7 @@ class TrashController extends Controller
         $totals = [];
 
         foreach ($itemList as $item) {
-            $total = cache()->remember("trash_item_{$item->getNameId()}", 1440, function () use ($item) {
+            $total = cache()->remember("trash_item_{$item->getNameId()}", 86400, function () use ($item) {
                 return $this->total($item);
             });
 
@@ -341,7 +341,7 @@ class TrashController extends Controller
         $totals = [];
 
         foreach ($itemList as $item) {
-            $total = cache()->remember("trash_item_{$item->getNameId()}", 1440, function () use ($item) {
+            $total = cache()->remember("trash_item_{$item->getNameId()}", 86400, function () use ($item) {
                 return $this->total($item);
             });
 
@@ -417,7 +417,7 @@ class TrashController extends Controller
         $totals = [];
 
         foreach ($itemList as $item) {
-            $total = cache()->remember("trash_item_{$item->getNameId()}", 1440, function () use ($item) {
+            $total = cache()->remember("trash_item_{$item->getNameId()}", 86400, function () use ($item) {
                 return $this->total($item);
             });
 

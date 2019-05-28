@@ -313,7 +313,7 @@ $(function() {
         var code = event.keyCode || event.which;
         
         if (code === 13) {
-            if (page < 1) page = 1;
+            if (isNaN(page) || page < 1) page = 1;
             if (page > last) page = last;
 
             submit(page);

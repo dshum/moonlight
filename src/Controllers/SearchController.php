@@ -83,7 +83,7 @@ class SearchController extends Controller
                     cache()->put("order_{$loggedUser->id}_{$class}", [
                         'field' => $order,
                         'direction' => $direction,
-                    ], 1440);
+                    ], 3600);
 
                     break;
                 }
