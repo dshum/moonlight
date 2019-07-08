@@ -172,9 +172,9 @@ class ImageProperty extends BaseProperty
 	{
 		return asset(
 			$this->getAssetsName()
-			.DIRECTORY_SEPARATOR
+			.'/'
 			.$this->getFolderName()
-			.DIRECTORY_SEPARATOR
+			.'/'
 			.$this->getResizeValue($name)
 		);
 	}

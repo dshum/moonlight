@@ -73,9 +73,9 @@ class FileProperty extends BaseProperty
 	{
 		return asset(
 			$this->getAssetsName()
-			.DIRECTORY_SEPARATOR
+			.'/'
 			.$this->getFolderName()
-			.DIRECTORY_SEPARATOR
+			.'/'
 			.$this->getValue()
 		);
 	}
