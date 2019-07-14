@@ -1119,7 +1119,7 @@ table.elements tr.checked div.check {
 table.elements img {
   margin: 0;
   padding: 0;
-  max-width: 20rem;
+  max-width: 8rem;
   height: auto;
   border: 1px solid #ccc;
   border-radius: 2px;
