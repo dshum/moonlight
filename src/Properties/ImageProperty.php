@@ -408,7 +408,7 @@ class ImageProperty extends BaseProperty
                         );
 
                         Storage::disk($this->driver)->putFileAs(
-                            $this->driverFolderName(),
+                            $this->driverFolderName,
                             new File($destination.DIRECTORY_SEPARATOR.$filename),
                             $filename,
                             [
