@@ -89,7 +89,7 @@ class FileProperty extends BaseProperty
     public function getDriverFilename($name = null)
     {
         return trim($this->driverFolderName, '/')
-            .'/'.$this->getResizeValue();
+            .'/'.$this->getValue();
     }
 
     public function setMaxSize($maxSize)
