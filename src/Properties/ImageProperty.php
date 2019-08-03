@@ -516,15 +516,15 @@ class ImageProperty extends BaseProperty
                 'name' => $this->getName(),
                 'title' => $this->getTitle(),
                 'readonly' => $this->getReadonly(),
+                'maxFilesize' => $this->getMaxSize(),
+                'maxWidth' => $this->getMaxWidth(),
+                'maxHeight' => $this->getMaxHeight(),
                 'exists' => false,
                 'src' => null,
                 'width' => null,
                 'height' => null,
                 'filesize' => null,
                 'filename' => null,
-                'maxFilesize' => $this->getMaxSize(),
-                'maxWidth' => $this->getMaxWidth(),
-                'maxHeight' => $this->getMaxHeight(),
             ];
 
             return $scope;
@@ -534,15 +534,15 @@ class ImageProperty extends BaseProperty
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'readonly' => $this->getReadonly(),
+            'maxFilesize' => $this->getMaxSize(),
+            'maxWidth' => $this->getMaxWidth(),
+            'maxHeight' => $this->getMaxHeight(),
             'exists' => $this->exists(),
             'src' => $this->src(),
             'width' => $this->width(),
             'height' => $this->height(),
             'filesize' => $this->filesize_kb(null, 1),
             'filename' => $this->filename(),
-            'maxFilesize' => $this->getMaxSize(),
-            'maxWidth' => $this->getMaxWidth(),
-            'maxHeight' => $this->getMaxHeight(),
         ];
 
         foreach ($this->resizes as $resizeName => $resize) {

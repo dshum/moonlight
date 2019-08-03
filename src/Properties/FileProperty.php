@@ -1,250 +1,348 @@
-<?php 
+<?php
 
 namespace Moonlight\Properties;
 
+use Illuminate\Http\File;
+use Illuminate\Support\Facades\Storage;
+use Exception;
+
 class FileProperty extends BaseProperty
 {
-	protected $folderName = null;
-	protected $hash = null;
-	protected $folderPath = null;
-	protected $folderWebPath = null;
+    protected $folderName = null;
+    protected $hash = null;
+    protected $folderPath = null;
+    protected $folderWebPath = null;
+    protected $assetsName = 'assets';
+    protected $maxSize = 2048;
+    protected $allowedMimeTypes = [
+        'txt', 'pdf', 'xls', 'xlsx', 'ppt', 'doc', 'docx', 'xml', 'rtf',
+        'gif', 'jpeg', 'pjpeg', 'png', 'tiff', 'ico',
+        'zip', 'rar', 'tar',
+    ];
+    protected $driver = null;
+    protected $driverFolderName = 'documents';
 
-	protected $assetsName = 'assets';
+    public function __construct($name)
+    {
+        parent::__construct($name);
 
-	protected $maxSize = 2048;
-	protected $allowedMimeTypes = [
-		'txt', 'pdf', 'xls', 'xlsx', 'ppt', 'doc', 'docx', 'xml', 'rtf',
-		'gif', 'jpeg', 'pjpeg', 'png', 'tiff', 'ico',
-		'zip', 'rar', 'tar',
-	];
+        $this->
+        addRule('max:'.$this->maxSize, 'Максимальный размер файла: '.$this->maxSize.' Кб')->
+        addRule('mimes:'.join(',', $this->allowedMimeTypes), 'Недопустимый формат файла');
 
-	public function __construct($name) {
-		parent::__construct($name);
+        return $this;
+    }
 
-		$this->
-		addRule('max:'.$this->maxSize, 'Максимальный размер файла: '.$this->maxSize.' Кб')->
-		addRule('mimes:'.join(',', $this->allowedMimeTypes), 'Недопустимый формат файла');
+    public static function create($name)
+    {
+        return new self($name);
+    }
 
-		return $this;
-	}
+    public function isSortable()
+    {
+        return false;
+    }
 
-	public static function create($name)
-	{
-		return new self($name);
-	}
+    public function setAssetsName($assetsName)
+    {
+        $this->assetsName = $assetsName;
 
-	public function isSortable()
-	{
-		return false;
-	}
+        return $this;
+    }
 
-	public function setAssetsName($assetsName)
-	{
-		$this->assetsName = $assetsName;
+    public function getAssetsName()
+    {
+        return $this->assetsName;
+    }
 
-		return $this;
-	}
+    public function getFolderName()
+    {
+        return method_exists($this->getItemClass(), 'getFolder')
+            ? $this->getItemClass()->getFolder()
+            : $this->getItemClass()->getTable();
+    }
 
-	public function getAssetsName()
-	{
-		return $this->assetsName;
-	}
+    public function setDriver(string $driver)
+    {
+        $this->driver = $driver;
 
-	public function getFolderName()
-	{
-		return method_exists($this->getItemClass(), 'getFolder')
-			? $this->getItemClass()->getFolder()
-			: $this->getItemClass()->getTable();
-	}
+        return $this;
+    }
 
-	public function setMaxSize($maxSize)
-	{
-		$this->maxSize = $maxSize;
+    public function getDriver()
+    {
+        return $this->driver;
+    }
 
-		return $this;
-	}
+    public function setDriverFolderName(string $driverFolderName)
+    {
+        $this->driverFolderName = $driverFolderName;
 
-	public function getMaxSize()
-	{
-		return $this->maxSize;
-	}
+        return $this;
+    }
 
-	public function path()
-	{
-		return asset(
-			$this->getAssetsName()
-			.'/'
-			.$this->getFolderName()
-			.'/'
-			.$this->getValue()
-		);
-	}
+    public function getDriverFolderName()
+    {
+        return $this->driverFolderName;
+    }
 
-	public function abspath()
-	{
-		return
-			public_path()
-			.DIRECTORY_SEPARATOR
-			.$this->getAssetsName()
-			.DIRECTORY_SEPARATOR
-			.$this->getFolderName()
-			.DIRECTORY_SEPARATOR
-			.$this->getValue();
-	}
+    public function getDriverFilename($name = null)
+    {
+        return trim($this->driverFolderName, '/')
+            .'/'.$this->getResizeValue();
+    }
 
-	public function filename()
-	{
-		return basename($this->getValue());
-	}
+    public function setMaxSize($maxSize)
+    {
+        $this->maxSize = $maxSize;
 
-	public function filesize()
-	{
-		return $this->exists() ? filesize($this->abspath()) : 0;
-	}
+        return $this;
+    }
 
-	public function filesize_kb($precision = 0)
-	{
-		return round($this->filesize() / 1024, $precision);
-	}
+    public function getMaxSize()
+    {
+        return $this->maxSize;
+    }
 
-	public function filesize_mb($precision = 0)
-	{
-		return round($this->filesize() / 1024 / 1024, $precision);
-	}
+    public function path()
+    {
+        if ($this->driver) {
+            $filename = $this->getDriverFilename();
+            return Storage::disk($this->driver)->url($filename);
+        }
 
-	public function exists()
-	{
-		return $this->getValue() && file_exists($this->abspath());
-	}
+        return asset(
+            $this->getAssetsName()
+            .'/'
+            .$this->getFolderName()
+            .'/'
+            .$this->getValue()
+        );
+    }
 
-	public function folder_path()
-	{
-		return dirname($this->abspath());
-	}
+    public function abspath()
+    {
+        if ($this->driver) {
+            $filename = $this->getDriverFilename();
+            return $this->getValue() && Storage::disk($this->driver)->url($filename);
+        }
 
-	public function folder_exists()
-	{
-		return is_dir($this->folder_path());
-	}
+        return
+            public_path()
+            .DIRECTORY_SEPARATOR.$this->getAssetsName()
+            .DIRECTORY_SEPARATOR.$this->getFolderName()
+            .DIRECTORY_SEPARATOR.str_replace(
+                '/',
+                DIRECTORY_SEPARATOR,
+                $this->getValue()
+            );
+    }
+
+    public function filename()
+    {
+        return basename($this->getValue());
+    }
+
+    public function filesize()
+    {
+        if ($this->driver) {
+            $filename = $this->getDriverFilename();
+            return Storage::disk($this->driver)->size($filename);
+        }
+
+        return $this->exists() ? filesize($this->abspath()) : 0;
+    }
+
+    public function filesize_kb($precision = 0)
+    {
+        return round($this->filesize() / 1024, $precision);
+    }
+
+    public function filesize_mb($precision = 0)
+    {
+        return round($this->filesize() / 1024 / 1024, $precision);
+    }
+
+    public function exists()
+    {
+        if ($this->driver) {
+            $filename = $this->getDriverFilename();
+            return $this->getValue() && Storage::disk($this->driver)->exists($filename);
+        }
+
+        return $this->getValue() && file_exists($this->abspath());
+    }
+
+    public function folder_path()
+    {
+        return dirname($this->abspath());
+    }
+
+    public function folder_exists()
+    {
+        return is_dir($this->folder_path());
+    }
 
     public function buildInput()
     {
         $request = $this->getRequest();
         $name = $this->getName();
-        
+
         return $request->file($name);
     }
 
-	public function set()
-	{
-		$request = $this->getRequest();
+    public function set()
+    {
+        $request = $this->getRequest();
         $name = $this->getName();
 
-		if ($request->hasFile($name)) {
-			$file = $request->file($name);
+        if ($request->hasFile($name)) {
+            $file = $request->file($name);
 
-			if ($file->isValid() && $file->getMimeType()) {
-				$this->drop();
+            if ($file->isValid() && $file->getMimeType()) {
+                $this->drop();
 
-				$original = $file->getClientOriginalName();
-				$extension = $file->getClientOriginalExtension();
+                $original = $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
 
-				if ( ! $extension) $extension = 'txt';
+                if (! $extension) $extension = 'txt';
 
-				$folderPath =
-					public_path()
-					.DIRECTORY_SEPARATOR
-					.$this->getAssetsName()
-					.DIRECTORY_SEPARATOR
-					.$this->getFolderName()
-					.DIRECTORY_SEPARATOR;
+                $folderPath =
+                    public_path()
+                    .DIRECTORY_SEPARATOR
+                    .$this->getAssetsName()
+                    .DIRECTORY_SEPARATOR
+                    .$this->getFolderName()
+                    .DIRECTORY_SEPARATOR;
 
-				if (! file_exists($folderPath)) {
-					mkdir($folderPath, 0755);
-				}
+                if (! file_exists($folderPath)) {
+                    mkdir($folderPath, 0755);
+                }
 
-				$hash = substr(md5(rand()), 0, 8);
+                $folderHash =
+                    method_exists($this->element, 'getFolderHash')
+                        ? trim(
+                        $this->element->getFolderHash(),
+                        DIRECTORY_SEPARATOR
+                    ) : '';
 
-				$filename = sprintf('%s_%s.%s',
-					$name,
-					$hash,
-					$extension
-				);
+                $destination = $folderHash
+                    ? $folderPath.DIRECTORY_SEPARATOR.$folderHash
+                    : $folderPath;
 
-				$folderHash =
-					method_exists($this->element, 'getFolderHash')
-					? trim(
-						$this->element->getFolderHash(),
-						DIRECTORY_SEPARATOR
-					) : '';
+                if (! file_exists($destination)) {
+                    mkdir($destination, 0755);
+                }
 
-				$destination = $folderHash
-					? $folderPath.DIRECTORY_SEPARATOR.$folderHash
-					: $folderPath;
+                $hash = substr(md5(rand()), 0, 8);
 
-				if (! file_exists($destination)) {
-					mkdir($destination, 0755);
-				}
+                $filename = sprintf('%s_%s.%s',
+                    $name,
+                    $hash,
+                    $extension
+                );
 
-				$file->move($destination, $filename);
+                $value = $folderHash
+                    ? $folderHash.'/'.$filename
+                    : $filename;
 
-				$this->element->$name = $folderHash
-					? $folderHash.DIRECTORY_SEPARATOR.$filename
-					: $filename;
-			}
-		} elseif (
-            $request->has($name.'_drop') 
+                $this->setValue($value);
+
+                if ($this->driver) {
+                    Storage::disk($this->driver)->putFileAs(
+                        $this->driverFolderName,
+                        $file,
+                        $filename
+                    );
+
+                    unlink($path);
+                } else {
+                    $file->move($destination, $filename);
+                }
+
+                $this->element->$name = $value;
+            }
+        } elseif (
+            $request->has($name.'_drop')
             && $request->input($name.'_drop')
         ) {
-			$this->drop();
+            $this->drop();
 
-			$this->element->$name = null;
-		}
+            $this->element->$name = null;
+        }
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function drop()
-	{
-		if ($this->exists()) {
-			try {
-				unlink($this->abspath());
-			} catch (\Exception $e) {}
-		}
+    public function drop()
+    {
+        if ($this->driver) {
+            $filename = $this->getDriverFilename();
+            Storage::disk($this->driver)->delete($filename);
+        } elseif ($this->exists()) {
+            try {
+                unlink($this->abspath());
+            } catch (\Exception $e) {
+            }
+        }
+    }
 
-		if ($this->folder_exists()) {
-			try {
-				rmdir($this->folder_path());
-			} catch (\Exception $e) {}
-		}
-	}
+    public function getListView()
+    {
+        $exists = $this->exists();
 
-	public function getListView()
-	{
-		$scope = array(
-			'exists' => $this->exists(),
-			'path' => $this->path(),
-			'filename' => $this->filename(),
-			'filesize' => $this->filesize_kb(1),
-		);
+        if (! $exists) {
+            return [
+                'exists' => false,
+                'src' => null,
+                'width' => null,
+                'height' => null,
+            ];
+        }
 
-		return $scope;
-	}
+        $scope = [
+            'exists' => $exists,
+            'path' => $this->path(),
+            'filename' => $this->filename(),
+            'filesize' => $this->filesize_kb(1),
+        ];
 
-	public function getEditView()
-	{
-		$scope = array(
-			'name' => $this->getName(),
-			'title' => $this->getTitle(),
-			'value' => $this->getValue(),
-			'readonly' => $this->getReadonly(),
-			'exists' => $this->exists(),
-			'path' => $this->path(),
-			'filesize' => $this->filesize_kb(1),
-			'filename' => $this->filename(),
-			'maxFilesize' => $this->getMaxSize(),
-		);
+        return $scope;
+    }
 
-		return $scope;
-	}
+    public function getEditView()
+    {
+        $exists = $this->exists();
+
+        if (! $exists) {
+            $scope = [
+                'name' => $this->getName(),
+                'title' => $this->getTitle(),
+                'readonly' => $this->getReadonly(),
+                'maxFilesize' => $this->getMaxSize(),
+                'value' => null,
+                'exists' => false,
+                'path' => null,
+                'filesize' => null,
+                'filename' => null,
+            ];
+
+            return $scope;
+        }
+
+        $scope = [
+            'name' => $this->getName(),
+            'title' => $this->getTitle(),
+            'readonly' => $this->getReadonly(),
+            'maxFilesize' => $this->getMaxSize(),
+            'value' => $this->getValue(),
+            'exists' => $exists,
+            'path' => $this->path(),
+            'filesize' => $this->filesize_kb(null, 1),
+            'filename' => $this->filename(),
+
+        ];
+
+        return $scope;
+    }
 }
