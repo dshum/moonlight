@@ -249,13 +249,7 @@ class FileProperty extends BaseProperty
                 $this->setValue($value);
 
                 if ($this->driver) {
-                    Storage::disk($this->driver)->putFileAs(
-                        $this->driverFolderName,
-                        $file,
-                        $filename
-                    );
-
-                    unlink($path);
+                    $file->storeAs($this->driverFolderName, $filename, $this->driver);
                 } else {
                     $file->move($destination, $filename);
                 }
