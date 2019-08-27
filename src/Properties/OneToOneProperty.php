@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Moonlight\Properties;
 
@@ -7,7 +7,7 @@ use Moonlight\Main\Site;
 use Moonlight\Main\Item;
 use Moonlight\Main\Element;
 
-class OneToOneProperty extends BaseProperty 
+class OneToOneProperty extends BaseProperty
 {
 	protected $relatedClass = null;
 	protected $parent = false;
@@ -72,8 +72,6 @@ class OneToOneProperty extends BaseProperty
 		$site = \App::make('site');
 
 		$relatedClass = $this->getRelatedClass();
-		$relatedItem = $site->getItemByName($relatedClass);
-		$mainProperty = $relatedItem->getMainProperty();
 		$id = $this->element->{$this->getName()};
 
 		if ($relatedClass && $id) {
@@ -111,11 +109,11 @@ class OneToOneProperty extends BaseProperty
 	public function getListView()
 	{
 		$site = \App::make('site');
-		
+
 		$relatedClass = $this->getRelatedClass();
 		$relatedItem = $site->getItemByName($relatedClass);
 		$mainProperty = $relatedItem->getMainProperty();
-		
+
 		$value = $this->value ? [
             'id' => $this->value->id,
             'classId' => Element::getClassId($this->value),
@@ -139,13 +137,13 @@ class OneToOneProperty extends BaseProperty
 		$relatedClass = $this->getRelatedClass();
 		$relatedItem = $site->getItemByName($relatedClass);
 		$mainProperty = $relatedItem->getMainProperty();
-        
+
         $value = $this->value ? [
             'id' => $this->value->id,
             'classId' => Element::getClassId($this->value),
             'name' => $this->value->{$mainProperty},
 		] : null;
-		
+
 		$binds = $site->getBinds();
 		$itemPlace = null;
 		$rootPlace = null;
@@ -211,7 +209,7 @@ class OneToOneProperty extends BaseProperty
 	public function getSearchView()
 	{
         $site = \App::make('site');
-        
+
 		$request = $this->getRequest();
         $name = $this->getName();
         $id = (int)$request->input($name);
@@ -219,13 +217,13 @@ class OneToOneProperty extends BaseProperty
 		$relatedItem = $site->getItemByName($relatedClass);
         $mainProperty = $relatedItem->getMainProperty();
 
-		$element = $id 
+		$element = $id
             ? $relatedClass::find($id)
             : null;
-        
+
         $value = $element
             ? [
-                'id' => $element->id, 
+                'id' => $element->id,
                 'name' => $element->{$mainProperty}
             ] : null;
 

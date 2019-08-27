@@ -35,7 +35,7 @@ class BrowseController extends Controller
     public function column(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
 
         $class = $request->input('item');
@@ -43,12 +43,12 @@ class BrowseController extends Controller
         $show = $request->input('show');
 
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
-            
+
             return response()->json($scope);
         }
 
@@ -56,7 +56,7 @@ class BrowseController extends Controller
 
         if (! $property) {
             $scope['error'] = 'Свойство элемента не найдено.';
-            
+
             return response()->json($scope);
         }
 
@@ -87,29 +87,29 @@ class BrowseController extends Controller
     public function order(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
 
         $class = $request->input('item');
 
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
-            
+
             return response()->json($scope);
         }
 
         if (! $currentItem->getOrderProperty()) {
             $scope['error'] = 'Поле для ручной сортировки не найдено.';
-            
+
             return response()->json($scope);
         }
 
         $orderProperty = $currentItem->getOrderProperty();
-        
+
         $elements = $request->input('elements');
 
         $ordered = [];
@@ -117,7 +117,7 @@ class BrowseController extends Controller
         if (is_array($elements) && sizeof($elements) > 1) {
             foreach ($elements as $order => $id) {
                 $element = $currentItem->getClass()->find($id);
-            
+
                 if ($element && $loggedUser->hasUpdateAccess($element)) {
                     $element->{$orderProperty} = $order;
 
@@ -148,7 +148,7 @@ class BrowseController extends Controller
     public function save(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
 
         $class = $request->input('item');
@@ -156,10 +156,10 @@ class BrowseController extends Controller
         $site = \App::make('site');
 
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
-            
+
             return response()->json($scope);
         }
 
@@ -169,10 +169,10 @@ class BrowseController extends Controller
 
         if (! is_array($editing) || ! sizeof($editing)) {
             $scope['error'] = 'Пустой список элементов.';
-            
+
             return response()->json($scope);
         }
-        
+
         $elements = [];
         $saved = [];
         $properties = [];
@@ -188,7 +188,7 @@ class BrowseController extends Controller
 
         foreach ($editing as $id => $fields) {
             $element = $currentItem->getClass()->find($id);
-            
+
             if (! $element) continue;
             if (! $loggedUser->hasUpdateAccess($element)) continue;
             if (! is_array($fields)) continue;
@@ -199,7 +199,7 @@ class BrowseController extends Controller
 
         if (! sizeof($elements)) {
             $scope['error'] = 'Нет элементов для редактирования.';
-            
+
             return response()->json($scope);
         }
 
@@ -232,10 +232,10 @@ class BrowseController extends Controller
 
             if ($validator->fails()) {
                 $messages = $validator->errors();
-            
+
                 foreach ($properties as $property) {
                     if ($messages->has($property->getName())) {
-                        $errors[$element->id][$property->getName()] = 
+                        $errors[$element->id][$property->getName()] =
                             $messages->first($property->getName());
                     }
                 }
@@ -256,13 +256,13 @@ class BrowseController extends Controller
                     && ! $property->getReadonly()
                 ) {
                     $propertyScope = $property->setElement($element)->getEditableView();
-                
+
                     $views[$element->id][$property->getName()] = view(
                         'moonlight::properties.'.$property->getClassName().'.editable', $propertyScope
                     )->render();
                 } else {
                     $propertyScope = $property->setElement($element)->getListView();
-                
+
                     $views[$element->id][$property->getName()] = view(
                         'moonlight::properties.'.$property->getClassName().'.list', $propertyScope
                     )->render();
@@ -273,7 +273,7 @@ class BrowseController extends Controller
 
             $saved[] = Element::getClassId($element);
         }
-        
+
         if ($saved) {
             UserAction::log(
                 UserActionType::ACTION_TYPE_SAVE_ELEMENT_LIST_ID,
@@ -284,10 +284,10 @@ class BrowseController extends Controller
         $scope['saved'] = 'ok';
         $scope['views'] = $views;
         $scope['errors'] = $errors;
-        
+
         return response()->json($scope);
     }
-    
+
     /**
      * Copy elements.
      *
@@ -296,18 +296,18 @@ class BrowseController extends Controller
     public function copy(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
 
         $class = $request->input('item');
 
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
-            
+
             return response()->json($scope);
         }
 
@@ -315,23 +315,23 @@ class BrowseController extends Controller
 
         if (! is_array($checked) || ! sizeof($checked)) {
             $scope['error'] = 'Пустой список элементов.';
-            
+
             return response()->json($scope);
         }
-        
+
         $elements = [];
-        
+
         foreach ($checked as $id) {
             $element = $currentItem->getClass()->find($id);
-            
+
             if ($element && $loggedUser->hasUpdateAccess($element)) {
                 $elements[] = $element;
             }
         }
-        
+
         if (! sizeof($elements)) {
             $scope['error'] = 'Нет элементов для копирования.';
-            
+
             return response()->json($scope);
         }
 
@@ -345,7 +345,7 @@ class BrowseController extends Controller
 
         foreach ($elements as $element) {
             $clone = new $element;
-            
+
             foreach ($propertyList as $propertyName => $property) {
                 if ($property instanceof OrderProperty) {
                     $property->setElement($clone)->set();
@@ -358,17 +358,17 @@ class BrowseController extends Controller
                 ) {
                     continue;
                 }
-    
+
                 if (
                     $property->getReadonly()
                     && ! $property->getRequired()
                 ) continue;
-    
+
                 if (
                     $property instanceof FileProperty
                     && ! $property->getRequired()
                 ) continue;
-                
+
                 if (
                     $property instanceof ImageProperty
                     && ! $property->getRequired()
@@ -379,7 +379,7 @@ class BrowseController extends Controller
                     || $propertyName == 'updated_at'
                     || $propertyName == 'deleted_at'
                 ) continue;
-    
+
                 if (
                     $property->isOneToOne()
                     && $propertyName == $name
@@ -387,7 +387,7 @@ class BrowseController extends Controller
                 ) {
                     $relatedClass = $property->getRelatedClass();
                     $relatedItem = $site->getItemByName($relatedClass);
-                    
+
                     if ($value) {
                         $destination = $relatedItem->getClass()->find($value);
                     }
@@ -395,15 +395,15 @@ class BrowseController extends Controller
                     $clone->$propertyName = $value ? $value : null;
                     continue;
                 }
-                
+
                 $clone->$propertyName = $element->$propertyName;
             }
 
             $clone->save();
-            
+
             $copied[] = Element::getClassId($clone);
         }
-        
+
         if ($copied) {
             UserAction::log(
                 UserActionType::ACTION_TYPE_COPY_ELEMENT_LIST_ID,
@@ -417,10 +417,10 @@ class BrowseController extends Controller
 
         $scope['copied'] = 'ok';
         $scope['url'] = $url;
-        
+
         return response()->json($scope);
     }
-    
+
     /**
      * Move elements.
      *
@@ -429,18 +429,18 @@ class BrowseController extends Controller
     public function move(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
 
         $class = $request->input('item');
 
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
-            
+
             return response()->json($scope);
         }
 
@@ -448,23 +448,23 @@ class BrowseController extends Controller
 
         if (! is_array($checked) || ! sizeof($checked)) {
             $scope['error'] = 'Пустой список элементов.';
-            
+
             return response()->json($scope);
         }
-        
+
         $elements = [];
-        
+
         foreach ($checked as $id) {
             $element = $currentItem->getClass()->find($id);
-            
+
             if ($element && $loggedUser->hasUpdateAccess($element)) {
                 $elements[] = $element;
             }
         }
-        
+
         if (! sizeof($elements)) {
             $scope['error'] = 'Нет элементов для переноса.';
-            
+
             return response()->json($scope);
         }
 
@@ -485,7 +485,7 @@ class BrowseController extends Controller
 
             $relatedClass = $property->getRelatedClass();
             $relatedItem = $site->getItemByName($relatedClass);
-            
+
             if ($value) {
                 $destination = $relatedItem->getClass()->find($value);
             }
@@ -500,7 +500,7 @@ class BrowseController extends Controller
                 }
             }
         }
-        
+
         if ($moved) {
             UserAction::log(
                 UserActionType::ACTION_TYPE_MOVE_ELEMENT_LIST_ID,
@@ -526,18 +526,18 @@ class BrowseController extends Controller
     public function bind(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
 
         $class = $request->input('item');
 
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
-            
+
             return response()->json($scope);
         }
 
@@ -545,23 +545,23 @@ class BrowseController extends Controller
 
         if (! is_array($checked) || ! sizeof($checked)) {
             $scope['error'] = 'Пустой список элементов.';
-            
+
             return response()->json($scope);
         }
-        
+
         $elements = [];
-        
+
         foreach ($checked as $id) {
             $element = $currentItem->getClass()->find($id);
-            
+
             if ($element && $loggedUser->hasUpdateAccess($element)) {
                 $elements[] = $element;
             }
         }
-        
+
         if (! sizeof($elements)) {
             $scope['error'] = 'Нет элементов для переноса.';
-            
+
             return response()->json($scope);
         }
 
@@ -579,7 +579,7 @@ class BrowseController extends Controller
             if (! $ones[$propertyName]) continue;
 
             $value = $ones[$propertyName];
-            
+
             $relatedClass = $property->getRelatedClass();
             $relatedItem = $site->getItemByName($relatedClass);
 
@@ -593,7 +593,7 @@ class BrowseController extends Controller
                 $attached[] = Element::getClassId($element);
             }
         }
-        
+
         $lines = [];
 
         foreach ($ones as $name => $value) {
@@ -618,18 +618,18 @@ class BrowseController extends Controller
     public function unbind(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
 
         $class = $request->input('item');
 
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
-            
+
             return response()->json($scope);
         }
 
@@ -637,23 +637,23 @@ class BrowseController extends Controller
 
         if (! is_array($checked) || ! sizeof($checked)) {
             $scope['error'] = 'Пустой список элементов.';
-            
+
             return response()->json($scope);
         }
-        
+
         $elements = [];
-        
+
         foreach ($checked as $id) {
             $element = $currentItem->getClass()->find($id);
-            
+
             if ($element && $loggedUser->hasUpdateAccess($element)) {
                 $elements[] = $element;
             }
         }
-        
+
         if (! sizeof($elements)) {
             $scope['error'] = 'Нет элементов для переноса.';
-            
+
             return response()->json($scope);
         }
 
@@ -671,7 +671,7 @@ class BrowseController extends Controller
             if (! $ones[$propertyName]) continue;
 
             $value = $ones[$propertyName];
-            
+
             $relatedClass = $property->getRelatedClass();
             $relatedItem = $site->getItemByName($relatedClass);
 
@@ -685,7 +685,7 @@ class BrowseController extends Controller
                 $detached[] = Element::getClassId($element);
             }
         }
-        
+
         $lines = [];
 
         foreach ($ones as $name => $value) {
@@ -710,47 +710,47 @@ class BrowseController extends Controller
     public function favorite(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
 		$class = $request->input('item');
 
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
-            
+
             return response()->json($scope);
         }
 
         $mainProperty = $currentItem->getMainProperty();
 
         $checked = $request->input('checked');
-        
+
         if (! is_array($checked) || ! sizeof($checked)) {
             $scope['error'] = 'Пустой список элементов.';
-            
+
             return response()->json($scope);
         }
-        
+
         $elements = [];
-        
+
         foreach ($checked as $id) {
             $element = $currentItem->getClass()->find($id);
-            
+
             if ($element && $loggedUser->hasViewAccess($element)) {
                 $elements[] = $element;
             }
         }
-        
+
         if ( ! sizeof($elements)) {
             $scope['error'] = 'Нет элементов для добавление в избранное.';
-            
+
             return response()->json($scope);
         }
-        
+
         $addRubric = $request->input('add_favorite_rubric');
         $removeRubric = $request->input('remove_favorite_rubric');
         $newRubric = $request->input('new_favorite_rubric');
@@ -761,7 +761,7 @@ class BrowseController extends Controller
 
         $favoritesAll = Favorite::where('user_id', $loggedUser->id)->
             get();
-           
+
         $rubricOrders = [];
         $favoriteOrders = [];
         $selectedRubrics = [];
@@ -785,7 +785,7 @@ class BrowseController extends Controller
         if (
             $addRubric
         ) {
-            $nextOrder = 
+            $nextOrder =
                 isset($favoriteOrders[$addRubric])
                 && sizeof($favoriteOrders[$addRubric])
                 ? max($favoriteOrders[$addRubric]) + 1
@@ -793,7 +793,7 @@ class BrowseController extends Controller
 
             foreach ($elements as $element) {
                 $classId = Element::getClassId($element);
-    
+
                 if (isset($selectedRubrics[$classId][$addRubric])) continue;
 
                 $favorite = new Favorite;
@@ -827,7 +827,7 @@ class BrowseController extends Controller
         if (
             $newRubric
         ) {
-            $nextOrder = 
+            $nextOrder =
                 isset($rubricOrders)
                 && sizeof($rubricOrders)
                 ? max($rubricOrders) + 1
@@ -848,24 +848,24 @@ class BrowseController extends Controller
                 $classId = Element::getClassId($element);
 
                 $favorite = new Favorite;
-    
+
                 $favorite->user_id = $loggedUser->id;
                 $favorite->rubric_id = $favoriteRubric->id;
                 $favorite->class_id = $classId;
                 $favorite->order = $nextOrder;
                 $favorite->created_at = Carbon::now();
-    
+
                 $favorite->save();
 
                 $nextOrder++;
             }
         }
-        
+
         $scope['saved'] = 'ok';
 
         return response()->json($scope);
     }
-    
+
     /**
      * Delete elements.
      *
@@ -874,49 +874,49 @@ class BrowseController extends Controller
     public function delete(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $class = $request->input('item');
 
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
-            
+
             return response()->json($scope);
         }
 
         $mainProperty = $currentItem->getMainProperty();
 
         $checked = $request->input('checked');
-        
+
         if (! is_array($checked) || ! sizeof($checked)) {
             $scope['error'] = 'Пустой список элементов.';
-            
+
             return response()->json($scope);
         }
-        
+
         $elements = [];
-        
+
         foreach ($checked as $id) {
             $element = $currentItem->getClass()->find($id);
-            
+
             if ($element && $loggedUser->hasDeleteAccess($element)) {
                 $elements[] = $element;
             }
         }
-        
+
         if ( ! sizeof($elements)) {
             $scope['error'] = 'Нет элементов для удаления.';
-            
+
             return response()->json($scope);
         }
-        
+
         $itemList = $site->getItemList();
-        
+
         foreach ($elements as $element) {
             $classId = Element::getClassId($element);
 
@@ -948,7 +948,7 @@ class BrowseController extends Controller
                 }
 
                 if ($count) {
-                    $scope['restricted'][$classId] = 
+                    $scope['restricted'][$classId] =
                         '<a href="'.route('moonlight.browse.element', $classId).'" target="_blank">'
                         .$element->{$mainProperty}
                         .'</a>';
@@ -961,12 +961,12 @@ class BrowseController extends Controller
 		if (isset($scope['restricted'])) {
             $scope['error'] = 'Сначала удалите элементы, связанные со следующими элементами:<br>'
                 .implode('<br>', $scope['restricted']);
-            
+
             return response()->json($scope);
         }
 
         $deleted = [];
-        
+
         foreach ($elements as $element) {
             $classId = Element::getClassId($element);
 
@@ -975,7 +975,7 @@ class BrowseController extends Controller
                 $scope['deleted'][] = $element->id;
             }
         }
-        
+
         if (isset($scope['deleted'])) {
             UserAction::log(
                 UserActionType::ACTION_TYPE_DROP_ELEMENT_LIST_TO_TRASH_ID,
@@ -988,10 +988,10 @@ class BrowseController extends Controller
         } else {
             $scope['error'] = 'Не удалось удалить элемент.';
         }
-        
+
         return response()->json($scope);
     }
-    
+
     /**
      * Delete elements from trash.
      *
@@ -1000,18 +1000,18 @@ class BrowseController extends Controller
     public function forceDelete(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $class = $request->input('item');
 
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
-            
+
             return response()->json($scope);
         }
 
@@ -1019,31 +1019,31 @@ class BrowseController extends Controller
         $propertyList = $currentItem->getPropertyList();
 
         $checked = $request->input('checked');
-        
+
         if (! is_array($checked) || ! sizeof($checked)) {
             $scope['error'] = 'Пустой список элементов.';
-            
+
             return response()->json($scope);
         }
-        
+
         $elements = [];
-        
+
         foreach ($checked as $id) {
             $element = $currentItem->getClass()->onlyTrashed()->find($id);
-            
+
             if ($element && $loggedUser->hasDeleteAccess($element)) {
                 $elements[] = $element;
             }
         }
-        
+
         if (! sizeof($elements)) {
             $scope['error'] = 'Нет элементов для удаления.';
-            
+
             return response()->json($scope);
         }
 
         $deleted = [];
-        
+
         foreach ($elements as $element) {
             $classId = Element::getClassId($element);
 
@@ -1056,7 +1056,7 @@ class BrowseController extends Controller
             $deleted[] = $classId;
             $scope['deleted'][] = $element->id;
         }
-        
+
         if (sizeof($deleted)) {
             UserAction::log(
                 UserActionType::ACTION_TYPE_DROP_ELEMENT_LIST_ID,
@@ -1067,10 +1067,10 @@ class BrowseController extends Controller
                 cache()->forget("trash_item_{$currentItem->getNameId()}");
             }
         }
-        
+
         return response()->json($scope);
     }
-    
+
     /**
      * Restore elements from trash.
      *
@@ -1079,49 +1079,49 @@ class BrowseController extends Controller
     public function restore(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $class = $request->input('item');
 
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
-            
+
             return response()->json($scope);
         }
 
         $mainProperty = $currentItem->getMainProperty();
 
         $checked = $request->input('checked');
-        
+
         if (! is_array($checked) || ! sizeof($checked)) {
             $scope['error'] = 'Пустой список элементов.';
-            
+
             return response()->json($scope);
         }
-        
+
         $elements = [];
-        
+
         foreach ($checked as $id) {
             $element = $currentItem->getClass()->onlyTrashed()->find($id);
-            
+
             if ($element && $loggedUser->hasDeleteAccess($element)) {
                 $elements[] = $element;
             }
         }
-        
+
         if (! sizeof($elements)) {
             $scope['error'] = 'Нет элементов для восстановления.';
-            
+
             return response()->json($scope);
         }
 
         $restored = [];
-        
+
         foreach ($elements as $element) {
             $classId = Element::getClassId($element);
 
@@ -1130,7 +1130,7 @@ class BrowseController extends Controller
             $restored[] = $classId;
             $scope['restored'][] = $element->id;
         }
-        
+
         if (sizeof($restored)) {
             UserAction::log(
                 UserActionType::ACTION_TYPE_RESTORE_ELEMENT_LIST_ID,
@@ -1141,7 +1141,7 @@ class BrowseController extends Controller
                 cache()->forget("trash_item_{$currentItem->getNameId()}");
             }
         }
-        
+
         return response()->json($scope);
     }
 
@@ -1153,26 +1153,26 @@ class BrowseController extends Controller
     public function open(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $class = $request->input('item');
         $classId = $request->input('classId');
-        
+
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             return response()->json([]);
         }
-        
+
         $cid = $classId ?: Site::ROOT;
         cache()->forever("open_{$loggedUser->id}_{$cid}_{$class}", true);
 
         return response()->json([]);
     }
-    
+
     /**
      * Close opened item.
      *
@@ -1181,26 +1181,26 @@ class BrowseController extends Controller
     public function close(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $class = $request->input('item');
         $classId = $request->input('classId');
-        
+
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             return response()->json([]);
         }
-        
+
         $cid = $classId ?: Site::ROOT;
         cache()->forever("open_{$loggedUser->id}_{$cid}_{$class}", false);
 
         return response()->json([]);
     }
-    
+
     /**
      * Show element list.
      *
@@ -1209,9 +1209,9 @@ class BrowseController extends Controller
     public function elements(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $open = $request->input('open');
         $class = $request->input('item');
         $classId = $request->input('classId');
@@ -1219,11 +1219,11 @@ class BrowseController extends Controller
         $direction = $request->input('direction');
         $resetorder = $request->input('resetorder');
         $page = (int)$request->input('page');
-        
+
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             return response()->json([]);
         }
@@ -1254,29 +1254,29 @@ class BrowseController extends Controller
         } elseif ($resetorder) {
             cache()->forget("order_{$loggedUser->id}_{$class}");
         }
-        
-        $element = $classId 
+
+        $element = $classId
             ? Element::getByClassId($classId) : null;
-        
+
         $html = $this->elementListView($element, $currentItem);
-        
+
         return response()->json(['html' => $html]);
     }
-    
+
     protected function elementListView($currentElement, $currentItem)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
 
         $site = \App::make('site');
-        
+
         /*
          * Item plugin
          */
-        
+
         $itemPluginView = null;
-         
+
         $itemPlugin = $site->getItemPlugin($currentItem->getNameId());
 
         if ($itemPlugin) {
@@ -1290,7 +1290,7 @@ class BrowseController extends Controller
 
         $currentClassId = $currentElement ? Element::getClassId($currentElement) : null;
         $currentClass = $currentElement ? Element::getClass($currentElement) : null;
-        
+
         $propertyList = $currentItem->getPropertyList();
 
 		if (! $loggedUser->isSuperUser()) {
@@ -1317,11 +1317,11 @@ class BrowseController extends Controller
 				foreach ($elementPermissionList as $elementPermission) {
 					$classId = $elementPermission->class_id;
 					$permission = $elementPermission->permission;
-                    
+
 					$array = explode(Element::ID_SEPARATOR, $classId);
                     $id = array_pop($array);
                     $class = implode(Element::ID_SEPARATOR, $array);
-					
+
                     if ($class == $currentItem->getNameId()) {
 						$elementPermissionMap[$id] = $permission;
 					}
@@ -1395,7 +1395,7 @@ class BrowseController extends Controller
         /*
          * Browse filter
          */
-        
+
         $browseFilterView = null;
 
         $browseFilter = $site->getBrowseFilter($currentItem->getNameId());
@@ -1424,7 +1424,7 @@ class BrowseController extends Controller
 
                     $cid = $currentClassId ?: Site::ROOT;
                     $open = cache()->get("open_{$loggedUser->id}_{$cid}_{$currentItem->getNameId()}", $defaultOpen);
-                    
+
                     break;
                 }
             }
@@ -1432,16 +1432,16 @@ class BrowseController extends Controller
             $cid = Site::ROOT;
             $open = cache()->get("open_{$loggedUser->id}_{$cid}_{$currentItem->getNameId()}", false);
         }
-        
+
         if (! $open) {
             $total = $criteria->count();
 
             $scope['currentItem'] = $currentItem;
             $scope['total'] = $total;
-            
+
             return view('moonlight::count', $scope)->render();
         }
-        
+
         $class = $currentItem->getNameId();
         $order = Cache()->get("order_{$loggedUser->id}_{$class}");
 
@@ -1450,7 +1450,7 @@ class BrowseController extends Controller
         } else {
             $orderByList = $currentItem->getOrderByList();
         }
-        
+
         $orders = [];
         $hasOrderProperty = false;
 
@@ -1463,7 +1463,7 @@ class BrowseController extends Controller
                 $orders[$field] = 'порядку';
 
                 if (
-                    ! $currentElement 
+                    ! $currentElement
                     || ! $property->getRelatedClass()
                     || $property->getRelatedClass() == $currentClass
                 ) {
@@ -1479,9 +1479,9 @@ class BrowseController extends Controller
                 $orders[$field] = 'полю &laquo;'.$property->getTitle().'&raquo;';
             }
         }
-        
+
         $orders = implode(', ', $orders);
-        
+
         if ($hasOrderProperty) {
             $elements = $criteria->get();
 
@@ -1501,7 +1501,7 @@ class BrowseController extends Controller
             });
 
             $perpage = $currentItem->getPerPage() ?: static::PER_PAGE;
-            
+
             $elements = $criteria->paginate($perpage);
 
             $total = $elements->total();
@@ -1514,7 +1514,7 @@ class BrowseController extends Controller
         /*
          * Views
          */
-        
+
         $properties = [];
         $columns = [];
         $views = [];
@@ -1560,13 +1560,13 @@ class BrowseController extends Controller
                     && ! $property->getReadonly()
                 ) {
                     $propertyScope = $property->setElement($element)->getEditableView();
-                
+
                     $views[$classId][$property->getName()] = view(
                         'moonlight::properties.'.$property->getClassName().'.editable', $propertyScope
                     )->render();
                 } else {
                     $propertyScope = $property->setElement($element)->getListView();
-                
+
                     $views[$classId][$property->getName()] = view(
                         'moonlight::properties.'.$property->getClassName().'.list', $propertyScope
                     )->render();
@@ -1686,10 +1686,10 @@ class BrowseController extends Controller
         $scope['unbindPropertyViews'] = $unbindPropertyViews;
         $scope['favoriteRubrics'] = $favoriteRubrics;
         $scope['elementFavoriteRubrics'] = $elementFavoriteRubrics;
-        
+
         return view('moonlight::elements', $scope)->render();
     }
-    
+
     /**
      * Show element list for autocomplete.
      *
@@ -1698,20 +1698,20 @@ class BrowseController extends Controller
     public function autocomplete(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $class = $request->input('item');
         $query = $request->input('query');
-        
+
         $site = \App::make('site');
-        
+
         $currentItem = $site->getItemByName($class);
-        
+
         if (! $currentItem) {
             return response()->json($scope);
         }
-        
+
         $mainProperty = $currentItem->getMainProperty();
 
 		if (! $loggedUser->isSuperUser()) {
@@ -1738,12 +1738,12 @@ class BrowseController extends Controller
 				foreach ($elementPermissionList as $elementPermission) {
 					$classId = $elementPermission->class_id;
 					$permission = $elementPermission->permission;
-                    
+
 					$array = explode(Element::ID_SEPARATOR, $classId);
                     $id = array_pop($array);
                     $class = implode(Element::ID_SEPARATOR, $array);
-					
-                    if ($class == $item->getNameId()) {
+
+                    if ($class == $currentItem->getNameId()) {
 						$elementPermissionMap[$id] = $permission;
 					}
 				}
@@ -1759,7 +1759,7 @@ class BrowseController extends Controller
 		}
 
         $criteria = $currentItem->getClass()->query();
-        
+
         if ($query) {
             $criteria->
                 where('id', (int)$query)->
@@ -1781,7 +1781,7 @@ class BrowseController extends Controller
                 return response()->json(['count' => 0]);
 			}
 		}
-        
+
         $orderByList = $currentItem->getOrderByList();
 
 		foreach ($orderByList as $field => $direction) {
@@ -1789,9 +1789,9 @@ class BrowseController extends Controller
         }
 
 		$elements = $criteria->limit(static::PER_PAGE)->get();
-        
+
         $scope['suggestions'] = [];
-        
+
         foreach ($elements as $element) {
             $scope['suggestions'][] = [
                 'value' => $element->$mainProperty,
@@ -1799,10 +1799,10 @@ class BrowseController extends Controller
                 'id' => $element->id,
             ];
         }
-        
+
         return response()->json($scope);
     }
-    
+
     /**
      * Show browse element.
      *
@@ -1811,17 +1811,17 @@ class BrowseController extends Controller
     public function element(Request $request, $classId)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $element = Element::getByClassId($classId);
-        
+
         if ( ! $element) {
             return redirect()->route('moonlight.browse');
         }
-        
+
         $currentItem = Element::getItem($element);
-        
+
         $parentList = Element::getParentList($element);
 
         $parents = [];
@@ -1836,7 +1836,7 @@ class BrowseController extends Controller
         }
 
         $mainProperty = $currentItem->getMainProperty();
-        
+
         $site = \App::make('site');
 
         $styles = [];
@@ -1852,9 +1852,9 @@ class BrowseController extends Controller
         /*
          * Browse plugin
          */
-        
+
         $browsePluginView = null;
-         
+
         $browsePlugin = $site->getBrowsePlugin($classId);
 
         if ($browsePlugin) {
@@ -1865,16 +1865,16 @@ class BrowseController extends Controller
                     ? $view : $view->render();
             }
         }
-        
+
         $itemList = $site->getItemList();
-        
+
         $binds = [];
 		$items = [];
         $creates = [];
-        
+
         foreach ($site->getBinds() as $name => $classes) {
             if (
-                $name == Element::getClassId($element) 
+                $name == Element::getClassId($element)
                 || $name == $currentItem->getNameId()
             ) {
                 foreach ($classes as $class) {
@@ -1930,7 +1930,7 @@ class BrowseController extends Controller
 
                     $styles = array_merge($styles, $site->getItemStyles($bind));
                     $scripts = array_merge($scripts, $site->getItemScripts($bind));
-                    
+
                     break;
                 } elseif (
                     $property->isManyToMany()
@@ -1954,14 +1954,14 @@ class BrowseController extends Controller
 
                     $styles = array_merge($styles, $site->getItemStyles($bind));
                     $scripts = array_merge($scripts, $site->getItemScripts($bind));
-                    
+
                     break;
                 }
             }
         }
 
         $rubricController = new RubricController;
-        
+
         $rubrics = $rubricController->sidebar($classId);
 
         $scope['element'] = $element;
@@ -1978,10 +1978,10 @@ class BrowseController extends Controller
             'styles' => $styles,
             'scripts' => $scripts,
         ]);
-            
+
         return view('moonlight::element', $scope);
     }
-    
+
     /**
      * Show browse root.
      *
@@ -1997,10 +1997,10 @@ class BrowseController extends Controller
 
         $styles = [];
         $scripts = [];
-        
+
         $itemList = $site->getItemList();
-        $binds = $site->getBinds();        
-        
+        $binds = $site->getBinds();
+
         $plugin = null;
 		$items = [];
         $creates = [];
@@ -2045,7 +2045,7 @@ class BrowseController extends Controller
             'styles' => $styles,
             'scripts' => $scripts,
         ]);
-            
+
         return view('moonlight::root', $scope);
     }
 }
