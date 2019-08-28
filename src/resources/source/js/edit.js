@@ -176,7 +176,7 @@ $(function() {
         var name = $(this).attr('name');
         var path = e.target.files[0] ? e.target.files[0].name : 'Выберите файл';
 
-        $('.file[name="' + name + '"]').html(path);    
+        $('.file[name="' + name + '"]').html(path);
         $('[name="' + name + '_drop"]').prop('checked', false);
     });
 
@@ -204,6 +204,7 @@ $(function() {
         width: '50rem',
         height: '20rem',
         convert_urls: false,
+        verify_html: false,
         setup: function(editor) {
             editor.on('keypress keydown', function(event) {
                 return $.onCtrlS(event);
@@ -229,7 +230,7 @@ $(function() {
             dataType: 'json',
             success: function(data) {
                 $.unblockUI();
-                
+
                 if (data.error) {
                     $.alert(data.error);
                 } else if (data.errors) {
@@ -286,19 +287,19 @@ $(function() {
 
         $.confirmClose();
         $.blockUI();
-        
+
         var one = null;
-        
+
         parent.find('input[type="radio"]:checked:not(disabled), input[type="hidden"]').each(function() {
             var name = $(this).attr('property');
             var value = $(this).val();
-            
+
             one = {
                 name: name,
                 value: value
             };
         });
-        
+
         $.post(url, one, function(data) {
             $.unblockUI(function() {
                 if (data.error) {
@@ -318,13 +319,13 @@ $(function() {
         var url = $(this).attr('url');
 
         if (! url) return false;
-        
+
         var one = null;
-        
+
         parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
             var name = $(this).attr('property');
             var value = $(this).val();
-            
+
             one = {
                 name: name,
                 value: value
@@ -335,7 +336,7 @@ $(function() {
 
         $.confirmClose();
         $.blockUI();
-        
+
         $.post(url, one, function(data) {
             $.unblockUI(function() {
                 if (data.error) {
@@ -382,7 +383,7 @@ $(function() {
                 }
             });
         }).fail(function() {
-            $.unblockUI(); 
+            $.unblockUI();
             $.alertDefaultError();
         });
     });
@@ -418,7 +419,7 @@ $(function() {
                 }
             });
         }).fail(function() {
-            $.unblockUI(); 
+            $.unblockUI();
             $.alertDefaultError();
         });
     });
@@ -480,7 +481,7 @@ $(function() {
                 }
             });
         }).fail(function() {
-            $.unblockUI(); 
+            $.unblockUI();
             $.alertDefaultError();
         });
     });
@@ -502,7 +503,7 @@ $(function() {
                 }
             });
         }).fail(function() {
-            $.unblockUI(); 
+            $.unblockUI();
             $.alertDefaultError();
         });
     });
@@ -520,7 +521,7 @@ $(function() {
             $.post('/moonlight/rubrics/close', {
                 rubric: rubric
             });
-            
+
         } else if (display == 'hide') {
             block.attr('display', 'show');
             ul.show();
@@ -561,7 +562,7 @@ $(function() {
                 rubric: rubric,
                 classId: classId
             });
-            
+
         } else if (display == 'hide') {
             $('.sidebar .elements ul[node="' + classId + '"]').slideDown(200);
 
@@ -600,7 +601,7 @@ $(function() {
 
         var left = a.offset().left;
         var top = a.offset().top - sidebar.offset().top + a.height() + 2;
-    
+
         menu.find('li.title span').html(a.text());
         menu.find('li.title small').html(a.attr('item'));
         menu.find('li.edit a').attr('href', a.attr('href') + '/edit');
@@ -613,7 +614,7 @@ $(function() {
                 top = top - menu.height() - a.height() - 4;
             }
         }
-    
+
         menu.css({
             left: left + 'px',
             top: top + 'px'
