@@ -34,7 +34,7 @@ class Group extends Model {
         'update' => 'Изменение элементов',
         'delete' => 'Удаление элементов',
 	];
-	
+
 	public static function boot()
 	{
 		parent::boot();
@@ -43,11 +43,11 @@ class Group extends Model {
 			static::created(function($element) {
 				cache()->tags('admin_groups')->flush();
 			});
-	
+
 			static::saved(function($element) {
 				cache()->tags('admin_groups')->flush();
 			});
-	
+
 			static::deleted(function($element) {
 				cache()->tags('admin_groups')->flush();
 			});
@@ -113,11 +113,11 @@ class Group extends Model {
 
 		return $this;
 	}
-    
+
     public function getPermissionTitle()
     {
         $name = $this->default_permission;
-        
+
         return isset($this->permissionTitles[$name])
             ? $this->permissionTitles[$name]
             : null;
@@ -191,11 +191,9 @@ class Group extends Model {
 
 		if ($elementPermission) return $elementPermission->permission;
 
-		$itemPermission = $this->getItemPermission(Element::getClass($element));
+        $item = Element::getItem($element);
 
-		if ($itemPermission) return $itemPermission->permission;
-
-		return $this->default_permission;
+		return $this->getItemAccess($item);
 	}
 
 }

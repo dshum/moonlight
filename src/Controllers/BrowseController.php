@@ -3,9 +3,7 @@
 namespace Moonlight\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Pagination\Paginator;
 use Moonlight\Main\Element;
@@ -30,7 +28,9 @@ class BrowseController extends Controller
     /**
      * Show/hide column.
      *
+     * @param \Illuminate\Http\Request $request
      * @return Response
+     * @throws \Exception
      */
     public function column(Request $request)
     {
@@ -143,7 +143,9 @@ class BrowseController extends Controller
     /**
      * Save elements.
      *
+     * @param \Illuminate\Http\Request $request
      * @return Response
+     * @throws \Throwable
      */
     public function save(Request $request)
     {
