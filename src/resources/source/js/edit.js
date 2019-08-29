@@ -205,6 +205,8 @@ $(function() {
         height: '20rem',
         convert_urls: false,
         verify_html: false,
+        forced_root_block: false,
+        entity_encoding: 'raw',
         setup: function(editor) {
             editor.on('keypress keydown', function(event) {
                 return $.onCtrlS(event);
