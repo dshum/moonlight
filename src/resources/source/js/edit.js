@@ -201,6 +201,8 @@ $(function() {
         skin: 'custom',
         language: 'ru',
         plugins: ['lists', 'link', 'image', 'paste', 'table', 'code', 'preview'],
+        menubar: 'file edit view insert format tools table',
+        toolbar: 'undo redo | styleselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
         width: '50rem',
         height: '20rem',
         convert_urls: false,
@@ -222,8 +224,8 @@ $(function() {
         $('textarea[tinymce="true"]').each(function() {
             var name = $(this).attr('name');
 
-			$(this).val(tinymce.get(name).getContent());
-		});
+            $(this).val(tinymce.get(name).getContent());
+        });
 
         $.blockUI();
 
@@ -429,13 +431,13 @@ $(function() {
     $('.confirm .favorite-new input[type="text"]').on('keypress', function(event) {
         if (! event) event = window.event;
 
-		if (event.keyCode) {
-			var code = event.keyCode;
-		} else if (event.which) {
-			var code = event.which;
-		}
+        if (event.keyCode) {
+            var code = event.keyCode;
+        } else if (event.which) {
+            var code = event.which;
+        }
 
-		if (code == 13) {
+        if (code == 13) {
             var parent = $(this).parents('.confirm');
 
             parent.find('.btn.favorite').click();
