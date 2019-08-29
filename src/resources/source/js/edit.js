@@ -209,6 +209,7 @@ $(function() {
         verify_html: false,
         forced_root_block: false,
         entity_encoding: 'raw',
+        invalid_elements : 'script,style',
         setup: function(editor) {
             editor.on('keypress keydown', function(event) {
                 return $.onCtrlS(event);
