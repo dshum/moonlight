@@ -296,6 +296,12 @@ class TrashController extends Controller
 
         $itemList = $site->getItemList();
 
+        foreach ($itemList as $key => $item) {
+            if (! $loggedUser->hasViewDefaultAccess($item)) {
+                $itemList->forget($key);
+            }
+        }
+
         $items = [];
         $totals = [];
 
@@ -340,6 +346,12 @@ class TrashController extends Controller
         }
 
         $itemList = $site->getItemList();
+
+        foreach ($itemList as $key => $item) {
+            if (! $loggedUser->hasViewDefaultAccess($item)) {
+                $itemList->forget($key);
+            }
+        }
 
         $items = [];
         $totals = [];
