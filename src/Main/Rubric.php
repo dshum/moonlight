@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Moonlight\Main;
 
@@ -6,7 +6,7 @@ use Moonlight\Properties\OrderProperty;
 use Moonlight\Properties\DatetimeProperty;
 use Moonlight\Properties\BaseProperty;
 
-class Rubric 
+class Rubric
 {
     protected $name = null;
     protected $title = null;
@@ -25,32 +25,32 @@ class Rubric
     }
 
     public function setName($name)
-	{
-		$this->name = $name;
+    {
+        $this->name = $name;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function getName()
-	{
-		return $this->name;
+    public function getName()
+    {
+        return $this->name;
     }
 
     public function setTitle($title)
-	{
-		$this->title = $title;
+    {
+        $this->title = $title;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function getTitle()
-	{
-		return $this->title;
+    public function getTitle()
+    {
+        return $this->title;
     }
 
     public function getBinds()
     {
-        return $this->binds;
+        return collect($this->binds);
     }
 
     public function getBindByName($name = 0)
@@ -61,12 +61,12 @@ class Rubric
     }
 
     public function bind($first, $addition = null, $name = 0)
-	{
+    {
         $this->binds[$name] = [
             'first' => $first,
             'addition' => $addition,
         ];
 
-		return $this;
-	}
+        return $this;
+    }
 }

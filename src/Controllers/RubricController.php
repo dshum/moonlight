@@ -9,30 +9,32 @@ use Moonlight\Main\Site;
 use Moonlight\Main\Item;
 use Moonlight\Main\Element;
 use Moonlight\Main\Rubric;
-use \Moonlight\Models\FavoriteRubric;
-use \Moonlight\Models\Favorite;
+use Moonlight\Models\FavoriteRubric;
+use Moonlight\Models\Favorite;
 
 class RubricController extends Controller
 {
     /**
      * Get rubric node.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
      */
     public function getNode(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $rubricName = $request->input('rubric');
         $bindName = $request->input('bind');
         $classId = $request->input('classId');
-        
+
         $site = \App::make('site');
-        
+
         $rubric = $site->getRubricByName($rubricName);
-        
+
         if (! $rubric) {
             return response()->json([]);
         }
@@ -52,47 +54,47 @@ class RubricController extends Controller
     public function openNode(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $rubricName = $request->input('rubric');
         $classId = $request->input('classId');
-        
+
         $site = \App::make('site');
-        
+
         $rubric = $site->getRubricByName($rubricName);
 
         if (! $rubric) {
             return response()->json([]);
         }
-        
+
         cache()->forever("rubric_node_{$loggedUser->id}_{$rubricName}_{$classId}", true);
 
         return response()->json([]);
     }
-     
-     /**
-      * Close opened rubric node.
-      *
-      * @return Response
-      */
+
+    /**
+     * Close opened rubric node.
+     *
+     * @return Response
+     */
     public function closeNode(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $rubricName = $request->input('rubric');
         $classId = $request->input('classId');
-        
+
         $site = \App::make('site');
-        
+
         $rubric = $site->getRubricByName($rubricName);
-        
+
         if (! $rubric) {
             return response()->json([]);
         }
-        
+
         cache()->forget("rubric_node_{$loggedUser->id}_{$rubricName}_{$classId}");
 
         return response()->json([]);
@@ -106,19 +108,19 @@ class RubricController extends Controller
     public function rubric(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $rubricName = $request->input('rubric');
-        
+
         $site = \App::make('site');
-        
+
         $rubric = $site->getRubricByName($rubricName);
 
         if (! $rubric) {
             $rubric = FavoriteRubric::find($rubricName);
         }
-        
+
         if (! $rubric) {
             return response()->json([]);
         }
@@ -130,8 +132,8 @@ class RubricController extends Controller
 
         if ($rubric instanceof FavoriteRubric) {
             $favoriteList = Favorite::where('rubric_id', $rubric->id)->
-                orderBy('order')->
-                get();
+            orderBy('order')->
+            get();
 
             foreach ($favoriteList as $favorite) {
                 $element = $favorite->getElement();
@@ -173,13 +175,13 @@ class RubricController extends Controller
     public function open(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $rubricName = $request->input('rubric');
-        
+
         $site = \App::make('site');
-        
+
         $rubric = $site->getRubricByName($rubricName);
 
         if (! $rubric) {
@@ -189,37 +191,37 @@ class RubricController extends Controller
         if (! $rubric) {
             return response()->json([]);
         }
-        
+
         cache()->forever("rubric_{$loggedUser->id}_{$rubricName}", true);
 
         return response()->json([]);
     }
-     
-     /**
-      * Close opened rubric.
-      *
-      * @return Response
-      */
+
+    /**
+     * Close opened rubric.
+     *
+     * @return Response
+     */
     public function close(Request $request)
     {
         $scope = [];
-        
+
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $rubricName = $request->input('rubric');
-        
+
         $site = \App::make('site');
-        
+
         $rubric = $site->getRubricByName($rubricName);
 
         if (! $rubric) {
             $rubric = FavoriteRubric::find($rubricName);
         }
-        
+
         if (! $rubric) {
             return response()->json([]);
         }
-        
+
         cache()->forget("rubric_{$loggedUser->id}_{$rubricName}");
 
         return response()->json([]);
@@ -230,10 +232,13 @@ class RubricController extends Controller
         $scope = [];
 
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $site = \App::make('site');
 
-        $favoriteRubrics = FavoriteRubric::orderBy('order')->get();
+        $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)
+            ->orderBy('order')
+            ->get();
+
         $favorites = [];
 
         foreach ($favoriteRubrics as $favoriteRubric) {
@@ -241,9 +246,10 @@ class RubricController extends Controller
 
             if (! $open) continue;
 
-            $favoriteList = Favorite::where('rubric_id', $favoriteRubric->id)->
-                orderBy('order')->
-                get();
+            $favoriteList = Favorite::where('rubric_id', $favoriteRubric->id)
+                ->where('user_id', $loggedUser->id)
+                ->orderBy('order')
+                ->get();
 
             foreach ($favoriteList as $favorite) {
                 $element = $favorite->getElement();
@@ -266,7 +272,7 @@ class RubricController extends Controller
 
         $rubrics = $site->getRubricList();
 
-        foreach ($rubrics as $rubric) {
+        foreach ($rubrics as $k => $rubric) {
             $rubricName = $rubric->getName();
 
             $open = cache()->get("rubric_{$loggedUser->id}_{$rubricName}", false);
@@ -276,7 +282,13 @@ class RubricController extends Controller
             $binds = $rubric->getBinds();
 
             foreach ($binds as $bindName => $bind) {
-                $views[$rubricName][] = $this->node($rubric, $bindName, null, $currentClassId);
+                if ($node = $this->node($rubric, $bindName, null, $currentClassId)) {
+                    $views[$rubricName][] = $node;
+                }
+            }
+
+            if (empty($views[$rubricName])) {
+                $rubrics->forget($k);
             }
         }
 
@@ -294,18 +306,22 @@ class RubricController extends Controller
         $scope = [];
 
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         $site = \App::make('site');
 
-        $favoriteRubrics = FavoriteRubric::orderBy('order')->get();
+        $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)
+            ->orderBy('order')
+            ->get();
+
         $favorites = [];
 
         foreach ($favoriteRubrics as $favoriteRubric) {
             $favorites[$favoriteRubric->id] = [];
-            
-            $favoriteList = Favorite::where('rubric_id', $favoriteRubric->id)->
-                orderBy('order')->
-                get();
+
+            $favoriteList = Favorite::where('rubric_id', $favoriteRubric->id)
+                ->where('user_id', $loggedUser->id)
+                ->orderBy('order')
+                ->get();
 
             foreach ($favoriteList as $favorite) {
                 $element = $favorite->getElement();
@@ -364,12 +380,12 @@ class RubricController extends Controller
         }
 
         if (strpos($parent, Element::ID_SEPARATOR)) {
-			$parts = explode(Element::ID_SEPARATOR, $parent);
-			$id = array_pop($parts);
-			$class = implode(Element::ID_SEPARATOR, $parts);
-		} else {
-			$class = $parent;
-		}
+            $parts = explode(Element::ID_SEPARATOR, $parent);
+            $id = array_pop($parts);
+            $class = implode(Element::ID_SEPARATOR, $parts);
+        } else {
+            $class = $parent;
+        }
 
         if (! $parent) {
             $bindItem = $bind['first'];
@@ -400,7 +416,7 @@ class RubricController extends Controller
                         $count = $this->count($bind, $element['classId']);
 
                         $open = cache()->get("rubric_node_{$loggedUser->id}_{$rubric->getName()}_{$element['classId']}", false);
-                        
+
                         if ($count && $open) {
                             $scope['children'][$element['classId']] = $this->node($rubric, $bindName, $element['classId'], $currentClassId);;
                         } elseif ($count) {
@@ -418,7 +434,7 @@ class RubricController extends Controller
                         $parent = $key;
                     } elseif ($key) {
                         $element = Element::getByClassId($key);
-    
+
                         if ($element) {
                             $parent = $key;
                         }
@@ -433,13 +449,13 @@ class RubricController extends Controller
                     $scope['classId'] = $currentClassId;
                     $scope['parent'] = $parent;
                     $scope['elements'] = $elements;
-    
+
                     if (isset($bind['addition'][$value])) {
                         foreach ($elements as $element) {
                             $count = $this->count($bind, $element['classId']);
 
                             $open = cache()->get("rubric_node_{$loggedUser->id}_{$rubric->getName()}_{$element['classId']}", false);
-                            
+
                             if ($count && $open) {
                                 $scope['children'][$element['classId']] = $this->node($rubric, $bindName, $element['classId'], $currentClassId);
                             } elseif ($count) {
@@ -447,7 +463,7 @@ class RubricController extends Controller
                             }
                         }
                     }
-    
+
                     $views[] = view('moonlight::rubrics.node', $scope)->render();
                 }
             }
@@ -467,12 +483,12 @@ class RubricController extends Controller
         $site = \App::make('site');
 
         if (strpos($parent, Element::ID_SEPARATOR)) {
-			$parts = explode(Element::ID_SEPARATOR, $parent);
-			$id = array_pop($parts);
-			$class = implode(Element::ID_SEPARATOR, $parts);
-		} else {
-			$class = $parent;
-		}
+            $parts = explode(Element::ID_SEPARATOR, $parent);
+            $id = array_pop($parts);
+            $class = implode(Element::ID_SEPARATOR, $parts);
+        } else {
+            $class = $parent;
+        }
 
         if (! $parent) {
             $bindItem = $bind['first'];
@@ -531,60 +547,60 @@ class RubricController extends Controller
 
         $mainProperty = $item->getMainProperty();
 
-		if (! $loggedUser->isSuperUser()) {
-			$permissionDenied = true;
-			$deniedElementList = [];
-			$allowedElementList = [];
+        if (! $loggedUser->isSuperUser()) {
+            $permissionDenied = true;
+            $deniedElementList = [];
+            $allowedElementList = [];
 
-			$groupList = $loggedUser->getGroups();
+            $groupList = $loggedUser->getGroups();
 
-			foreach ($groupList as $group) {
+            foreach ($groupList as $group) {
                 $groupItemPermission = $group->getItemPermission($item->getNameId());
-				$itemPermission = $groupItemPermission
-					? $groupItemPermission->permission
-					: $group->default_permission;
+                $itemPermission = $groupItemPermission
+                    ? $groupItemPermission->permission
+                    : $group->default_permission;
 
-				if ($itemPermission != 'deny') {
-					$permissionDenied = false;
-					$deniedElementList = [];
-				}
+                if ($itemPermission != 'deny') {
+                    $permissionDenied = false;
+                    $deniedElementList = [];
+                }
 
-				$elementPermissionList = $group->getElementPermissions();
+                $elementPermissionList = $group->getElementPermissions();
 
-				$elementPermissionMap = [];
+                $elementPermissionMap = [];
 
-				foreach ($elementPermissionList as $elementPermission) {
-					$classId = $elementPermission->class_id;
-					$permission = $elementPermission->permission;
-                    
-					$array = explode(Element::ID_SEPARATOR, $classId);
+                foreach ($elementPermissionList as $elementPermission) {
+                    $classId = $elementPermission->class_id;
+                    $permission = $elementPermission->permission;
+
+                    $array = explode(Element::ID_SEPARATOR, $classId);
                     $id = array_pop($array);
                     $class = implode(Element::ID_SEPARATOR, $array);
-					
-                    if ($class == $item->getNameId()) {
-						$elementPermissionMap[$id] = $permission;
-					}
-				}
 
-				foreach ($elementPermissionMap as $id => $permission) {
-					if ($permission == 'deny') {
-						$deniedElementList[$id] = $id;
-					} else {
-						$allowedElementList[$id] = $id;
-					}
-				}
-			}
+                    if ($class == $item->getNameId()) {
+                        $elementPermissionMap[$id] = $permission;
+                    }
+                }
+
+                foreach ($elementPermissionMap as $id => $permission) {
+                    if ($permission == 'deny') {
+                        $deniedElementList[$id] = $id;
+                    } else {
+                        $allowedElementList[$id] = $id;
+                    }
+                }
+            }
         }
 
         if ($parentId) {
             $propertyList = $item->getPropertyList();
-            
+
             $criteria = $item->getClass()->where(
                 function($query) use ($propertyList, $parent) {
                     if ($parent) {
                         $query->orWhere('id', null);
                     }
-    
+
                     foreach ($propertyList as $property) {
                         if (
                             $parent
@@ -605,7 +621,7 @@ class RubricController extends Controller
                     }
                 }
             );
-    
+
             foreach ($propertyList as $property) {
                 if (
                     $parent
@@ -615,25 +631,25 @@ class RubricController extends Controller
                     $criteria = $parent->{$property->getRelatedMethod()}();
                     break;
                 }
-            }    
+            }
         } else {
             $criteria = $item->getClass()->query();
         }
 
-		if (! $loggedUser->isSuperUser()) {
-			if (
-				$permissionDenied
-				&& sizeof($allowedElementList)
-			) {
-				$criteria->whereIn('id', $allowedElementList);
-			} elseif (
-				! $permissionDenied
-				&& sizeof($deniedElementList)
-			) {
-				$criteria->whereNotIn('id', $deniedElementList);
-			} elseif ($permissionDenied) {
+        if (! $loggedUser->isSuperUser()) {
+            if (
+                $permissionDenied
+                && sizeof($allowedElementList)
+            ) {
+                $criteria->whereIn('id', $allowedElementList);
+            } elseif (
+                ! $permissionDenied
+                && sizeof($deniedElementList)
+            ) {
+                $criteria->whereNotIn('id', $deniedElementList);
+            } elseif ($permissionDenied) {
                 return 0;
-			}
+            }
         }
 
         return $criteria->count();
@@ -659,60 +675,60 @@ class RubricController extends Controller
 
         $mainProperty = $item->getMainProperty();
 
-		if (! $loggedUser->isSuperUser()) {
-			$permissionDenied = true;
-			$deniedElementList = [];
-			$allowedElementList = [];
+        if (! $loggedUser->isSuperUser()) {
+            $permissionDenied = true;
+            $deniedElementList = [];
+            $allowedElementList = [];
 
-			$groupList = $loggedUser->getGroups();
+            $groupList = $loggedUser->getGroups();
 
-			foreach ($groupList as $group) {
+            foreach ($groupList as $group) {
                 $groupItemPermission = $group->getItemPermission($item->getNameId());
-				$itemPermission = $groupItemPermission
-					? $groupItemPermission->permission
-					: $group->default_permission;
+                $itemPermission = $groupItemPermission
+                    ? $groupItemPermission->permission
+                    : $group->default_permission;
 
-				if ($itemPermission != 'deny') {
-					$permissionDenied = false;
-					$deniedElementList = [];
-				}
+                if ($itemPermission != 'deny') {
+                    $permissionDenied = false;
+                    $deniedElementList = [];
+                }
 
-				$elementPermissionList = $group->getElementPermissions();
+                $elementPermissionList = $group->getElementPermissions();
 
-				$elementPermissionMap = [];
+                $elementPermissionMap = [];
 
-				foreach ($elementPermissionList as $elementPermission) {
-					$classId = $elementPermission->class_id;
-					$permission = $elementPermission->permission;
-                    
-					$array = explode(Element::ID_SEPARATOR, $classId);
+                foreach ($elementPermissionList as $elementPermission) {
+                    $classId = $elementPermission->class_id;
+                    $permission = $elementPermission->permission;
+
+                    $array = explode(Element::ID_SEPARATOR, $classId);
                     $id = array_pop($array);
                     $class = implode(Element::ID_SEPARATOR, $array);
-					
-                    if ($class == $item->getNameId()) {
-						$elementPermissionMap[$id] = $permission;
-					}
-				}
 
-				foreach ($elementPermissionMap as $id => $permission) {
-					if ($permission == 'deny') {
-						$deniedElementList[$id] = $id;
-					} else {
-						$allowedElementList[$id] = $id;
-					}
-				}
-			}
+                    if ($class == $item->getNameId()) {
+                        $elementPermissionMap[$id] = $permission;
+                    }
+                }
+
+                foreach ($elementPermissionMap as $id => $permission) {
+                    if ($permission == 'deny') {
+                        $deniedElementList[$id] = $id;
+                    } else {
+                        $allowedElementList[$id] = $id;
+                    }
+                }
+            }
         }
 
         if ($parentId) {
             $propertyList = $item->getPropertyList();
-            
+
             $criteria = $item->getClass()->where(
                 function($query) use ($propertyList, $parent) {
                     if ($parent) {
                         $query->orWhere('id', null);
                     }
-    
+
                     foreach ($propertyList as $property) {
                         if (
                             $parent
@@ -733,7 +749,7 @@ class RubricController extends Controller
                     }
                 }
             );
-    
+
             foreach ($propertyList as $property) {
                 if (
                     $parent
@@ -743,35 +759,35 @@ class RubricController extends Controller
                     $criteria = $parent->{$property->getRelatedMethod()}();
                     break;
                 }
-            }    
+            }
         } else {
             $criteria = $item->getClass()->query();
         }
 
-		if (! $loggedUser->isSuperUser()) {
-			if (
-				$permissionDenied
-				&& sizeof($allowedElementList)
-			) {
-				$criteria->whereIn('id', $allowedElementList);
-			} elseif (
-				! $permissionDenied
-				&& sizeof($deniedElementList)
-			) {
-				$criteria->whereNotIn('id', $deniedElementList);
-			} elseif ($permissionDenied) {
+        if (! $loggedUser->isSuperUser()) {
+            if (
+                $permissionDenied
+                && sizeof($allowedElementList)
+            ) {
+                $criteria->whereIn('id', $allowedElementList);
+            } elseif (
+                ! $permissionDenied
+                && sizeof($deniedElementList)
+            ) {
+                $criteria->whereNotIn('id', $deniedElementList);
+            } elseif ($permissionDenied) {
                 return [];
-			}
+            }
         }
-        
+
         $orderByList = $item->getOrderByList();
 
-		foreach ($orderByList as $field => $direction) {
+        foreach ($orderByList as $field => $direction) {
             $criteria->orderBy($field, $direction);
         }
-        
+
         $elementList = $criteria->get();
-        
+
         $elements = [];
 
         foreach ($elementList as $element) {

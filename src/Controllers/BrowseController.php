@@ -2,24 +2,24 @@
 
 namespace Moonlight\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Pagination\Paginator;
 use Moonlight\Main\Element;
 use Moonlight\Main\Site;
 use Moonlight\Main\UserActionType;
-use Moonlight\Models\FavoriteRubric;
 use Moonlight\Models\Favorite;
+use Moonlight\Models\FavoriteRubric;
 use Moonlight\Models\UserAction;
-use Moonlight\Properties\MainProperty;
-use Moonlight\Properties\OrderProperty;
 use Moonlight\Properties\FileProperty;
 use Moonlight\Properties\ImageProperty;
+use Moonlight\Properties\MainProperty;
 use Moonlight\Properties\ManyToManyProperty;
+use Moonlight\Properties\OrderProperty;
 use Moonlight\Properties\PasswordProperty;
 use Moonlight\Properties\VirtualProperty;
-use Carbon\Carbon;
 
 class BrowseController extends Controller
 {
@@ -182,8 +182,12 @@ class BrowseController extends Controller
         $errors = [];
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) continue;
-            if (! $property->getShow()) continue;
+            if ($property->getHidden()) {
+                continue;
+            }
+            if (! $property->getShow()) {
+                continue;
+            }
 
             $properties[] = $property;
         }
@@ -191,10 +195,18 @@ class BrowseController extends Controller
         foreach ($editing as $id => $fields) {
             $element = $currentItem->getClass()->find($id);
 
-            if (! $element) continue;
-            if (! $loggedUser->hasUpdateAccess($element)) continue;
-            if (! is_array($fields)) continue;
-            if (! sizeof($fields)) continue;
+            if (! $element) {
+                continue;
+            }
+            if (! $loggedUser->hasUpdateAccess($element)) {
+                continue;
+            }
+            if (! is_array($fields)) {
+                continue;
+            }
+            if (! sizeof($fields)) {
+                continue;
+            }
 
             $elements[] = $element;
         }
@@ -211,12 +223,16 @@ class BrowseController extends Controller
             $messages = [];
 
             foreach ($properties as $property) {
-                if (! array_key_exists($property->getName(), $editing[$element->id])) continue;
+                if (! array_key_exists($property->getName(), $editing[$element->id])) {
+                    continue;
+                }
 
                 $name = $property->getName();
                 $value = $editing[$element->id][$property->getName()];
 
-                if ($value !== null) $inputs[$name] = $value;
+                if ($value !== null) {
+                    $inputs[$name] = $value;
+                }
 
                 foreach ($property->getRules() as $rule => $message) {
                     $rules[$name][] = $rule;
@@ -246,7 +262,9 @@ class BrowseController extends Controller
             }
 
             foreach ($properties as $property) {
-                if (! array_key_exists($property->getName(), $editing[$element->id])) continue;
+                if (! array_key_exists($property->getName(), $editing[$element->id])) {
+                    continue;
+                }
 
                 $name = $property->getName();
                 $value = $editing[$element->id][$property->getName()];
@@ -364,23 +382,31 @@ class BrowseController extends Controller
                 if (
                     $property->getReadonly()
                     && ! $property->getRequired()
-                ) continue;
+                ) {
+                    continue;
+                }
 
                 if (
                     $property instanceof FileProperty
                     && ! $property->getRequired()
-                ) continue;
+                ) {
+                    continue;
+                }
 
                 if (
                     $property instanceof ImageProperty
                     && ! $property->getRequired()
-                ) continue;
+                ) {
+                    continue;
+                }
 
                 if (
                     $propertyName == 'created_at'
                     || $propertyName == 'updated_at'
                     || $propertyName == 'deleted_at'
-                ) continue;
+                ) {
+                    continue;
+                }
 
                 if (
                     $property->isOneToOne()
@@ -479,11 +505,21 @@ class BrowseController extends Controller
         $propertyList = $currentItem->getPropertyList();
 
         foreach ($propertyList as $propertyName => $property) {
-            if ($property->getHidden()) continue;
-            if ($property->getReadonly()) continue;
-            if (! $property->isOneToOne()) continue;
-            if ($propertyName != $name) continue;
-            if (! $value && $property->getRequired()) continue;
+            if ($property->getHidden()) {
+                continue;
+            }
+            if ($property->getReadonly()) {
+                continue;
+            }
+            if (! $property->isOneToOne()) {
+                continue;
+            }
+            if ($propertyName != $name) {
+                continue;
+            }
+            if (! $value && $property->getRequired()) {
+                continue;
+            }
 
             $relatedClass = $property->getRelatedClass();
             $relatedItem = $site->getItemByName($relatedClass);
@@ -574,11 +610,21 @@ class BrowseController extends Controller
         $propertyList = $currentItem->getPropertyList();
 
         foreach ($propertyList as $propertyName => $property) {
-            if ($property->getHidden()) continue;
-            if ($property->getReadonly()) continue;
-            if (! $property->isManyToMany()) continue;
-            if (! isset($ones[$propertyName])) continue;
-            if (! $ones[$propertyName]) continue;
+            if ($property->getHidden()) {
+                continue;
+            }
+            if ($property->getReadonly()) {
+                continue;
+            }
+            if (! $property->isManyToMany()) {
+                continue;
+            }
+            if (! isset($ones[$propertyName])) {
+                continue;
+            }
+            if (! $ones[$propertyName]) {
+                continue;
+            }
 
             $value = $ones[$propertyName];
 
@@ -666,11 +712,21 @@ class BrowseController extends Controller
         $propertyList = $currentItem->getPropertyList();
 
         foreach ($propertyList as $propertyName => $property) {
-            if ($property->getHidden()) continue;
-            if ($property->getReadonly()) continue;
-            if (! $property->isManyToMany()) continue;
-            if (! isset($ones[$propertyName])) continue;
-            if (! $ones[$propertyName]) continue;
+            if ($property->getHidden()) {
+                continue;
+            }
+            if ($property->getReadonly()) {
+                continue;
+            }
+            if (! $property->isManyToMany()) {
+                continue;
+            }
+            if (! isset($ones[$propertyName])) {
+                continue;
+            }
+            if (! $ones[$propertyName]) {
+                continue;
+            }
 
             $value = $ones[$propertyName];
 
@@ -707,7 +763,8 @@ class BrowseController extends Controller
     /**
      * Set favorites.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function favorite(Request $request)
     {
@@ -715,7 +772,7 @@ class BrowseController extends Controller
 
         $loggedUser = Auth::guard('moonlight')->user();
 
-		$class = $request->input('item');
+        $class = $request->input('item');
 
         $site = \App::make('site');
 
@@ -747,7 +804,7 @@ class BrowseController extends Controller
             }
         }
 
-        if ( ! sizeof($elements)) {
+        if (! sizeof($elements)) {
             $scope['error'] = 'Нет элементов для добавление в избранное.';
 
             return response()->json($scope);
@@ -758,11 +815,11 @@ class BrowseController extends Controller
         $newRubric = $request->input('new_favorite_rubric');
 
         $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)->
-            orderBy('order')->
-            get();
+        orderBy('order')->
+        get();
 
         $favoritesAll = Favorite::where('user_id', $loggedUser->id)->
-            get();
+        get();
 
         $rubricOrders = [];
         $favoriteOrders = [];
@@ -784,19 +841,20 @@ class BrowseController extends Controller
             $selectedRubrics[$favorite->class_id][$favorite->rubric_id] = $favorite->rubric;
         }
 
-        if (
-            $addRubric
-        ) {
+        // Add a new favorite element to the rubric
+        if ($addRubric) {
             $nextOrder =
                 isset($favoriteOrders[$addRubric])
                 && sizeof($favoriteOrders[$addRubric])
-                ? max($favoriteOrders[$addRubric]) + 1
-                : 1;
+                    ? max($favoriteOrders[$addRubric]) + 1
+                    : 1;
 
             foreach ($elements as $element) {
                 $classId = Element::getClassId($element);
 
-                if (isset($selectedRubrics[$classId][$addRubric])) continue;
+                if (isset($selectedRubrics[$classId][$addRubric])) {
+                    continue;
+                }
 
                 $favorite = new Favorite;
 
@@ -812,13 +870,14 @@ class BrowseController extends Controller
             }
         }
 
-        if (
-            $removeRubric
-        ) {
+        // Remove a favorite element from the rubric
+        if ($removeRubric) {
             foreach ($elements as $element) {
                 $classId = Element::getClassId($element);
 
-                if (! isset($favorites[$removeRubric][$classId])) continue;
+                if (! isset($favorites[$removeRubric][$classId])) {
+                    continue;
+                }
 
                 $favorite = $favorites[$removeRubric][$classId];
 
@@ -826,14 +885,13 @@ class BrowseController extends Controller
             }
         }
 
-        if (
-            $newRubric
-        ) {
+        // Add a new rubric
+        if ($newRubric) {
             $nextOrder =
                 isset($rubricOrders)
                 && sizeof($rubricOrders)
-                ? max($rubricOrders) + 1
-                : 1;
+                    ? max($rubricOrders) + 1
+                    : 1;
 
             $favoriteRubric = new FavoriteRubric;
 
@@ -911,7 +969,7 @@ class BrowseController extends Controller
             }
         }
 
-        if ( ! sizeof($elements)) {
+        if (! sizeof($elements)) {
             $scope['error'] = 'Нет элементов для удаления.';
 
             return response()->json($scope);
@@ -933,19 +991,23 @@ class BrowseController extends Controller
                         && $property->getRelatedClass() == $currentItem->getName()
                     ) {
                         $count = $element->
-                            hasMany($itemName, $property->getName())->
-                            count();
+                        hasMany($itemName, $property->getName())->
+                        count();
 
-                        if ($count) break;
+                        if ($count) {
+                            break;
+                        }
                     } elseif (
                         $property->isManyToMany()
                         && $property->getRelatedClass() == $currentItem->getName()
                     ) {
                         $count = $element->
-                            {$property->getRelatedMethod()}()->
-                            count();
+                        {$property->getRelatedMethod()}()->
+                        count();
 
-                        if ($count) break;
+                        if ($count) {
+                            break;
+                        }
                     }
                 }
 
@@ -960,7 +1022,7 @@ class BrowseController extends Controller
             }
         }
 
-		if (isset($scope['restricted'])) {
+        if (isset($scope['restricted'])) {
             $scope['error'] = 'Сначала удалите элементы, связанные со следующими элементами:<br>'
                 .implode('<br>', $scope['restricted']);
 
@@ -1220,7 +1282,7 @@ class BrowseController extends Controller
         $order = $request->input('order');
         $direction = $request->input('direction');
         $resetorder = $request->input('resetorder');
-        $page = (int)$request->input('page');
+        $page = (int) $request->input('page');
 
         $site = \App::make('site');
 
@@ -1295,52 +1357,52 @@ class BrowseController extends Controller
 
         $propertyList = $currentItem->getPropertyList();
 
-		if (! $loggedUser->isSuperUser()) {
-			$permissionDenied = true;
-			$deniedElementList = [];
-			$allowedElementList = [];
+        if (! $loggedUser->isSuperUser()) {
+            $permissionDenied = true;
+            $deniedElementList = [];
+            $allowedElementList = [];
 
-			$groupList = $loggedUser->getGroups();
+            $groupList = $loggedUser->getGroups();
 
-			foreach ($groupList as $group) {
-				$itemPermission = $group->getItemPermission($currentItem->getNameId())
-					? $group->getItemPermission($currentItem->getNameId())->permission
-					: $group->default_permission;
+            foreach ($groupList as $group) {
+                $itemPermission = $group->getItemPermission($currentItem->getNameId())
+                    ? $group->getItemPermission($currentItem->getNameId())->permission
+                    : $group->default_permission;
 
-				if ($itemPermission != 'deny') {
-					$permissionDenied = false;
-					$deniedElementList = [];
-				}
+                if ($itemPermission != 'deny') {
+                    $permissionDenied = false;
+                    $deniedElementList = [];
+                }
 
-				$elementPermissionList = $group->elementPermissions;
+                $elementPermissionList = $group->elementPermissions;
 
-				$elementPermissionMap = [];
+                $elementPermissionMap = [];
 
-				foreach ($elementPermissionList as $elementPermission) {
-					$classId = $elementPermission->class_id;
-					$permission = $elementPermission->permission;
+                foreach ($elementPermissionList as $elementPermission) {
+                    $classId = $elementPermission->class_id;
+                    $permission = $elementPermission->permission;
 
-					$array = explode(Element::ID_SEPARATOR, $classId);
+                    $array = explode(Element::ID_SEPARATOR, $classId);
                     $id = array_pop($array);
                     $class = implode(Element::ID_SEPARATOR, $array);
 
                     if ($class == $currentItem->getNameId()) {
-						$elementPermissionMap[$id] = $permission;
-					}
-				}
+                        $elementPermissionMap[$id] = $permission;
+                    }
+                }
 
-				foreach ($elementPermissionMap as $id => $permission) {
-					if ($permission == 'deny') {
-						$deniedElementList[$id] = $id;
-					} else {
-						$allowedElementList[$id] = $id;
-					}
-				}
-			}
-		}
+                foreach ($elementPermissionMap as $id => $permission) {
+                    if ($permission == 'deny') {
+                        $deniedElementList[$id] = $id;
+                    } else {
+                        $allowedElementList[$id] = $id;
+                    }
+                }
+            }
+        }
 
         $criteria = $currentItem->getClass()->where(
-            function($query) use ($propertyList, $currentElement, $currentClass) {
+            function ($query) use ($propertyList, $currentElement, $currentClass) {
                 if ($currentElement) {
                     $query->orWhere('id', null);
                 }
@@ -1378,20 +1440,20 @@ class BrowseController extends Controller
             }
         }
 
-		if (! $loggedUser->isSuperUser()) {
-			if (
-				$permissionDenied
-				&& sizeof($allowedElementList)
-			) {
-				$criteria->whereIn('id', $allowedElementList);
-			} elseif (
-				! $permissionDenied
-				&& sizeof($deniedElementList)
-			) {
-				$criteria->whereNotIn('id', $deniedElementList);
-			} elseif ($permissionDenied) {
+        if (! $loggedUser->isSuperUser()) {
+            if (
+                $permissionDenied
+                && sizeof($allowedElementList)
+            ) {
+                $criteria->whereIn('id', $allowedElementList);
+            } elseif (
+                ! $permissionDenied
+                && sizeof($deniedElementList)
+            ) {
+                $criteria->whereNotIn('id', $deniedElementList);
+            } elseif ($permissionDenied) {
                 return response()->json(['count' => 0]);
-			}
+            }
         }
 
         /*
@@ -1456,7 +1518,7 @@ class BrowseController extends Controller
         $orders = [];
         $hasOrderProperty = false;
 
-		foreach ($orderByList as $field => $direction) {
+        foreach ($orderByList as $field => $direction) {
             $criteria->orderBy($field, $direction);
 
             $property = $currentItem->getPropertyByName($field);
@@ -1498,7 +1560,7 @@ class BrowseController extends Controller
 
             $page = cache()->get("page_{$loggedUser->id}_{$cid}_{$currentItem->getNameId()}", 1);
 
-            Paginator::currentPageResolver(function() use ($page) {
+            Paginator::currentPageResolver(function () use ($page) {
                 return $page;
             });
 
@@ -1522,24 +1584,38 @@ class BrowseController extends Controller
         $views = [];
 
         foreach ($propertyList as $property) {
-            if ($property instanceof PasswordProperty) continue;
-            if ($property->getHidden()) continue;
+            if ($property instanceof PasswordProperty) {
+                continue;
+            }
+            if ($property->getHidden()) {
+                continue;
+            }
 
             $show = cache()->get(
                 "show_column_{$loggedUser->id}_{$currentItem->getNameId()}_{$property->getName()}",
                 $property->getShow()
             );
 
-            if (! $show) continue;
+            if (! $show) {
+                continue;
+            }
 
             $properties[] = $property;
         }
 
         foreach ($propertyList as $property) {
-            if ($property instanceof MainProperty) continue;
-            if ($property instanceof PasswordProperty) continue;
-            if ($property->getHidden()) continue;
-            if ($property->getName() == 'deleted_at') continue;
+            if ($property instanceof MainProperty) {
+                continue;
+            }
+            if ($property instanceof PasswordProperty) {
+                continue;
+            }
+            if ($property->getHidden()) {
+                continue;
+            }
+            if ($property->getName() == 'deleted_at') {
+                continue;
+            }
 
             $show = cache()->get(
                 "show_column_{$loggedUser->id}_{$currentItem->getNameId()}_{$property->getName()}",
@@ -1588,8 +1664,12 @@ class BrowseController extends Controller
         $currentElementItem = $currentElement ? Element::getItem($currentElement) : null;
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) continue;
-            if (! $property->isOneToOne()) continue;
+            if ($property->getHidden()) {
+                continue;
+            }
+            if (! $property->isOneToOne()) {
+                continue;
+            }
 
             if (
                 ($currentElementItem && $property->getRelatedClass() == $currentElementItem->getName())
@@ -1618,8 +1698,12 @@ class BrowseController extends Controller
         }
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) continue;
-            if (! $property->isManyToMany()) continue;
+            if ($property->getHidden()) {
+                continue;
+            }
+            if (! $property->isManyToMany()) {
+                continue;
+            }
 
             $propertyScope = $property->getEditView();
 
@@ -1643,11 +1727,11 @@ class BrowseController extends Controller
          */
 
         $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)->
-            orderBy('order')->
-            get();
+        orderBy('order')->
+        get();
 
         $favorites = Favorite::where('user_id', $loggedUser->id)->
-            get();
+        get();
 
         $favoriteRubricMap = [];
         $elementFavoriteRubrics = [];
@@ -1716,81 +1800,81 @@ class BrowseController extends Controller
 
         $mainProperty = $currentItem->getMainProperty();
 
-		if (! $loggedUser->isSuperUser()) {
-			$permissionDenied = true;
-			$deniedElementList = [];
-			$allowedElementList = [];
+        if (! $loggedUser->isSuperUser()) {
+            $permissionDenied = true;
+            $deniedElementList = [];
+            $allowedElementList = [];
 
-			$groupList = $loggedUser->getGroups();
+            $groupList = $loggedUser->getGroups();
 
-			foreach ($groupList as $group) {
-				$itemPermission = $group->getItemPermission($currentItem->getNameId())
-					? $group->getItemPermission($currentItem->getNameId())->permission
-					: $group->default_permission;
+            foreach ($groupList as $group) {
+                $itemPermission = $group->getItemPermission($currentItem->getNameId())
+                    ? $group->getItemPermission($currentItem->getNameId())->permission
+                    : $group->default_permission;
 
-				if ($itemPermission != 'deny') {
-					$permissionDenied = false;
-					$deniedElementList = [];
-				}
+                if ($itemPermission != 'deny') {
+                    $permissionDenied = false;
+                    $deniedElementList = [];
+                }
 
-				$elementPermissionList = $group->elementPermissions;
+                $elementPermissionList = $group->elementPermissions;
 
-				$elementPermissionMap = [];
+                $elementPermissionMap = [];
 
-				foreach ($elementPermissionList as $elementPermission) {
-					$classId = $elementPermission->class_id;
-					$permission = $elementPermission->permission;
+                foreach ($elementPermissionList as $elementPermission) {
+                    $classId = $elementPermission->class_id;
+                    $permission = $elementPermission->permission;
 
-					$array = explode(Element::ID_SEPARATOR, $classId);
+                    $array = explode(Element::ID_SEPARATOR, $classId);
                     $id = array_pop($array);
                     $class = implode(Element::ID_SEPARATOR, $array);
 
                     if ($class == $currentItem->getNameId()) {
-						$elementPermissionMap[$id] = $permission;
-					}
-				}
+                        $elementPermissionMap[$id] = $permission;
+                    }
+                }
 
-				foreach ($elementPermissionMap as $id => $permission) {
-					if ($permission == 'deny') {
-						$deniedElementList[$id] = $id;
-					} else {
-						$allowedElementList[$id] = $id;
-					}
-				}
-			}
-		}
+                foreach ($elementPermissionMap as $id => $permission) {
+                    if ($permission == 'deny') {
+                        $deniedElementList[$id] = $id;
+                    } else {
+                        $allowedElementList[$id] = $id;
+                    }
+                }
+            }
+        }
 
         $criteria = $currentItem->getClass()->query();
 
         if ($query) {
             $criteria->
-                where('id', (int)$query)->
-                orWhere($mainProperty, 'ilike', "%$query%");
+            where('id', (int) $query)->
+            orWhere($mainProperty, 'ilike', "%$query%");
         }
 
-		if (! $loggedUser->isSuperUser()) {
-			if (
-				$permissionDenied
-				&& sizeof($allowedElementList)
-			) {
-				$criteria->whereIn('id', $allowedElementList);
-			} elseif (
-				! $permissionDenied
-				&& sizeof($deniedElementList)
-			) {
-				$criteria->whereNotIn('id', $deniedElementList);
-			} elseif ($permissionDenied) {
+        if (! $loggedUser->isSuperUser()) {
+            if (
+                $permissionDenied
+                && sizeof($allowedElementList)
+            ) {
+                $criteria->whereIn('id', $allowedElementList);
+            } elseif (
+                ! $permissionDenied
+                && sizeof($deniedElementList)
+            ) {
+                $criteria->whereNotIn('id', $deniedElementList);
+            } elseif ($permissionDenied) {
                 return response()->json(['count' => 0]);
-			}
-		}
+            }
+        }
 
         $orderByList = $currentItem->getOrderByList();
 
-		foreach ($orderByList as $field => $direction) {
+        foreach ($orderByList as $field => $direction) {
             $criteria->orderBy($field, $direction);
         }
 
-		$elements = $criteria->limit(static::PER_PAGE)->get();
+        $elements = $criteria->limit(static::PER_PAGE)->get();
 
         $scope['suggestions'] = [];
 
@@ -1818,7 +1902,7 @@ class BrowseController extends Controller
 
         $element = Element::getByClassId($classId);
 
-        if ( ! $element) {
+        if (! $element) {
             return redirect()->route('moonlight.browse');
         }
 
@@ -1871,7 +1955,7 @@ class BrowseController extends Controller
         $itemList = $site->getItemList();
 
         $binds = [];
-		$items = [];
+        $items = [];
         $creates = [];
 
         foreach ($site->getBinds() as $name => $classes) {
@@ -1888,7 +1972,9 @@ class BrowseController extends Controller
         foreach ($binds as $bind) {
             $item = $site->getItemByName($bind);
 
-            if (! $item) continue;
+            if (! $item) {
+                continue;
+            }
 
             $propertyList = $item->getPropertyList();
 
@@ -1972,7 +2058,7 @@ class BrowseController extends Controller
         $scope['parents'] = $parents;
         $scope['currentItem'] = $currentItem;
         $scope['browsePluginView'] = $browsePluginView;
-		$scope['items'] = $items;
+        $scope['items'] = $items;
         $scope['creates'] = $creates;
         $scope['rubrics'] = $rubrics;
 
@@ -2004,14 +2090,16 @@ class BrowseController extends Controller
         $binds = $site->getBinds();
 
         $plugin = null;
-		$items = [];
+        $items = [];
         $creates = [];
 
         if (isset($binds[Site::ROOT])) {
             foreach ($binds[Site::ROOT] as $bind) {
                 $item = $site->getItemByName($bind);
 
-                if (! $item) continue;
+                if (! $item) {
+                    continue;
+                }
 
                 $items[] = [
                     'id' => $item->getNameId(),
@@ -2039,7 +2127,7 @@ class BrowseController extends Controller
         $rubrics = $rubricController->sidebar();
 
         $scope['plugin'] = $plugin;
-		$scope['items'] = $items;
+        $scope['items'] = $items;
         $scope['creates'] = $creates;
         $scope['rubrics'] = $rubrics;
 

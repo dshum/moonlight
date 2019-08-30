@@ -1,256 +1,72 @@
 <?php
 
-namespace Moonlight\Controllers;
+namespace Moonlight\Main;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Moonlight\Main\Element;
-use Moonlight\Models\FavoriteRubric;
-use Moonlight\Models\Favorite;
+use Moonlight\Properties\OrderProperty;
+use Moonlight\Properties\DatetimeProperty;
+use Moonlight\Properties\BaseProperty;
 
-class HomeController extends Controller
+class Rubric
 {
-    /**
-     * Order favorite rubrics
-     *
-     * @return Response
-     */
-    public function orderRubrics(Request $request)
-    {
-        $scope = [];
-        
-        $loggedUser = Auth::guard('moonlight')->user();
-        
-        $orders = $request->input('order');
+    protected $name = null;
+    protected $title = null;
+    protected $binds = [];
 
-        if (
-            is_array($orders) 
-            && sizeof($orders) > 1
-        ) {
-            foreach ($orders as $order => $id) {
-                $favoriteRubric = FavoriteRubric::find($id);
+    public function __construct($name, $title) {
+        $this->name = $name;
+        $this->title = $title;
 
-                if ($favoriteRubric) {
-                    $favoriteRubric->order = $order;
-
-                    $favoriteRubric->save();
-                }
-            }
-        }
-        
-        $scope['ordered'] = 'ok';
-        
-        return response()->json($scope);
+        return $this;
     }
 
-    /**
-     * Order favorites
-     *
-     * @return Response
-     */
-    public function orderFavorites(Request $request)
+    public static function create($name, $title)
     {
-        $scope = [];
-        
-        $loggedUser = Auth::guard('moonlight')->user();
-        
-        $orders = $request->input('order');
-
-        if (
-            is_array($orders) 
-            && sizeof($orders) > 1
-        ) {
-            foreach ($orders as $order => $id) {
-                $favorite = Favorite::find($id);
-
-                if ($favorite) {
-                    $favorite->order = $order;
-
-                    $favorite->save();
-                }
-            }
-        }
-        
-        $scope['ordered'] = 'ok';
-        
-        return response()->json($scope);
+        return new self($name, $title);
     }
 
-    /**
-     * Delete favorite rubric
-     *
-     * @return Response
-     */
-    public function deleteRubric(Request $request)
+    public function setName($name)
     {
-        $scope = [];
-        
-        $loggedUser = Auth::guard('moonlight')->user();
-        
-        $rubricId = $request->input('rubric');
-        
-        if (! $rubricId) {
-            $scope['error'] = 'Не указана рубрика.';
-            return response()->json($scope);
-        }
+        $this->name = $name;
 
-        $favoriteRubric = FavoriteRubric::find($rubricId);
-
-        if (! $favoriteRubric) {
-            $scope['error'] = 'Рубрика не найдена.';
-            return response()->json($scope);
-        }
-
-        if ($favoriteRubric->user_id != $loggedUser->id) {
-            $scope['error'] = 'Рубрика не найдена.';
-            return response()->json($scope);
-        }
-
-        $favoriteCount = Favorite::where('user_id', $loggedUser->id)->
-            where('rubric_id', $favoriteRubric->id)->
-            count();
-
-        if ($favoriteCount) {
-            $scope['error'] = 'Сначала удалите элементы из этой рубрики.';
-            return response()->json($scope);
-        }
-
-        $favoriteRubric->delete();
-
-        $scope['deleted'] = $favoriteRubric->id;
-        
-        return response()->json($scope);
+        return $this;
     }
 
-    /**
-     * Delete favorite
-     *
-     * @return Response
-     */
-    public function deleteFavorite(Request $request)
+    public function getName()
     {
-        $scope = [];
-        
-        $loggedUser = Auth::guard('moonlight')->user();
-        
-        $favoriteId = $request->input('favorite');
-        
-        if (! $favoriteId) {
-            $scope['error'] = 'Не указан избранный элемент.';
-            return response()->json($scope);
-        }
-
-        $favorite = Favorite::find($favoriteId);
-
-        if (! $favorite) {
-            $scope['error'] = 'Избранный элемент не найден.';
-            return response()->json($scope);
-        }
-
-        if ($favorite->user_id != $loggedUser->id) {
-            $scope['error'] = 'Избранный элемент не найден.';
-            return response()->json($scope);
-        }
-
-        $favorite->delete();
-
-        $scope['deleted'] = $favorite->id;
-        
-        return response()->json($scope);
+        return $this->name;
     }
 
-    /**
-     * Edit favorites.
-     *
-     * @return View
-     */
-    public function edit(Request $request)
+    public function setTitle($title)
     {
-        $scope = [];
-        
-        $loggedUser = Auth::guard('moonlight')->user();
+        $this->title = $title;
 
-        $favoriteRubrics = FavoriteRubric::orderBy('order')->get();
-        $favorites = [];
-
-        foreach ($favoriteRubrics as $favoriteRubric) {
-            $favorites[$favoriteRubric->id] = [];
-            
-            $favoriteList = Favorite::where('rubric_id', $favoriteRubric->id)->
-                orderBy('order')->
-                get();
-
-            foreach ($favoriteList as $favorite) {
-                $element = $favorite->getElement();
-
-                if ($element) {
-                    $item = Element::getItem($element);
-                    $mainProperty = $item->getMainProperty();
-
-                    $favorites[$favoriteRubric->id][] = [
-                        'id' => $favorite->id,
-                        'classId' => $favorite->class_id,
-                        'name' => $element->{$mainProperty},
-                    ];
-                }
-            }
-        }
-
-        $scope['favoriteRubrics'] = $favoriteRubrics;
-        $scope['favorites'] = $favorites;
-            
-        return view('moonlight::favorites', $scope);
+        return $this;
     }
 
-    /**
-     * Show home view.
-     *
-     * @return View
-     */
-    public function index(Request $request)
+    public function getTitle()
     {
-        $scope = [];
-        
-        $loggedUser = Auth::guard('moonlight')->user();
+        return $this->title;
+    }
 
-        $site = \App::make('site');
+    public function getBinds()
+    {
+        return collect($this->binds);
+    }
 
-        /*
-         * Home styles and scripts
-         */
+    public function getBindByName($name = 0)
+    {
+        return isset($this->binds[$name])
+            ? $this->binds[$name]
+            : null;
+    }
 
-        $styles = $site->getHomeStyles();
-        $scripts = $site->getHomeScripts();
+    public function bind($first, $addition = null, $name = 0)
+    {
+        $this->binds[$name] = [
+            'first' => $first,
+            'addition' => $addition,
+        ];
 
-        /*
-         * Home plugin
-         */
-        
-        $homePluginView = null;
-        
-        $homePlugin = $site->getHomePlugin();
-
-        if ($homePlugin) {
-            $view = \App::make($homePlugin)->index();
-
-            if ($view) {
-                $homePluginView = is_string($view)
-                    ? $view : $view->render();
-            }
-        }
-        
-        $rubricController = new RubricController;
-        
-        $rubrics = $rubricController->index();
-
-        $scope['homePluginView'] = $homePluginView;
-        $scope['rubrics'] = $rubrics;
-
-        view()->share([
-            'styles' => $styles,
-            'scripts' => $scripts,
-        ]);
-            
-        return view('moonlight::home', $scope);
+        return $this;
     }
 }
