@@ -58,7 +58,7 @@ class Site
 
     public function getItemList()
     {
-        return $this->items;
+        return collect($this->items);
     }
 
     public function getItemByName($name)
