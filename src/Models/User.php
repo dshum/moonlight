@@ -333,9 +333,18 @@ class User extends Authenticatable
                 : null;
     }
 
+    public function getInitialsAttribute()
+    {
+        return mb_strtoupper(
+            mb_substr($this->first_name, 0, 1)
+            .' '
+            .mb_substr($this->last_name, 0, 1)
+        );
+    }
+
     public function getHexColor()
     {
-        $code = base_convert(crc32($this->login), 10, 12);
+        $code = base_convert(crc32($this->first_name.' '.$this->last_name), 10, 16);
         $code = substr($code, 0, 6);
 
         return $code;
