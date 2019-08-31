@@ -342,7 +342,7 @@ class User extends Authenticatable
         );
     }
 
-    public function getHexColor()
+    public function getHexColorAttribute()
     {
         $code = base_convert(crc32($this->first_name.' '.$this->last_name), 10, 14);
         $code = '#'.substr($code, 0, 6);

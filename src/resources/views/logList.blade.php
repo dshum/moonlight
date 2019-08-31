@@ -12,7 +12,7 @@
                 @if ($userAction->user && $userAction->user->photoExists())
                 <div class="avatar"><img src="{{ $userAction->user->getPhotoSrc() }}" /></div>
                 @elseif ($userAction->user)
-                <div class="avatar"><div class="round-letter" style="background-color: #{{ $userAction->user->getHexColor() }}">{{ $userAction->user->initials }}</div></div>
+                <div class="avatar"><div class="round-letter" style="background-color: {{ $userAction->user->hex_color() }}">{{ $userAction->user->initials }}</div></div>
                 @else
                 <div class="avatar"><div class="round-letter">?</div></div>
                 @endif
