@@ -17,10 +17,6 @@
         }
     </style>
     <script src="/packages/moonlight/js/jquery/jquery-3.2.1.min.js"></script>
-    <script src="/packages/moonlight/js/jquery/jquery.form.min.js"></script>
-    <script src="/packages/moonlight/js/common.min.js"></script>
-    @section('js')
-    @show
     <script>
         $.ajaxSetup({
             headers: {
@@ -28,6 +24,9 @@
             }
         });
     </script>
+    <script src="/packages/moonlight/js/common.min.js"></script>
+    @section('js')
+    @show
 </head>
 <body>
 @section('content')
