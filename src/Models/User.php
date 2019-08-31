@@ -344,8 +344,8 @@ class User extends Authenticatable
 
     public function getHexColor()
     {
-        $code = base_convert(crc32($this->first_name.' '.$this->last_name), 10, 16);
-        $code = substr($code, 0, 6);
+        $code = base_convert(crc32($this->first_name.' '.$this->last_name), 10, 14);
+        $code = '#'.substr($code, 0, 6);
 
         return $code;
     }
