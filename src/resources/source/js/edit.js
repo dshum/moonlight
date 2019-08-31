@@ -230,42 +230,43 @@ $(function() {
 
         $.blockUI();
 
-        $(this).ajaxSubmit({
+        $.ajax({
             url: this.action,
-            dataType: 'json',
-            success: function(data) {
-                $.unblockUI();
+            method: "POST",
+            data: new FormData(form[0]),
+            contentType: false,
+            processData: false
+        }).done(function (response) {
+            $.unblockUI();
 
-                if (data.error) {
-                    $.alert(data.error);
-                } else if (data.errors) {
-                    for (var field in data.errors) {
-                        form.find('span.error[name="' + field + '"]')
-                            .html(data.errors[field])
-                            .fadeIn(200);
-                    }
-                } else if (data.added && data.url) {
-                    document.location.href = data.url;
-                } else if (data.views) {
-                    for (var field in data.views) {
-                        $('div.row[name="' + field + '"]')
-                            .html(data.views[field]);
-                    }
-
-                    init();
+            if (response.error) {
+                $.alert(response.error);
+            } else if (response.errors) {
+                for (var field in response.errors) {
+                    form.find('span.error[name="' + field + '"]')
+                        .html(response.errors[field])
+                        .fadeIn(200);
                 }
-            },
-            error: function(data) {
-                $.unblockUI();
-                $.alert(data.statusText);
+            } else if (response.added && response.url) {
+                location.href = response.url;
+            } else if (response.views) {
+                for (var field in response.views) {
+                    $('div.row[name="' + field + '"]')
+                        .html(response.views[field]);
+                }
+
+                init();
             }
+        }).fail(function (response) {
+            $.unblockUI();
+            $.alert(response.statusText);
         });
 
         return false;
     });
 
-    $('.button.save.enabled').click(function() {
-        $('form').submit();
+    $('.button.save.enabled').click(function(e) {
+        $('form[save="true"]').submit();
     });
 
     $('.button.copy.enabled').click(function() {

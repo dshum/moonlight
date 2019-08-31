@@ -18,21 +18,19 @@ $(function() {
 
         $.blockUI();
 
-        $('form[name="trash-form"]').ajaxSubmit({
+        $.ajax({
             url: '/moonlight/trash/list',
-            dataType: 'json',
-            data: params,
-            success: function(data) {
-                $.unblockUI();
-            
-                if (data.html) {
-                    $('.list-container').html(data.html);
-                }
-            },
-            error: function(data) {
-                $.unblockUI();
-                $.alert(data.statusText);
+            method: "POST",
+            data: params
+        }).done(function (response) {
+            $.unblockUI();
+
+            if (response.html) {
+                $('.list-container').html(response.html);
             }
+        }).fail(function (response) {
+            $.unblockUI();
+            $.alert(response.statusText);
         });
     };
 
@@ -311,7 +309,7 @@ $(function() {
         var page = parseInt($(this).val());
         var last = parseInt(pager.attr('last'));
         var code = event.keyCode || event.which;
-        
+
         if (code === 13) {
             if (isNaN(page) || page < 1) page = 1;
             if (page > last) page = last;

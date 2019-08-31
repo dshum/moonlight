@@ -4,22 +4,21 @@ $(function() {
         $('div.ok').fadeOut(200);
         $.blockUI();
 
-        $(this).ajaxSubmit({
+        $.ajax({
             url: this.action,
-            dataType: 'json',
-            success: function(data) {
-                $.unblockUI();
-                
-                if (data.error) {
-                    $('div.error').html(data.error).fadeIn(200);
-                } else if (data.ok) {
-                    $('div.ok').html(data.ok).fadeIn(200);
-                }
-            },
-            error: function(data) {
-                $.unblockUI();
-                $.alert(data.statusText);
+            method: "POST",
+            data: new FormData($(this)[0])
+        }).done(function (response) {
+            $.unblockUI();
+
+            if (response.error) {
+                $('div.error').html(response.error).fadeIn(200);
+            } else if (response.ok) {
+                $('div.ok').html(response.ok).fadeIn(200);
             }
+        }).fail(function (response) {
+            $.unblockUI();
+            $.alert(response.statusText);
         });
 
         return false;

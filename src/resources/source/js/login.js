@@ -2,22 +2,21 @@ $(function() {
     $('form').submit(function() {
         $.blockUI();
 
-        $(this).ajaxSubmit({
+        $.ajax({
             url: this.action,
-            dataType: 'json',
-            success: function(data) {
-                $.unblockUI();
-                
-                if (data.error) {
-                    $('div.error').html(data.error).fadeIn(200);
-                } else if (data.url) {
-                    location.href = data.url;
-                }
-            },
-            error: function(data) {
-                $.unblockUI();
-                $.alert(data.statusText);
+            method: "POST",
+            data: new FormData($(this)[0])
+        }).done(function (response) {
+            $.unblockUI();
+
+            if (response.error) {
+                $('div.error').html(response.error).fadeIn(200);
+            } else if (response.url) {
+                location.href = response.url;
             }
+        }).fail(function (response) {
+            $.unblockUI();
+            $.alert(response.statusText);
         });
 
         return false;

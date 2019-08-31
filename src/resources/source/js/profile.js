@@ -3,7 +3,7 @@ $(function() {
         var name = $(this).attr('name');
         var path = e.target.files[0] ? e.target.files[0].name : 'Выберите файл';
 
-        $('.file[name="' + name + '"]').html(path);    
+        $('.file[name="' + name + '"]').html(path);
         $('[name="drop"]').prop('checked', false);
     });
 
@@ -26,33 +26,34 @@ $(function() {
         $('span.error').fadeOut(200);
         $.blockUI();
 
-        $(this).ajaxSubmit({
+        $.ajax({
             url: this.action,
-            dataType: 'json',
-            success: function(data) {
-                $.unblockUI();
-                
-                if (data.error) {
-                    $.alert(data.error);
-                } else if (data.errors) {
-                    for (var field in data.errors) {
-                        $('span.error[name="' + field + '"]')
-                            .html(data.errors[field])
-                            .fadeIn(200);
-                    }
-                } else if (data.saved) {
-                    var html = data.photo
-                        ? '<img src="' + data.photo + '" />'
-                        : '';
-                    
-                    $('#photo-container').html(html);
-                    $('.reset').click();
+            method: "POST",
+            data: new FormData($(this)[0]),
+            contentType: false,
+            processData: false
+        }).done(function (response) {
+            $.unblockUI();
+
+            if (response.error) {
+                $.alert(response.error);
+            } else if (response.errors) {
+                for (var field in response.errors) {
+                    $('span.error[name="' + field + '"]')
+                        .html(response.errors[field])
+                        .fadeIn(200);
                 }
-            },
-            error: function(data) {
-                $.unblockUI();
-                $.alert(data.statusText);
+            } else if (response.saved) {
+                var html = response.photo
+                    ? '<img src="' + response.photo + '" />'
+                    : '';
+
+                $('#photo-container').html(html);
+                $('.reset').click();
             }
+        }).fail(function (response) {
+            $.unblockUI();
+            $.alert(response.statusText);
         });
 
         return false;

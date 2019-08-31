@@ -9,16 +9,16 @@ $(function() {
           return this.each(function () {
               var $el = $(this);
               var sortable = $el.data('sortable');
-    
+
               if (! sortable && options instanceof Object) {
                   sortable = new Sortable(this, options);
                   $el.data('sortable', sortable);
               }
-    
+
               if (sortable && (options in sortable)) {
                    sortable[sortable].apply(sortable, [].slice.call(arguments, 1));
               }
-          }) 
+          })
         };
     }
 
@@ -28,7 +28,7 @@ $(function() {
             var relatedItem = $(this).attr('item');
             var name = $(this).attr('property');
             var width = $(this).outerWidth() - 2;
-    
+
             $(this).autocomplete({
                 serviceUrl: '/moonlight/elements/autocomplete',
                 params: {
@@ -296,47 +296,48 @@ $(function() {
         if (! count) return false;
 
         itemContainer.find('td.editable.invalid').removeClass('invalid');
-        
-        $(this).ajaxSubmit({
+
+        $.ajax({
             url: this.action,
-            dataType: 'json',
-            success: function(data) {
-                $.unblockUI();
-                
-                if (data.error) {
-                    $.alert(data.error);
-                }
+            method: "POST",
+            data: new FormData($(this)[0]),
+            contentType: false,
+            processData: false
+        }).done(function (response) {
+            $.unblockUI();
 
-                if (data.errors) {
-                    for (var id in data.errors) {
-                        for (var name in data.errors[id]) {
-                            itemContainer.find('table.elements tr[elementId="' + id + '"] td.editable[name="' + name + '"]')
-                                .addClass('invalid');
-                        }
-                    }
-                }
-                
-                if (data.views) {
-                    for (var id in data.views) {
-                        for (var name in data.views[id]) {
-                            itemContainer.find('table.elements tr[elementId="' + id + '"] td.editable[name="' + name + '"]')
-                                .replaceWith(data.views[id][name]);
-                        }
-                    }
-
-                    var count = itemContainer.find('td.editable[mode="edit"]').length;
-
-                    if (! count) {
-                        itemContainer.find('.button.save:not(.disabled)').removeClass('enabled');
-                    }
-
-                    $(document).trigger('item-saved', [item, classId]);
-                }
-            },
-            error: function(data) {
-                $.unblockUI();
-                $.alert(data.statusText);
+            if (response.error) {
+                $.alert(response.error);
             }
+
+            if (response.errors) {
+                for (var id in response.errors) {
+                    for (var name in response.errors[id]) {
+                        itemContainer.find('table.elements tr[elementId="' + id + '"] td.editable[name="' + name + '"]')
+                            .addClass('invalid');
+                    }
+                }
+            }
+
+            if (response.views) {
+                for (var id in response.views) {
+                    for (var name in response.views[id]) {
+                        itemContainer.find('table.elements tr[elementId="' + id + '"] td.editable[name="' + name + '"]')
+                            .replaceWith(response.views[id][name]);
+                    }
+                }
+
+                var count = itemContainer.find('td.editable[mode="edit"]').length;
+
+                if (! count) {
+                    itemContainer.find('.button.save:not(.disabled)').removeClass('enabled');
+                }
+
+                $(document).trigger('item-saved', [item, classId]);
+            }
+        }).fail(function (response) {
+            $.unblockUI();
+            $.alert(response.statusText);
         });
 
         return false;
@@ -344,7 +345,7 @@ $(function() {
 
     $('body').on('click', '.button.save.enabled', function() {
         var itemContainer = $(this).parents('div[item]');
-        
+
         itemContainer.find('form[name="save"]').submit();
 
         return false;
@@ -544,7 +545,7 @@ $(function() {
         var item = itemContainer.attr('item');
 
         var name, value;
-        
+
         parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
             name = $(this).attr('property');
             value = $(this).val();
@@ -586,11 +587,11 @@ $(function() {
         var classId = itemContainer.attr('classId');
 
         var one = null;
-        
+
         parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
             var name = $(this).attr('property');
             var value = $(this).val();
-            
+
             one = {
                 name: name,
                 value: value
@@ -631,11 +632,11 @@ $(function() {
 
         var ones = {};
         var count = 0;
-        
+
         parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
             var name = $(this).attr('property');
             var value = $(this).val();
-            
+
             if (value) {
                 ones[name] = value;
                 count++;
@@ -674,11 +675,11 @@ $(function() {
 
         var ones = {};
         var count = 0;
-        
+
         parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
             var name = $(this).attr('property');
             var value = $(this).val();
-            
+
             if (value) {
                 ones[name] = value;
                 count++;
@@ -736,7 +737,7 @@ $(function() {
                 }
             });
         }).fail(function() {
-            $.unblockUI(); 
+            $.unblockUI();
             $.alertDefaultError();
         });
     });
@@ -768,7 +769,7 @@ $(function() {
                 }
             });
         }).fail(function() {
-            $.unblockUI(); 
+            $.unblockUI();
             $.alertDefaultError();
         });
     });
@@ -816,7 +817,7 @@ $(function() {
                 }
             });
         }).fail(function() {
-            $.unblockUI(); 
+            $.unblockUI();
             $.alertDefaultError();
         });
     });
@@ -873,7 +874,7 @@ $(function() {
         var page = parseInt($(this).val());
         var last = parseInt(pager.attr('last'));
         var code = event.keyCode || event.which;
-        
+
         if (code === 13) {
             if (isNaN(page) || page < 1) page = 1;
             if (page > last) page = last;
@@ -916,7 +917,7 @@ $(function() {
             $.post('/moonlight/rubrics/close', {
                 rubric: rubric
             });
-            
+
         } else if (display == 'hide') {
             block.attr('display', 'show');
             ul.show();
@@ -957,7 +958,7 @@ $(function() {
                 rubric: rubric,
                 classId: classId
             });
-            
+
         } else if (display == 'hide') {
             $('.sidebar .elements ul[node="' + classId + '"]').slideDown(200);
 
@@ -996,7 +997,7 @@ $(function() {
 
         var left = a.offset().left;
         var top = a.offset().top - sidebar.offset().top + a.height() + 2;
-    
+
         menu.find('li.title span').html(a.text());
         menu.find('li.title small').html(a.attr('item'));
         menu.find('li.edit a').attr('href', a.attr('href') + '/edit');
@@ -1009,7 +1010,7 @@ $(function() {
                 top = top - menu.height() - a.height() - 4;
             }
         }
-    
+
         menu.css({
             left: left + 'px',
             top: top + 'px'
@@ -1080,7 +1081,7 @@ $(function() {
         var item = itemContainer.attr('item');
 
         li.attr('display', 'hide');
-        
+
         dropdown.fadeOut(200, function() {
             getElements(item, classId);
         });

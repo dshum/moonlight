@@ -11,7 +11,7 @@ $(function() {
             var relatedItem = $(this).attr('item');
             var name = $(this).attr('property');
             var width = $(this).outerWidth() - 2;
-    
+
             $(this).autocomplete({
                 serviceUrl: '/moonlight/elements/autocomplete',
                 params: {
@@ -43,25 +43,23 @@ $(function() {
 
         $.blockUI();
 
-        $('form[name="search-form"]').ajaxSubmit({
+        $.ajax({
             url: '/moonlight/search/list',
-            dataType: 'json',
-            data: params,
-            success: function(data) {
-                $.unblockUI();
-            
-                if (data.html) {
-                    $('.list-container').html(data.html);
+            method: "GET",
+            data: params
+        }).done(function (response) {
+            $.unblockUI();
 
-                    init(item);
+            if (response.html) {
+                $('.list-container').html(response.html);
 
-                    $(document).trigger('item-loaded', [item]);
-                }
-            },
-            error: function(data) {
-                $.unblockUI();
-                $.alert(data.statusText);
+                init(item);
+
+                $(document).trigger('item-loaded', [item]);
             }
+        }).fail(function (response) {
+            $.unblockUI();
+            $.alert(response.statusText);
         });
     };
 
@@ -271,45 +269,44 @@ $(function() {
         var count = itemContainer.find('td.editable[mode="edit"]').length;
 
         if (! count) return false;
-        
-        $(this).ajaxSubmit({
+
+        $.ajax({
             url: this.action,
-            dataType: 'json',
-            success: function(data) {
-                $.unblockUI();
-                
-                if (data.error) {
-                    $.alert(data.error);
-                }
+            method: "POST",
+            data: new FormData($(this)[0])
+        }).done(function (response) {
+            $.unblockUI();
 
-                if (data.errors) {
-                    for (var id in data.errors) {
-                        for (var name in data.errors[id]) {
-                            itemContainer.find('table.elements tr[elementId="' + id + '"] td.editable[name="' + name + '"]')
-                                .addClass('invalid');
-                        }
-                    }
-                }
-                
-                if (data.views) {
-                    for (var id in data.views) {
-                        for (var name in data.views[id]) {
-                            itemContainer.find('table.elements tr[elementId="' + id + '"] td.editable[name="' + name + '"]')
-                                .replaceWith(data.views[id][name]);
-                        }
-                    }
-
-                    var count = itemContainer.find('td.editable[mode="edit"]').length;
-
-                    if (! count) {
-                        itemContainer.find('.button.save:not(.disabled)').removeClass('enabled');
-                    }
-                }
-            },
-            error: function(data) {
-                $.unblockUI();
-                $.alert(data.statusText);
+            if (response.error) {
+                $.alert(response.error);
             }
+
+            if (response.errors) {
+                for (var id in response.errors) {
+                    for (var name in response.errors[id]) {
+                        itemContainer.find('table.elements tr[elementId="' + id + '"] td.editable[name="' + name + '"]')
+                            .addClass('invalid');
+                    }
+                }
+            }
+
+            if (response.views) {
+                for (var id in response.views) {
+                    for (var name in response.views[id]) {
+                        itemContainer.find('table.elements tr[elementId="' + id + '"] td.editable[name="' + name + '"]')
+                            .replaceWith(response.views[id][name]);
+                    }
+                }
+
+                var count = itemContainer.find('td.editable[mode="edit"]').length;
+
+                if (! count) {
+                    itemContainer.find('.button.save:not(.disabled)').removeClass('enabled');
+                }
+            }
+        }).fail(function (response) {
+            $.unblockUI();
+            $.alert(response.statusText);
         });
 
         return false;
@@ -317,7 +314,7 @@ $(function() {
 
     $('body').on('click', '.button.save.enabled', function() {
         var itemContainer = $(this).parents('div[item]');
-        
+
         itemContainer.find('form[name="save"]').submit();
 
         return false;
@@ -496,7 +493,7 @@ $(function() {
         var item = itemContainer.attr('item');
 
         var name, value;
-        
+
         parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
             name = $(this).attr('property');
             value = $(this).val();
@@ -531,11 +528,11 @@ $(function() {
         var item = itemContainer.attr('item');
 
         var one = null;
-        
+
         parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
             var name = $(this).attr('property');
             var value = $(this).val();
-            
+
             one = {
                 name: name,
                 value: value
@@ -574,11 +571,11 @@ $(function() {
 
         var ones = {};
         var count = 0;
-        
+
         parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
             var name = $(this).attr('property');
             var value = $(this).val();
-            
+
             if (value) {
                 ones[name] = value;
                 count++;
@@ -616,11 +613,11 @@ $(function() {
 
         var ones = {};
         var count = 0;
-        
+
         parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
             var name = $(this).attr('property');
             var value = $(this).val();
-            
+
             if (value) {
                 ones[name] = value;
                 count++;
@@ -677,7 +674,7 @@ $(function() {
                 }
             });
         }).fail(function() {
-            $.unblockUI(); 
+            $.unblockUI();
             $.alertDefaultError();
         });
     });
@@ -708,7 +705,7 @@ $(function() {
                 }
             });
         }).fail(function() {
-            $.unblockUI(); 
+            $.unblockUI();
             $.alertDefaultError();
         });
     });
@@ -755,7 +752,7 @@ $(function() {
                 }
             });
         }).fail(function() {
-            $.unblockUI(); 
+            $.unblockUI();
             $.alertDefaultError();
         });
     });
@@ -810,7 +807,7 @@ $(function() {
         var page = parseInt($(this).val());
         var last = parseInt(pager.attr('last'));
         var code = event.keyCode || event.which;
-        
+
         if (code === 13) {
             if (isNaN(page) || page < 1) page = 1;
             if (page > last) page = last;
@@ -881,7 +878,7 @@ $(function() {
         var item = itemContainer.attr('item');
 
         li.attr('display', 'hide');
-        
+
         dropdown.fadeOut(200, function() {
             getElements(item);
         });
