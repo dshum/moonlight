@@ -6,7 +6,9 @@ $(function() {
         $.ajax({
             url: this.action,
             method: "POST",
-            data: new FormData($(this)[0])
+            data: new FormData($(this)[0]),
+            contentType: false,
+            processData: false
         }).done(function (response) {
             $.unblockUI();
 

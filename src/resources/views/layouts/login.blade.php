@@ -17,13 +17,6 @@
         }
     </style>
     <script src="/packages/moonlight/js/jquery/jquery-3.2.1.min.js"></script>
-    <script>
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-    </script>
     <script src="/packages/moonlight/js/common.min.js"></script>
     @section('js')
     @show

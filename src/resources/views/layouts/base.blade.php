@@ -18,13 +18,7 @@
         @endforeach
     @endif
     <script src="/packages/moonlight/js/jquery/jquery-3.2.1.min.js"></script>
-    <script>
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-    </script>
+    <script src="/packages/moonlight/js/jquery/jquery.form.min.js"></script>
     <script src="/packages/moonlight/js/autocomplete/jquery.autocomplete.min.js"></script>
     <script src="/packages/moonlight/js/sortable/sortable.min.js"></script>
     <script src="/packages/moonlight/js/calendar/jquery.calendar.min.js"></script>

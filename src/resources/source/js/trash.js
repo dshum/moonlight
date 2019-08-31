@@ -21,7 +21,9 @@ $(function() {
         $.ajax({
             url: '/moonlight/trash/list',
             method: "POST",
-            data: params
+            data: params,
+            contentType: false,
+            processData: false
         }).done(function (response) {
             $.unblockUI();
 
