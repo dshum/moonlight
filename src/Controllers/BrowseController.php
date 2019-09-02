@@ -1864,7 +1864,9 @@ class BrowseController extends Controller
         $criteria = $currentItem->getClass()->query();
 
         if ($query) {
-            $criteria->Where($mainProperty, 'ilike', "%$query%");
+            $criteria
+                ->where('id', 'like', "%$id%")
+                ->orWhere($mainProperty, 'ilike', "%$query%");
         }
 
         if (! $loggedUser->isSuperUser()) {
