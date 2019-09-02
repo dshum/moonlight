@@ -1785,10 +1785,14 @@ class BrowseController extends Controller
     {
         $scope = [];
 
+        $scope['suggestions'] = [];
+
         $loggedUser = Auth::guard('moonlight')->user();
 
         $class = $request->input('item');
         $query = $request->input('query');
+
+        $id = (int) $query;
 
         $site = \App::make('site');
 
@@ -1798,7 +1802,20 @@ class BrowseController extends Controller
             return response()->json($scope);
         }
 
+        $itemClass = $currentItem->getClass();
         $mainProperty = $currentItem->getMainProperty();
+
+        if ($id) {
+            $element = $itemClass->find($id);
+
+            if ($element && $loggedUser->hasViewAccess($element)) {
+                $scope['suggestions'][] = [
+                    'value' => $element->$mainProperty,
+                    'classId' => Element::getClassId($element),
+                    'id' => $element->id,
+                ];
+            }
+        }
 
         if (! $loggedUser->isSuperUser()) {
             $permissionDenied = true;
@@ -1847,9 +1864,7 @@ class BrowseController extends Controller
         $criteria = $currentItem->getClass()->query();
 
         if ($query) {
-            $criteria->
-            where('id', (int) $query)->
-            orWhere($mainProperty, 'ilike', "%$query%");
+            $criteria->Where($mainProperty, 'ilike', "%$query%");
         }
 
         if (! $loggedUser->isSuperUser()) {
@@ -1875,8 +1890,6 @@ class BrowseController extends Controller
         }
 
         $elements = $criteria->limit(static::PER_PAGE)->get();
-
-        $scope['suggestions'] = [];
 
         foreach ($elements as $element) {
             $scope['suggestions'][] = [
