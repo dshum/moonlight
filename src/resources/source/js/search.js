@@ -46,9 +46,7 @@ $(function() {
         $.ajax({
             url: '/moonlight/search/list',
             method: "GET",
-            data: params,
-            contentType: false,
-            processData: false
+            data: params
         }).done(function (response) {
             $.unblockUI();
 
