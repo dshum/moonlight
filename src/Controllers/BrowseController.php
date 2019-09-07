@@ -1809,7 +1809,7 @@ class BrowseController extends Controller
             $element = $itemClass->find($id);
 
             if ($element && $loggedUser->hasViewAccess($element)) {
-                $scope['suggestions'][] = [
+                $scope['suggestions'][$element->id] = [
                     'value' => $element->$mainProperty,
                     'classId' => Element::getClassId($element),
                     'id' => $element->id,
@@ -1894,7 +1894,7 @@ class BrowseController extends Controller
         $elements = $criteria->limit(static::PER_PAGE)->get();
 
         foreach ($elements as $element) {
-            $scope['suggestions'][] = [
+            $scope['suggestions'][$element->id] = [
                 'value' => $element->$mainProperty,
                 'classId' => Element::getClassId($element),
                 'id' => $element->id,
