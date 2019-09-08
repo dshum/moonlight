@@ -6,6 +6,8 @@ $(function() {
     var checked = {};
 
     var getElements = function(item, addition) {
+        var form = $('form[name="trash-form"]');
+        var formData = new FormData(form[0]);
         var params = {
             item: item
         };
@@ -16,11 +18,14 @@ $(function() {
             }
         }
 
+        for(var pair of formData.entries()) {
+            params[pair[0]] = pair[1];
+        }
+
         $.blockUI();
 
         $.ajax({
             url: '/moonlight/trash/list',
-            method: "POST",
             data: params
         }).done(function (response) {
             $.unblockUI();

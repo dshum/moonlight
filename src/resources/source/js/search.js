@@ -31,6 +31,8 @@ $(function() {
     };
 
     var getElements = function(item, addition) {
+        var form = $('form[name="search-form"]');
+        var formData = new FormData(form[0]);
         var params = {
             item: item
         };
@@ -41,11 +43,14 @@ $(function() {
             }
         }
 
+        for(var pair of formData.entries()) {
+            params[pair[0]] = pair[1];
+        }
+
         $.blockUI();
 
         $.ajax({
             url: '/moonlight/search/list',
-            method: "GET",
             data: params
         }).done(function (response) {
             $.unblockUI();
@@ -715,13 +720,13 @@ $(function() {
     $('body').on('keypress', '.confirm .favorite-new input[type="text"]', function(event) {
         if (! event) event = window.event;
 
-		if (event.keyCode) {
-			var code = event.keyCode;
-		} else if (event.which) {
-			var code = event.which;
-		}
+        if (event.keyCode) {
+            var code = event.keyCode;
+        } else if (event.which) {
+            var code = event.which;
+        }
 
-		if (code == 13) {
+        if (code == 13) {
             var parent = $(this).parents('.confirm');
 
             parent.find('.btn.favorite').click();
