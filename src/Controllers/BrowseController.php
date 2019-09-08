@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Moonlight\Main\Element;
 use Moonlight\Main\Site;
@@ -1790,9 +1791,10 @@ class BrowseController extends Controller
         $loggedUser = Auth::guard('moonlight')->user();
 
         $class = $request->input('item');
-        $query = $request->input('query');
+        $term = $request->input('query');
 
-        $id = (int) $query;
+        $term_id = (int) $term;
+        $term = mb_strtolower($term);
 
         $site = \App::make('site');
 
@@ -1805,11 +1807,11 @@ class BrowseController extends Controller
         $itemClass = $currentItem->getClass();
         $mainProperty = $currentItem->getMainProperty();
 
-        if ($id) {
-            $element = $itemClass->find($id);
+        if ($term_id) {
+            $element = $itemClass->find($term_id);
 
             if ($element && $loggedUser->hasViewAccess($element)) {
-                $scope['suggestions'][$element->id] = [
+                $scope['suggestions'][] = [
                     'value' => $element->$mainProperty,
                     'classId' => Element::getClassId($element),
                     'id' => $element->id,
@@ -1861,13 +1863,18 @@ class BrowseController extends Controller
             }
         }
 
-        $criteria = $currentItem->getClass()->query();
+        $criteria = $currentItem->getClass()->query()
+            ->where(function ($query) use ($term, $term_id, $mainProperty) {
+                if ($term) {
+                    $query->where(DB::raw("lower($mainProperty)"), 'like', "%$term%");
+                }
 
-        if ($query) {
-            $criteria
-                ->where('id', 'like', "%$id%")
-                ->orWhere($mainProperty, 'ilike', "%$query%");
-        }
+                if ($term_id) {
+                    $query->orWhere('id', 'like', "%$term_id%");
+                }
+
+                return $query;
+            });
 
         if (! $loggedUser->isSuperUser()) {
             if (
@@ -1894,7 +1901,9 @@ class BrowseController extends Controller
         $elements = $criteria->limit(static::PER_PAGE)->get();
 
         foreach ($elements as $element) {
-            $scope['suggestions'][$element->id] = [
+            if ($element->id == $term_id) continue;
+
+            $scope['suggestions'][] = [
                 'value' => $element->$mainProperty,
                 'classId' => Element::getClassId($element),
                 'id' => $element->id,
