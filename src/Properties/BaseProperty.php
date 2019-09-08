@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Moonlight\Properties;
 
@@ -20,13 +20,13 @@ abstract class BaseProperty
 	protected $readonly = false;
 	protected $hidden = false;
 	protected $editable = false;
-    
+
     protected $openItem = false;
 
     protected $itemClass = null;
 	protected $element = null;
 	protected $value = null;
-    
+
     protected $request = null;
 
 	protected $trashed = false;
@@ -166,7 +166,7 @@ abstract class BaseProperty
 	{
 		return true;
 	}
-    
+
     public function setOpenItem($openItem)
 	{
 		$this->openItem = $openItem;
@@ -183,12 +183,12 @@ abstract class BaseProperty
 	{
 		$this->element = $element;
 		$this->value = $element->{$this->getName()};
-		$this->trashed = method_exists($element, 'trashed') 
+		$this->trashed = method_exists($element, 'trashed')
 			? $element->trashed() : false;
 
 		return $this;
 	}
-    
+
     public function dropElement()
 	{
 		$this->element = null;
@@ -206,7 +206,7 @@ abstract class BaseProperty
 	{
 		return $this;
 	}
-    
+
     public function setRequest(Request $request)
 	{
 		$this->request = $request;
@@ -249,16 +249,16 @@ abstract class BaseProperty
 
 		return $query;
 	}
-    
+
     public function buildInput()
     {
         $request = $this->getRequest();
         $name = $this->getName();
-        
+
 		$value = $request->input($name);
-        
+
 		if (is_string($value) && ! mb_strlen($value)) $value = null;
-        
+
         return $value;
     }
 
@@ -342,7 +342,7 @@ abstract class BaseProperty
 	{
 		return false;
 	}
-    
+
     public function isManyToMany()
 	{
 		return false;
@@ -353,16 +353,6 @@ abstract class BaseProperty
 		return true;
 	}
 
-	protected function setter()
-	{
-		return 'set'.$this->camelize($this->getName());
-	}
-
-	protected function getter()
-	{
-		return 'get'.$this->camelize($this->getName());
-	}
-    
     protected function camelize($input, $separator = '_')
     {
         return str_replace($separator, '', ucwords($input, $separator));

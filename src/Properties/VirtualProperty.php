@@ -1,10 +1,10 @@
-<?php 
+<?php
 
 namespace Moonlight\Properties;
 
 use Illuminate\Database\Eloquent\Model;
 
-class VirtualProperty extends BaseProperty 
+class VirtualProperty extends BaseProperty
 {
 	public static function create($name)
 	{
@@ -16,22 +16,11 @@ class VirtualProperty extends BaseProperty
 		return false;
 	}
 
-	public function setElement(Model $element)
-	{
-		$this->element = $element;
-
-		$getter = $this->getter();
-
-		$this->value = $element->$getter();
-
-		return $this;
-	}
-
 	public function set()
 	{
 		return $this;
 	}
-    
+
     public function searchQuery($query)
 	{
 		return $query;
