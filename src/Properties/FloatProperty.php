@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Moonlight\Properties;
 
@@ -44,12 +44,14 @@ class FloatProperty extends BaseProperty
 		return $query;
 	}
 
-	public function buildInput()
+    public function buildInput()
     {
         $value = parent::buildInput();
 
-		$value = str_replace(',', '.', $value);
-        
+        if (mb_strlen($value)) {
+            $value = str_replace(',', '.', $value);
+        }
+
         return $value;
     }
 
@@ -69,7 +71,7 @@ class FloatProperty extends BaseProperty
 	{
 		$request = $this->getRequest();
         $name = $this->getName();
-        
+
         $from = $request->input($name.'_from');
         $to = $request->input($name.'_to');
 
