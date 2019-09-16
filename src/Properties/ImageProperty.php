@@ -14,12 +14,6 @@ class ImageProperty extends BaseProperty
     protected $folderPath = null;
     protected $folderWebPath = null;
     protected $assetsName = 'assets';
-    protected $maxSize = 8192;
-    protected $maxWidth = null;
-    protected $maxHeight = null;
-    protected $allowedMimeTypes = [
-        'gif', 'jpeg', 'pjpeg', 'png',
-    ];
     protected $resize = null;
     protected $resizes = [];
     protected $driver = null;
@@ -29,9 +23,7 @@ class ImageProperty extends BaseProperty
     {
         parent::__construct($name);
 
-        $this->
-        addRule('max:'.$this->maxSize, 'Максимальный размер файла: '.$this->maxSize.' Кб')->
-        addRule('mimes:'.join(',', $this->allowedMimeTypes), 'Допустимые форматы файла: GIF, JPG, PNG');
+        $this->addRule("image", "Здесь должно загружаться изображение");
 
         return $this;
     }
@@ -100,42 +92,6 @@ class ImageProperty extends BaseProperty
         return $name
             ? str_replace($this->getName(), $this->getName().'_'.$name, $this->getValue())
             : $this->getValue();
-    }
-
-    public function setMaxSize($maxSize)
-    {
-        $this->maxSize = $maxSize;
-
-        return $this;
-    }
-
-    public function getMaxSize()
-    {
-        return $this->maxSize;
-    }
-
-    public function setMaxWidth($maxWidth)
-    {
-        $this->maxWidth = $maxWidth;
-
-        return $this;
-    }
-
-    public function getMaxWidth()
-    {
-        return $this->maxWidth;
-    }
-
-    public function setMaxHeight($maxHeight)
-    {
-        $this->maxHeight = $maxHeight;
-
-        return $this;
-    }
-
-    public function getMaxHeight()
-    {
-        return $this->maxHeight;
     }
 
     public function setResize($width, $height, $quality = 100)
@@ -516,9 +472,6 @@ class ImageProperty extends BaseProperty
                 'name' => $this->getName(),
                 'title' => $this->getTitle(),
                 'readonly' => $this->getReadonly(),
-                'maxFilesize' => $this->getMaxSize(),
-                'maxWidth' => $this->getMaxWidth(),
-                'maxHeight' => $this->getMaxHeight(),
                 'exists' => false,
                 'src' => null,
                 'width' => null,
@@ -534,9 +487,6 @@ class ImageProperty extends BaseProperty
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'readonly' => $this->getReadonly(),
-            'maxFilesize' => $this->getMaxSize(),
-            'maxWidth' => $this->getMaxWidth(),
-            'maxHeight' => $this->getMaxHeight(),
             'exists' => $this->exists(),
             'src' => $this->src(),
             'width' => $this->width(),

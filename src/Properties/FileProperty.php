@@ -2,9 +2,7 @@
 
 namespace Moonlight\Properties;
 
-use Illuminate\Http\File;
 use Illuminate\Support\Facades\Storage;
-use Exception;
 
 class FileProperty extends BaseProperty
 {
@@ -13,12 +11,6 @@ class FileProperty extends BaseProperty
     protected $folderPath = null;
     protected $folderWebPath = null;
     protected $assetsName = 'assets';
-    protected $maxSize = 2048;
-    protected $allowedMimeTypes = [
-        'txt', 'pdf', 'xls', 'xlsx', 'ppt', 'doc', 'docx', 'xml', 'rtf',
-        'gif', 'jpeg', 'pjpeg', 'png', 'tiff', 'ico',
-        'zip', 'rar', 'tar',
-    ];
     protected $driver = null;
     protected $driverFolderName = 'documents';
 
@@ -26,9 +18,7 @@ class FileProperty extends BaseProperty
     {
         parent::__construct($name);
 
-        $this->
-        addRule('max:'.$this->maxSize, 'Максимальный размер файла: '.$this->maxSize.' Кб')->
-        addRule('mimes:'.join(',', $this->allowedMimeTypes), 'Недопустимый формат файла');
+        $this->addRule('file', 'Здесь должен загружаться файл');
 
         return $this;
     }
@@ -43,23 +33,9 @@ class FileProperty extends BaseProperty
         return false;
     }
 
-    public function setAssetsName($assetsName)
+    public function getDriver()
     {
-        $this->assetsName = $assetsName;
-
-        return $this;
-    }
-
-    public function getAssetsName()
-    {
-        return $this->assetsName;
-    }
-
-    public function getFolderName()
-    {
-        return method_exists($this->getItemClass(), 'getFolder')
-            ? $this->getItemClass()->getFolder()
-            : $this->getItemClass()->getTable();
+        return $this->driver;
     }
 
     public function setDriver(string $driver)
@@ -69,9 +45,9 @@ class FileProperty extends BaseProperty
         return $this;
     }
 
-    public function getDriver()
+    public function getDriverFolderName()
     {
-        return $this->driver;
+        return $this->driverFolderName;
     }
 
     public function setDriverFolderName(string $driverFolderName)
@@ -81,9 +57,20 @@ class FileProperty extends BaseProperty
         return $this;
     }
 
-    public function getDriverFolderName()
+    public function filesize_mb($precision = 0)
     {
-        return $this->driverFolderName;
+        return round($this->filesize() / 1024 / 1024, $precision);
+    }
+
+    public function filesize()
+    {
+        if ($this->driver) {
+            $filename = $this->getDriverFilename();
+
+            return Storage::disk($this->driver)->size($filename);
+        }
+
+        return $this->exists() ? filesize($this->abspath()) : 0;
     }
 
     public function getDriverFilename($name = null)
@@ -92,38 +79,22 @@ class FileProperty extends BaseProperty
             .'/'.$this->getValue();
     }
 
-    public function setMaxSize($maxSize)
-    {
-        $this->maxSize = $maxSize;
-
-        return $this;
-    }
-
-    public function getMaxSize()
-    {
-        return $this->maxSize;
-    }
-
-    public function path()
+    public function exists()
     {
         if ($this->driver) {
             $filename = $this->getDriverFilename();
-            return Storage::disk($this->driver)->url($filename);
+
+            return $this->getValue() && Storage::disk($this->driver)->exists($filename);
         }
 
-        return asset(
-            $this->getAssetsName()
-            .'/'
-            .$this->getFolderName()
-            .'/'
-            .$this->getValue()
-        );
+        return $this->getValue() && file_exists($this->abspath());
     }
 
     public function abspath()
     {
         if ($this->driver) {
             $filename = $this->getDriverFilename();
+
             return $this->getValue() && Storage::disk($this->driver)->url($filename);
         }
 
@@ -138,49 +109,33 @@ class FileProperty extends BaseProperty
             );
     }
 
-    public function filename()
+    public function getAssetsName()
     {
-        return basename($this->getValue());
+        return $this->assetsName;
     }
 
-    public function filesize()
+    public function setAssetsName($assetsName)
     {
-        if ($this->driver) {
-            $filename = $this->getDriverFilename();
-            return Storage::disk($this->driver)->size($filename);
-        }
+        $this->assetsName = $assetsName;
 
-        return $this->exists() ? filesize($this->abspath()) : 0;
+        return $this;
     }
 
-    public function filesize_kb($precision = 0)
+    public function getFolderName()
     {
-        return round($this->filesize() / 1024, $precision);
-    }
-
-    public function filesize_mb($precision = 0)
-    {
-        return round($this->filesize() / 1024 / 1024, $precision);
-    }
-
-    public function exists()
-    {
-        if ($this->driver) {
-            $filename = $this->getDriverFilename();
-            return $this->getValue() && Storage::disk($this->driver)->exists($filename);
-        }
-
-        return $this->getValue() && file_exists($this->abspath());
-    }
-
-    public function folder_path()
-    {
-        return dirname($this->abspath());
+        return method_exists($this->getItemClass(), 'getFolder')
+            ? $this->getItemClass()->getFolder()
+            : $this->getItemClass()->getTable();
     }
 
     public function folder_exists()
     {
         return is_dir($this->folder_path());
+    }
+
+    public function folder_path()
+    {
+        return dirname($this->abspath());
     }
 
     public function buildInput()
@@ -205,7 +160,9 @@ class FileProperty extends BaseProperty
                 $original = $file->getClientOriginalName();
                 $extension = $file->getClientOriginalExtension();
 
-                if (! $extension) $extension = 'txt';
+                if (! $extension) {
+                    $extension = 'txt';
+                }
 
                 $folderPath =
                     public_path()
@@ -304,6 +261,33 @@ class FileProperty extends BaseProperty
         return $scope;
     }
 
+    public function path()
+    {
+        if ($this->driver) {
+            $filename = $this->getDriverFilename();
+
+            return Storage::disk($this->driver)->url($filename);
+        }
+
+        return asset(
+            $this->getAssetsName()
+            .'/'
+            .$this->getFolderName()
+            .'/'
+            .$this->getValue()
+        );
+    }
+
+    public function filename()
+    {
+        return basename($this->getValue());
+    }
+
+    public function filesize_kb($precision = 0)
+    {
+        return round($this->filesize() / 1024, $precision);
+    }
+
     public function getEditView()
     {
         $exists = $this->exists();
@@ -313,7 +297,6 @@ class FileProperty extends BaseProperty
                 'name' => $this->getName(),
                 'title' => $this->getTitle(),
                 'readonly' => $this->getReadonly(),
-                'maxFilesize' => $this->getMaxSize(),
                 'value' => null,
                 'exists' => false,
                 'path' => null,
@@ -328,13 +311,11 @@ class FileProperty extends BaseProperty
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'readonly' => $this->getReadonly(),
-            'maxFilesize' => $this->getMaxSize(),
             'value' => $this->getValue(),
             'exists' => $exists,
             'path' => $this->path(),
             'filesize' => $this->filesize_kb(null, 1),
             'filename' => $this->filename(),
-
         ];
 
         return $scope;
