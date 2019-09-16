@@ -442,71 +442,48 @@ class ImageProperty extends BaseProperty
 
     public function getListView()
     {
-        $exists = $this->exists();
-
-        if (! $exists) {
-            return [
-                'exists' => false,
-                'src' => null,
-                'width' => null,
-                'height' => null,
-            ];
-        }
-
-        $scope = [
-            'exists' => $exists,
+        return $this->exists() ? [
+            'exists' => true,
             'src' => $this->src(),
             'width' => $this->width(),
             'height' => $this->height(),
+        ] : [
+            'exists' => false,
+            'src' => null,
+            'width' => null,
+            'height' => null,
         ];
-
-        return $scope;
     }
 
     public function getEditView()
     {
         $exists = $this->exists();
 
-        if (! $exists) {
-            $scope = [
-                'name' => $this->getName(),
-                'title' => $this->getTitle(),
-                'readonly' => $this->getReadonly(),
-                'exists' => false,
-                'src' => null,
-                'width' => null,
-                'height' => null,
-                'filesize' => null,
-                'filename' => null,
-            ];
-
-            return $scope;
+        if ($exists) {
+            $src = $this->src();
+            $width = $this->width();
+            $height = $this->height();
+            $filesize = $this->filesize_kb(null, 1);
+            $filename = $this->filename();
+        } else {
+            $src = null;
+            $width = null;
+            $height = null;
+            $filesize = null;
+            $filename = null;
         }
 
-        $scope = [
+        return [
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'readonly' => $this->getReadonly(),
-            'exists' => $this->exists(),
-            'src' => $this->src(),
-            'width' => $this->width(),
-            'height' => $this->height(),
-            'filesize' => $this->filesize_kb(null, 1),
-            'filename' => $this->filename(),
+            'messages' => $this->getMessages(),
+            'exists' => $exists,
+            'src' => $src,
+            'width' => $width,
+            'height' => $height,
+            'filesize' => $filesize,
+            'filename' => $filename,
         ];
-
-        foreach ($this->resizes as $resizeName => $resize) {
-            $scope['resizes'][] = [
-                'name' => $resizeName,
-                'exists' => $this->exists($resizeName),
-                'src' => $this->src($resizeName),
-                'width' => $this->width($resizeName),
-                'height' => $this->height($resizeName),
-                'filesize' => $this->filesize_kb($resizeName, 1),
-                'filename' => $this->filename($resizeName),
-            ];
-        }
-
-        return $scope;
     }
 }

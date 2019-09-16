@@ -93,13 +93,6 @@ abstract class BaseProperty
         return $this;
     }
 
-    public function addRule($rule, $message = null)
-    {
-        $this->rules[$rule] = $message ?: $rule;
-
-        return $this;
-    }
-
     public function getHidden()
     {
         return $this->hidden;
@@ -323,6 +316,13 @@ abstract class BaseProperty
         return $scope;
     }
 
+    public function addRule($rule, $message = null)
+    {
+        $this->rules[$rule] = $message ?? $rule;
+
+        return $this;
+    }
+
     public function dropRule($rule)
     {
         if (isset($this->rules[$rule])) {
@@ -337,11 +337,23 @@ abstract class BaseProperty
         return $this->rules;
     }
 
-    public function setRules($rules)
+    public function setRules(array $rules)
     {
         $this->rules = $rules;
 
         return $this;
+    }
+
+    public function addMessage(string $message)
+    {
+        $this->messages[] = $message;
+
+        return $this;
+    }
+
+    public function getMessages()
+    {
+        return $this->messages;
     }
 
     public function isOneToOne()

@@ -238,29 +238,6 @@ class FileProperty extends BaseProperty
         }
     }
 
-    public function getListView()
-    {
-        $exists = $this->exists();
-
-        if (! $exists) {
-            return [
-                'exists' => false,
-                'src' => null,
-                'width' => null,
-                'height' => null,
-            ];
-        }
-
-        $scope = [
-            'exists' => $exists,
-            'path' => $this->path(),
-            'filename' => $this->filename(),
-            'filesize' => $this->filesize_kb(1),
-        ];
-
-        return $scope;
-    }
-
     public function path()
     {
         if ($this->driver) {
@@ -288,36 +265,47 @@ class FileProperty extends BaseProperty
         return round($this->filesize() / 1024, $precision);
     }
 
+    public function getListView()
+    {
+        return $this->exists() ? [
+            'exists' => true,
+            'path' => $this->path(),
+            'filename' => $this->filename(),
+            'filesize' => $this->filesize_kb(1),
+        ] : [
+            'exists' => false,
+            'path' => null,
+            'filename' => null,
+            'filesize' => null,
+        ];
+    }
+
     public function getEditView()
     {
         $exists = $this->exists();
 
-        if (! $exists) {
-            $scope = [
-                'name' => $this->getName(),
-                'title' => $this->getTitle(),
-                'readonly' => $this->getReadonly(),
-                'value' => null,
-                'exists' => false,
-                'path' => null,
-                'filesize' => null,
-                'filename' => null,
-            ];
-
-            return $scope;
+        if ($exists) {
+            $value = $this->getValue();
+            $path = $this->path();
+            $filesize = $this->filesize_kb(null, 1);
+            $filename = $this->filename();
+        } else {
+            $value = null;
+            $path = $this->path();
+            $filesize = $this->filesize_kb(null, 1);
+            $filename = $this->filename();
         }
 
-        $scope = [
+        return [
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'readonly' => $this->getReadonly(),
-            'value' => $this->getValue(),
+            'messages' => $this->getMessages(),
+            'value' => $value,
             'exists' => $exists,
-            'path' => $this->path(),
-            'filesize' => $this->filesize_kb(null, 1),
-            'filename' => $this->filename(),
+            'path' => $path,
+            'filesize' => $filesize,
+            'filename' => $filename,
         ];
-
-        return $scope;
     }
 }
