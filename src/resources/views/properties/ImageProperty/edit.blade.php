@@ -18,9 +18,9 @@
     @endforeach
 @endif
 @if (! $readonly)
-    @forelse ($messages as $message)
+    @foreach ($messages as $message)
         <small class="red">{{ $message }}</small><br>
-    @endforelse
+    @endforeach
     <div class="loadfile">
         <div class="file" name="{{ $name }}">Выберите файл</div>
         <span class="reset" name="{{ $name }}" file>&#215;</span>
