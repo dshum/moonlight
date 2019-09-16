@@ -300,7 +300,7 @@ class FileProperty extends BaseProperty
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'readonly' => $this->getReadonly(),
-            'messages' => $this->getMessages(),
+            'captions' => $this->getCaptions(),
             'value' => $value,
             'exists' => $exists,
             'path' => $path,

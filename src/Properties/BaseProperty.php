@@ -24,7 +24,7 @@ abstract class BaseProperty
     protected $request = null;
     protected $trashed = false;
     protected $rules = [];
-    protected $messages = [];
+    protected $captions = [];
 
     public function __construct($name)
     {
@@ -344,16 +344,16 @@ abstract class BaseProperty
         return $this;
     }
 
-    public function addMessage(string $message)
+    public function addCaption(string $caption)
     {
-        $this->messages[] = $message;
+        $this->captions[] = $caption;
 
         return $this;
     }
 
-    public function getMessages()
+    public function getCaptions()
     {
-        return $this->messages;
+        return $this->captions;
     }
 
     public function isOneToOne()

@@ -18,8 +18,8 @@
     @endforeach
 @endif
 @if (! $readonly)
-    @foreach ($messages as $message)
-        <small class="red">{{ $message }}</small><br>
+    @foreach ($captions as $caption)
+        <small class="red">{{ $caption }}</small><br>
     @endforeach
     <div class="loadfile">
         <div class="file" name="{{ $name }}">Выберите файл</div>

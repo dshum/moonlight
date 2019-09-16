@@ -477,7 +477,7 @@ class ImageProperty extends BaseProperty
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'readonly' => $this->getReadonly(),
-            'messages' => $this->getMessages(),
+            'captions' => $this->getCaptions(),
             'exists' => $exists,
             'src' => $src,
             'width' => $width,
