@@ -1,15 +1,13 @@
-<?php 
+<?php
 
 namespace Moonlight\Properties;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\Model;
 use Moonlight\Main\Item;
 
 class OrderProperty extends BaseProperty
 {
 	protected $relatedClass = null;
-	
+
 	public static function create($name)
 	{
 		return new self($name);
@@ -54,9 +52,7 @@ class OrderProperty extends BaseProperty
 	}
 
 	public function set()
-	{   
-		if (! $this->element instanceof Model) return $this;
-
+	{
 		$name = $this->getName();
 
 		try {
@@ -73,7 +69,7 @@ class OrderProperty extends BaseProperty
 	{
 		return $query;
 	}
-    
+
     public function getEditView()
 	{
 		return null;
