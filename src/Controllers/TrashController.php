@@ -249,7 +249,9 @@ class TrashController extends Controller
 
         foreach ($orderByList as $field => $direction) {
             $criteria->orderBy($field, $direction);
+
             $property = $currentItem->getPropertyByName($field);
+
             if ($property instanceof OrderProperty) {
                 $orders[$field] = 'порядку';
             } elseif ($property->getName() == 'created_at') {
@@ -290,10 +292,16 @@ class TrashController extends Controller
         $views = [];
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) {
-                continue;
-            }
-            if (! $property->getShow() && $property->getName() != 'deleted_at') {
+            $show = cache()->get(
+                "show_column_{$loggedUser->id}_{$currentItem->getNameId()}_{$property->getName()}",
+                $property->getShow()
+            );
+
+            if (
+                $property instanceof PasswordProperty
+                || $property->getHidden()
+                || ! $show
+            ) {
                 continue;
             }
 
@@ -305,7 +313,6 @@ class TrashController extends Controller
                 $property instanceof MainProperty
                 || $property instanceof PasswordProperty
                 || $property->getHidden()
-                || $property->getName() == 'deleted_at'
             ) {
                 continue;
             }

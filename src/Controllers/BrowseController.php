@@ -1636,19 +1636,16 @@ class BrowseController extends Controller
         $views = [];
 
         foreach ($propertyList as $property) {
-            if ($property instanceof PasswordProperty) {
-                continue;
-            }
-            if ($property->getHidden()) {
-                continue;
-            }
-
             $show = cache()->get(
                 "show_column_{$loggedUser->id}_{$currentItem->getNameId()}_{$property->getName()}",
                 $property->getShow()
             );
 
-            if (! $show) {
+            if (
+                $property instanceof PasswordProperty
+                || $property->getHidden()
+                || ! $show
+            ) {
                 continue;
             }
 
