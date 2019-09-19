@@ -1,9 +1,9 @@
 .wrapper {
-	padding-left: 1em;
-	padding-right: 1em;
-	margin: auto;
-	display: block;
-	width: 200px;
+    padding-left: 1em;
+    padding-right: 1em;
+    margin: auto;
+    display: block;
+    width: 200px;
 }
 
 .cssload-loader {
@@ -14,8 +14,9 @@
     display: inline-block;
     position: relative;
     vertical-align: middle;
-	background: rgb(0, 50, 150);
+    background: rgb(0, 50, 150);
 }
+
 .cssload-loader,
 .cssload-loader:before,
 .cssload-loader:after {
@@ -25,9 +26,10 @@
     -webkit-animation: 0.5s infinite ease-in-out;
     -moz-animation: 0.5s infinite ease-in-out;
 }
+
 .cssload-loader:before,
 .cssload-loader:after {
-    width: 100%; 
+    width: 100%;
     height: 100%;
     border-radius: 50%;
     position: absolute;
@@ -35,34 +37,66 @@
     left: 0;
 }
 
-.cssload-loader { animation-name: cssload-loader;
+.cssload-loader {
+    animation-name: cssload-loader;
     -o-animation-name: cssload-loader;
     -ms-animation-name: cssload-loader;
     -webkit-animation-name: cssload-loader;
-    -moz-animation-name: cssload-loader; }
+    -moz-animation-name: cssload-loader;
+}
 
 
 @keyframes cssload-loader {
-    from { transform: scale(0); opacity: 1; }
-    to	 { transform: scale(1); opacity: 0; }
+    from {
+        transform: scale(0);
+        opacity: 1;
+    }
+    to {
+        transform: scale(1);
+        opacity: 0;
+    }
 }
 
 @-o-keyframes cssload-loader {
-    from { -o-transform: scale(0); opacity: 1; }
-    to	 { -o-transform: scale(1); opacity: 0; }
+    from {
+        -o-transform: scale(0);
+        opacity: 1;
+    }
+    to {
+        -o-transform: scale(1);
+        opacity: 0;
+    }
 }
 
 @-ms-keyframes cssload-loader {
-    from { -ms-transform: scale(0); opacity: 1; }
-    to	 { -ms-transform: scale(1); opacity: 0; }
+    from {
+        -ms-transform: scale(0);
+        opacity: 1;
+    }
+    to {
+        -ms-transform: scale(1);
+        opacity: 0;
+    }
 }
 
 @-webkit-keyframes cssload-loader {
-    from { -webkit-transform: scale(0); opacity: 1; }
-    to	 { -webkit-transform: scale(1); opacity: 0; }
+    from {
+        -webkit-transform: scale(0);
+        opacity: 1;
+    }
+    to {
+        -webkit-transform: scale(1);
+        opacity: 0;
+    }
 }
 
 @-moz-keyframes cssload-loader {
-    from { -moz-transform: scale(0); opacity: 1; }
-    to	 { -moz-transform: scale(1); opacity: 0; }
+    from {
+        -moz-transform: scale(0);
+        opacity: 1;
+    }
+    to {
+        -moz-transform: scale(1);
+        opacity: 0;
+    }
 }

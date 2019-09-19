@@ -81,6 +81,52 @@ class BrowseController extends Controller
     }
 
     /**
+     * Set per page.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return Response
+     * @throws \Exception
+     */
+    public function perPage(Request $request)
+    {
+        $scope = [];
+
+        $loggedUser = Auth::guard('moonlight')->user();
+
+        $class = $request->input('item');
+        $classId = $request->input('classId') ?? 'search';
+        $perPage = (int) $request->input('perpage');
+
+        if ($perPage < 1) {
+            $perPage = static::PER_PAGE;
+        } elseif ($perPage > 500) {
+            $perPage = static::PER_PAGE;
+        }
+
+        $site = \App::make('site');
+
+        $currentItem = $site->getItemByName($class);
+
+        if (! $currentItem) {
+            $scope['error'] = 'Класс элементов не найден.';
+
+            return response()->json($scope);
+        }
+
+        if ($currentItem->getPerPage() == $perPage) {
+            cache()->forget("per_page_{$loggedUser->id}_{$class}");
+        } else {
+            cache()->forever("per_page_{$loggedUser->id}_{$class}", $perPage);
+        }
+
+        cache()->forget("page_{$loggedUser->id}_{$classId}_{$class}");
+
+        $scope['per_page'] = $perPage;
+
+        return response()->json($scope);
+    }
+
+    /**
      * Order elements.
      *
      * @return Response
@@ -1339,7 +1385,6 @@ class BrowseController extends Controller
         /*
          * Item plugin
          */
-
         $itemPluginView = null;
 
         $itemPlugin = $site->getItemPlugin($currentItem->getNameId());
@@ -1460,7 +1505,6 @@ class BrowseController extends Controller
         /*
          * Browse filter
          */
-
         $browseFilterView = null;
 
         $browseFilter = $site->getBrowseFilter($currentItem->getNameId());
@@ -1552,6 +1596,7 @@ class BrowseController extends Controller
 
             $total = sizeof($elements);
 
+            $perPage = static::PER_PAGE;
             $currentPage = 1;
             $hasMorePages = false;
             $nextPage = null;
@@ -1565,9 +1610,15 @@ class BrowseController extends Controller
                 return $page;
             });
 
-            $perpage = $currentItem->getPerPage() ?: static::PER_PAGE;
+            if (cache()->has("per_page_{$loggedUser->id}_{$currentItem->getNameId()}")) {
+                $perPage = cache()->get("per_page_{$loggedUser->id}_{$currentItem->getNameId()}");
+            } elseif ($currentItem->getPerPage()) {
+                $perPage = $currentItem->getPerPage();
+            } else {
+                $perPage = static::PER_PAGE;
+            }
 
-            $elements = $criteria->paginate($perpage);
+            $elements = $criteria->paginate($perPage);
 
             $total = $elements->total();
             $currentPage = $elements->currentPage();
@@ -1757,6 +1808,7 @@ class BrowseController extends Controller
         $scope['properties'] = $properties;
         $scope['columns'] = $columns;
         $scope['total'] = $total;
+        $scope['perPage'] = $perPage;
         $scope['currentPage'] = $currentPage;
         $scope['hasMorePages'] = $hasMorePages;
         $scope['nextPage'] = $nextPage;

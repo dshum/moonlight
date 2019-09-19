@@ -1,89 +1,89 @@
 div.calendar {
-  font-size: 1rem;
-  color: #3e3e3e;
+    font-size: 1rem;
+    color: #3e3e3e;
 }
 
 div.calendar.popup {
-  margin-left: 0;
-  margin-top: 3.25rem;
-  z-index: 9999;
+    margin-left: 0;
+    margin-top: 3.25rem;
+    z-index: 9999;
 }
 
 div.calendar table {
-  background-color: white;
-  box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
-  border: none;
-  border-collapse: separate;
-  border-spacing: 1px;
+    background-color: white;
+    box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
+    border: none;
+    border-collapse: separate;
+    border-spacing: 1px;
 }
 
 div.calendar td.button {
-  padding: 0.2rem 0;
-  text-align: center;
+    padding: 0.2rem 0;
+    text-align: center;
 }
 
 div.calendar td,
 div.calendar th {
-  text-align: center;
-  vertical-align: middle;
-  padding: 0.5rem;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0.5rem;
 }
 
 div.calendar td.title {
-  font-weight: normal;
-  padding: 0.5rem 0;
+    font-weight: normal;
+    padding: 0.5rem 0;
 }
 
 div.calendar th {
-  text-align: right;
-  font-weight: normal;
+    text-align: right;
+    font-weight: normal;
 }
 
 div.calendar th.weekend {
-  color: orangered;
-  font-weight: bold;
+    color: orangered;
+    font-weight: bold;
 }
 
 div.calendar tr.days td {
-  color: black;
-  text-align: right;
-  vertical-align: middle;
-  cursor: pointer;
-  border: 1px solid transparent;
+    color: black;
+    text-align: right;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
 }
 
 div.calendar tr.days td:hover,
 div.calendar td.button:hover {
-  background-color: #e5e5e5;
-  cursor: pointer;
+    background-color: #e5e5e5;
+    cursor: pointer;
 }
 
 div.calendar tr.days td:hover {
-  border-color: #ff7e00;
-  background-color: white;
+    border-color: #ff7e00;
+    background-color: white;
 }
 
 div.calendar tr.days td:active
 div.calendar td.button:active {
-  border-color: #cde;
-  background-color: #cde;
+    border-color: #cde;
+    background-color: #cde;
 }
 
 div.calendar tr.days td.selected,
 div.calendar tr.days td.weekend.selected {
-  font-weight: bold;
-  border-color: royalblue;
-  background-color: royalblue;
-  color: white;
+    font-weight: bold;
+    border-color: royalblue;
+    background-color: royalblue;
+    color: white;
 }
 
 div.calendar tr.days td.today {
-  border-color: #789;
-  background-color: white;
-  color: black;
+    border-color: #789;
+    background-color: white;
+    color: black;
 }
 
 div.calendar tr.days td.otherDay {
-  background-color: #e5e5e5;
-  color: #999;
+    background-color: #e5e5e5;
+    color: #999;
 }

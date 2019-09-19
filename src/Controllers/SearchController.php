@@ -487,7 +487,15 @@ class SearchController extends Controller
 
         $orders = implode(', ', $orders);
 
-        $elements = $criteria->paginate(static::PER_PAGE);
+        if (cache()->has("per_page_{$loggedUser->id}_{$currentItem->getNameId()}")) {
+            $perPage = cache()->get("per_page_{$loggedUser->id}_{$currentItem->getNameId()}");
+        } elseif ($currentItem->getPerPage()) {
+            $perPage = $currentItem->getPerPage();
+        } else {
+            $perPage = static::PER_PAGE;
+        }
+
+        $elements = $criteria->paginate($perPage);
 
         $total = $elements->total();
         $currentPage = $elements->currentPage();
@@ -601,12 +609,11 @@ class SearchController extends Controller
         }
 
         // Favorites
-        $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)->
-        orderBy('order')->
-        get();
+        $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)
+            ->orderBy('order')
+            ->get();
 
-        $favorites = Favorite::where('user_id', $loggedUser->id)->
-        get();
+        $favorites = Favorite::where('user_id', $loggedUser->id)->get();
 
         $favoriteRubricMap = [];
         $elementFavoriteRubrics = [];
@@ -628,6 +635,7 @@ class SearchController extends Controller
         $scope['properties'] = $properties;
         $scope['columns'] = $columns;
         $scope['total'] = $total;
+        $scope['perPage'] = $perPage;
         $scope['currentPage'] = $currentPage;
         $scope['hasMorePages'] = $hasMorePages;
         $scope['nextPage'] = $nextPage;

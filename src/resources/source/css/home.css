@@ -1,90 +1,90 @@
 .leaf {
-  position: relative;
-  margin: 1rem 0;
-  width: 60rem;
-  clear: both;
+    position: relative;
+    margin: 1rem 0;
+    width: 60rem;
+    clear: both;
 }
 
 .main .row {
-  clear: both;
+    clear: both;
 }
 
 .main .elements {
-  float: left;
-  width: 20rem;
-  margin-bottom: 1.5rem;
+    float: left;
+    width: 20rem;
+    margin-bottom: 1.5rem;
 }
 
 .main .elements .h2 {
-  display: block;
-  margin: 0;
-  padding: 0;
-  color: steelblue;
-  font-size: 1.3rem;
+    display: block;
+    margin: 0;
+    padding: 0;
+    color: steelblue;
+    font-size: 1.3rem;
 }
 
 .main .favorite.elements .h2 {
-  color: royalblue;
+    color: royalblue;
 }
 
 .main .elements ul {
-  margin: 0 0 0 1rem;
-  padding: 0;
+    margin: 0 0 0 1rem;
+    padding: 0;
 }
 
 .main .elements > ul {
-  margin: -0.25rem 0 0 0;
-  padding: 0;
+    margin: -0.25rem 0 0 0;
+    padding: 0;
 }
 
 .main .elements ul li {
-  margin: 0.5rem 0;
-  padding: 0;
+    margin: 0.5rem 0;
+    padding: 0;
 }
 
 .main .elements ul li:last-child {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 .main .elements ul li span.open {
-  margin-left: 0.5rem;
-  cursor: pointer;
+    margin-left: 0.5rem;
+    cursor: pointer;
 }
 
 .main .elements ul li span.open .fa {
-  position: relative;
-  top: 2px;
-  font-size: 1.2rem;
-  transition: all 0.2s linear 0s;
+    position: relative;
+    top: 2px;
+    font-size: 1.2rem;
+    transition: all 0.2s linear 0s;
 }
 
 .main .elements ul li span.open[display="show"] .fa {
-  transform: rotate(180deg);
+    transform: rotate(180deg);
 }
 
 .main .favorite-settings {
-  position: absolute;
-  right: 0;
-  width: 2rem;
-  height: 2rem;
-  line-height: 2rem;
-  vertical-align: middle;
-  text-align: center;
-  border-radius: 2px;
-  background-color: lightblue;
+    position: absolute;
+    right: 0;
+    width: 2rem;
+    height: 2rem;
+    line-height: 2rem;
+    vertical-align: middle;
+    text-align: center;
+    border-radius: 2px;
+    background-color: lightblue;
 }
 
 .main .favorite-settings:hover {
-  background-color: navy;
-  transition: 0.2s ease;
+    background-color: navy;
+    transition: 0.2s ease;
 }
 
 .main .favorite-settings .fa {
-  width: 2rem;
-  height: 2rem;
-  line-height: 2rem;
-  vertical-align: middle;
-  text-align: center;
-  font-size: 1.2rem;
-  color: white;
+    width: 2rem;
+    height: 2rem;
+    line-height: 2rem;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 1.2rem;
+    color: white;
 }

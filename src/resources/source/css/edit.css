@@ -1,124 +1,124 @@
 div.external-link .fa {
-  position: relative;
-  top: 2px;
-  margin-right: 0.5rem;
-  width: 1rem;
-  color: rgb(75, 135, 75);
+    position: relative;
+    top: 2px;
+    margin-right: 0.5rem;
+    width: 1rem;
+    color: rgb(75, 135, 75);
 }
-  
+
 div.item {
-  display: none;
+    display: none;
 }
 
 div.item.active ul.header li.h2 span {
-  border-bottom: none;
-  cursor: unset;
+    border-bottom: none;
+    cursor: unset;
 }
 
 .buttons {
-  width: auto;
-  margin-bottom: 1.5rem;
+    width: auto;
+    margin-bottom: 1.5rem;
 }
 
 .buttons .button {
-  display: inline-block;
-  vertical-align: middle;
-  text-align: center;
-  border: 1px solid transparent;
-  padding: 0.75rem 1rem 0.5rem 1rem;
-  color: #999;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+    border: 1px solid transparent;
+    padding: 0.75rem 1rem 0.5rem 1rem;
+    color: #999;
 }
 
 .buttons .button .fa {
-  display: block;
-  margin-right: 0;
-  margin-bottom: 0.5rem;
-  width: auto;
+    display: block;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+    width: auto;
 }
 
 .edit .mce-tinymce {
-  margin-top: 0.2rem;
+    margin-top: 0.2rem;
 }
 
 .btn.copy {
-  background-color: teal;
+    background-color: teal;
 }
 
 .btn.move {
-  background-color: seagreen;
+    background-color: seagreen;
 }
 
 .datepicker {
-  border-bottom: 1px dashed black;
-  cursor: hand;
+    border-bottom: 1px dashed black;
+    cursor: hand;
 }
 
 .timepicker {
-  border-bottom: 1px dashed black;
-  cursor: hand;
+    border-bottom: 1px dashed black;
+    cursor: hand;
 }
 
 div.calendar.popup {
-  margin-top: 1.5rem;
+    margin-top: 1.5rem;
 }
 
 div.timepicker-popup {
-  display: none;
-  position: absolute;
-  z-index: 9999;
-  margin-top: 1.5rem;
-  box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
-  border: none;
-  border-collapse: separate;
-  border-spacing: 1px;
-  background-color: white;
-  padding: 0;
+    display: none;
+    position: absolute;
+    z-index: 9999;
+    margin-top: 1.5rem;
+    box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
+    border: none;
+    border-collapse: separate;
+    border-spacing: 1px;
+    background-color: white;
+    padding: 0;
 }
 
 div.timepicker-popup .block {
-  display: inline-block;
-  margin: 1rem;
+    display: inline-block;
+    margin: 1rem;
 }
 
 div.timepicker-popup .block .title {
-  display: inline-block;
-  font-size: 1rem;
+    display: inline-block;
+    font-size: 1rem;
 }
 
 div.timepicker-popup .block .title.minutes,
 div.timepicker-popup .block .title.seconds {
-  border-bottom: 1px dashed black;
-  cursor: pointer;
+    border-bottom: 1px dashed black;
+    cursor: pointer;
 }
 
 div.timepicker-popup .block table {
-  margin-top: 0.5rem;
-  margin-left: -0.5rem;
-  border-collapse: collapse;
-  font-size: 1rem;
+    margin-top: 0.5rem;
+    margin-left: -0.5rem;
+    border-collapse: collapse;
+    font-size: 1rem;
 }
 
 div.timepicker-popup .block table tr {
-  vertical-align: middle;
+    vertical-align: middle;
 }
 
 div.timepicker-popup .block table td {
-  border: 1px solid transparent;
-  padding: 0.5rem;
-  cursor: pointer;
-  text-align: center;
+    border: 1px solid transparent;
+    padding: 0.5rem;
+    cursor: pointer;
+    text-align: center;
 }
 
 div.timepicker-popup .block table td:hover {
-  border-color: #ff7e00;
+    border-color: #ff7e00;
 }
 
 div.timepicker-popup .block table td.active {
-  background-color: royalblue;
-  color: white;
-  font-weight: bold;
+    background-color: royalblue;
+    color: white;
+    font-weight: bold;
 }
 
 div.timepicker-popup .block table td.hide {
-  display: none;
+    display: none;
 }

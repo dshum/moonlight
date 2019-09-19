@@ -1,4 +1,4 @@
-$(function() {
+$(function () {
     var itemTotal = 0;
     var itemCount = 0;
     var empty = true;
@@ -6,24 +6,24 @@ $(function() {
 
     if (typeof jQuery !== 'undefined') {
         jQuery.fn.sortable = function (options) {
-          return this.each(function () {
-              var $el = $(this);
-              var sortable = $el.data('sortable');
+            return this.each(function () {
+                var $el = $(this);
+                var sortable = $el.data('sortable');
 
-              if (! sortable && options instanceof Object) {
-                  sortable = new Sortable(this, options);
-                  $el.data('sortable', sortable);
-              }
+                if (!sortable && options instanceof Object) {
+                    sortable = new Sortable(this, options);
+                    $el.data('sortable', sortable);
+                }
 
-              if (sortable && (options in sortable)) {
-                   sortable[sortable].apply(sortable, [].slice.call(arguments, 1));
-              }
-          })
+                if (sortable && (options in sortable)) {
+                    sortable[sortable].apply(sortable, [].slice.call(arguments, 1));
+                }
+            })
         };
     }
 
-    var init = function(item) {
-        $('.main div[item="' + item + '"] input.one').each(function() {
+    var init = function (item) {
+        $('.main div[item="' + item + '"] input.one').each(function () {
             var parent = $(this).parents('div.row');
             var relatedItem = $(this).attr('item');
             var name = $(this).attr('property');
@@ -34,7 +34,7 @@ $(function() {
                 params: {
                     item: relatedItem
                 },
-                formatResult: function(suggestion, currentValue) {
+                formatResult: function (suggestion, currentValue) {
                     return suggestion.value + ' <small>(' + suggestion.id + ')</small>';
                 },
                 onSelect: function (suggestion) {
@@ -46,7 +46,7 @@ $(function() {
             });
         });
 
-        $('.main div[item="' + item + '"] table.elements tbody').each(function() {
+        $('.main div[item="' + item + '"] table.elements tbody').each(function () {
             var tbody = $(this);
 
             tbody.sortable({
@@ -58,7 +58,7 @@ $(function() {
 
                     var order = [];
 
-                    $(event.to).find('tr').each(function() {
+                    $(event.to).find('tr').each(function () {
                         var id = $(this).attr('elementId');
 
                         order.push(id);
@@ -69,7 +69,7 @@ $(function() {
                     $.post('/moonlight/elements/order', {
                         item: item,
                         elements: order
-                    }, function(data) {
+                    }, function (data) {
                         $.unblockUI();
                     });
                 }
@@ -77,11 +77,11 @@ $(function() {
         });
     };
 
-    var loadElements = function(item, classId) {
+    var loadElements = function (item, classId) {
         $.getJSON('/moonlight/elements/list', {
             item: item,
             classId: classId
-        }, function(data) {
+        }, function (data) {
             if (data.html && data.html.length) {
                 $('.main div[item="' + item + '"]').hide().html(data.html).fadeIn(200);
 
@@ -99,12 +99,12 @@ $(function() {
             } else {
                 loadElements(items[itemCount].item, items[itemCount].classId);
             }
-        }).fail(function() {
+        }).fail(function () {
             $.alertDefaultError();
         });
     };
 
-    var getElements = function(item, classId, addition) {
+    var getElements = function (item, classId, addition) {
         var params = {
             item: item,
             classId: classId
@@ -118,7 +118,7 @@ $(function() {
 
         $.blockUI();
 
-        $.getJSON('/moonlight/elements/list', params, function(data) {
+        $.getJSON('/moonlight/elements/list', params, function (data) {
             $.unblockUI();
 
             if (data.html && data.html.length) {
@@ -128,15 +128,15 @@ $(function() {
 
                 $(document).trigger('item-loaded', [item, classId]);
             } else {
-                $('.main div[item="' + item + '"]').fadeOut(200, function() {
+                $('.main div[item="' + item + '"]').fadeOut(200, function () {
                     itemCount--;
 
-                    if (! itemCount) {
+                    if (!itemCount) {
                         $('div.empty').show();
                     }
                 });
             }
-        }).fail(function() {
+        }).fail(function () {
             $.unblockUI();
             $.alertDefaultError();
         });
@@ -157,7 +157,7 @@ $(function() {
         loadElements(items[0].item, items[0].classId);
     }
 
-    $('body').on('click', '.main div[item] ul.header > li.h2', function() {
+    $('body').on('click', '.main div[item] ul.header > li.h2', function () {
         var h2 = $(this);
         var display = h2.attr('display');
         var div = h2.parents('div[item]');
@@ -188,7 +188,7 @@ $(function() {
                 item: item,
                 classId: classId,
                 open: true
-            }, function(data) {
+            }, function (data) {
                 $.unblockUI();
 
                 if (data.html) {
@@ -202,7 +202,7 @@ $(function() {
         }
     });
 
-    $('body').on('click', 'table.elements th span[resetorder]', function() {
+    $('body').on('click', 'table.elements th span[resetorder]', function () {
         var itemContainer = $(this).parents('div[item]');
         var item = itemContainer.attr('item');
         var classId = itemContainer.attr('classId');
@@ -212,7 +212,7 @@ $(function() {
         });
     });
 
-    $('body').on('click', 'table.elements th span[order][direction]', function() {
+    $('body').on('click', 'table.elements th span[order][direction]', function () {
         var itemContainer = $(this).parents('div[item]');
         var item = itemContainer.attr('item');
         var classId = itemContainer.attr('classId');
@@ -225,7 +225,7 @@ $(function() {
         });
     });
 
-    $('body').on('click', 'table.elements td.editable', function() {
+    $('body').on('click', 'table.elements td.editable', function () {
         var td = $(this);
         var tr = td.parent();
         var itemContainer = $(this).parents('div[item]');
@@ -261,15 +261,15 @@ $(function() {
         }
     });
 
-    $('body').on('click', 'table.elements td.editable input', function(e) {
+    $('body').on('click', 'table.elements td.editable input', function (e) {
         e.stopPropagation();
     });
 
-    $('body').on('click', 'table.elements td.editable textarea', function(e) {
+    $('body').on('click', 'table.elements td.editable textarea', function (e) {
         e.stopPropagation();
     });
 
-    $('body').on('click', 'table.elements td.editable div.checkbox', function(e) {
+    $('body').on('click', 'table.elements td.editable div.checkbox', function (e) {
         var checkbox = $(this);
         var td = checkbox.parents('td');
         var tr = td.parent();
@@ -287,13 +287,13 @@ $(function() {
         e.stopPropagation();
     });
 
-    $('body').on('submit', 'form[name="save"]', function() {
+    $('body').on('submit', 'form[name="save"]', function () {
         var itemContainer = $(this).parents('div[item]');
         var item = itemContainer.attr('item');
         var classId = itemContainer.attr('classId');
         var count = itemContainer.find('td.editable[mode="edit"]').length;
 
-        if (! count) return false;
+        if (!count) return false;
 
         itemContainer.find('td.editable.invalid').removeClass('invalid');
 
@@ -329,7 +329,7 @@ $(function() {
 
                 var count = itemContainer.find('td.editable[mode="edit"]').length;
 
-                if (! count) {
+                if (!count) {
                     itemContainer.find('.button.save:not(.disabled)').removeClass('enabled');
                 }
 
@@ -343,7 +343,7 @@ $(function() {
         return false;
     });
 
-    $('body').on('click', '.button.save.enabled', function() {
+    $('body').on('click', '.button.save.enabled', function () {
         var itemContainer = $(this).parents('div[item]');
 
         itemContainer.find('form[name="save"]').submit();
@@ -351,19 +351,19 @@ $(function() {
         return false;
     });
 
-    $('body').on('mouseover', 'table.elements td.check', function() {
+    $('body').on('mouseover', 'table.elements td.check', function () {
         var tr = $(this).parent();
 
         tr.addClass('hover');
     });
 
-    $('body').on('mouseout', 'table.elements td.check', function() {
+    $('body').on('mouseout', 'table.elements td.check', function () {
         var tr = $(this).parent();
 
         tr.removeClass('hover');
     });
 
-    $('body').on('click', 'th.check', function() {
+    $('body').on('click', 'th.check', function () {
         var tr = $(this).parent();
         var table = tr.parents('table');
         var itemContainer = $(this).parents('div[item]');
@@ -378,13 +378,13 @@ $(function() {
 
             tr.removeClass('checked');
 
-            table.find('tbody tr').each(function() {
+            table.find('tbody tr').each(function () {
                 $(this).removeClass('checked');
             });
         } else {
             tr.addClass('checked');
 
-            table.find('tbody tr').each(function() {
+            table.find('tbody tr').each(function () {
                 var elementId = $(this).attr('elementId');
                 var index = checked[item].indexOf(elementId);
 
@@ -413,7 +413,7 @@ $(function() {
         }
     });
 
-    $('body').on('click', 'td.check', function() {
+    $('body').on('click', 'td.check', function () {
         var tr = $(this).parent();
         var itemContainer = $(this).parents('div[item]');
         var item = itemContainer.attr('item');
@@ -456,7 +456,7 @@ $(function() {
         }
     });
 
-    $('body').on('click', '.addition.unset[property]', function() {
+    $('body').on('click', '.addition.unset[property]', function () {
         var parent = $(this).parents('div.row');
         var name = $(this).attr('property');
 
@@ -465,35 +465,35 @@ $(function() {
         parent.find('span[container][name="' + name + '"]').html('Не определено');
     });
 
-    $('body').on('click', '.button.copy.enabled', function() {
+    $('body').on('click', '.button.copy.enabled', function () {
         var itemContainer = $(this).parents('div[item]');
         var item = itemContainer.attr('item');
 
         $.confirm(null, '.confirm[id="' + item + '_copy"]');
     });
 
-    $('body').on('click', '.button.move.enabled', function() {
+    $('body').on('click', '.button.move.enabled', function () {
         var itemContainer = $(this).parents('div[item]');
         var item = itemContainer.attr('item');
 
         $.confirm(null, '.confirm[id="' + item + '_move"]');
     });
 
-    $('body').on('click', '.button.bind.enabled', function() {
+    $('body').on('click', '.button.bind.enabled', function () {
         var itemContainer = $(this).parents('div[item]');
         var item = itemContainer.attr('item');
 
         $.confirm(null, '.confirm[id="' + item + '_bind"]');
     });
 
-    $('body').on('click', '.button.unbind.enabled', function() {
+    $('body').on('click', '.button.unbind.enabled', function () {
         var itemContainer = $(this).parents('div[item]');
         var item = itemContainer.attr('item');
 
         $.confirm(null, '.confirm[id="' + item + '_unbind"]');
     });
 
-    $('body').on('click', '.button.favorite.enabled', function() {
+    $('body').on('click', '.button.favorite.enabled', function () {
         var itemContainer = $(this).parents('div[item]');
         var item = itemContainer.attr('item');
 
@@ -508,7 +508,7 @@ $(function() {
             var rubrics = tr.attr('rubrics');
             var rubricIds = rubrics.split(',');
 
-            itemContainer.find('.favorite-list.add div[rubric]').each(function() {
+            itemContainer.find('.favorite-list.add div[rubric]').each(function () {
                 var rubricId = $(this).attr('rubric');
                 var index = rubricIds.indexOf(rubricId);
 
@@ -532,26 +532,26 @@ $(function() {
         $.confirm(null, '.confirm[id="' + item + '_favorite"]');
     });
 
-    $('body').on('click', '.button.delete.enabled', function() {
+    $('body').on('click', '.button.delete.enabled', function () {
         var itemContainer = $(this).parents('div[item]');
         var item = itemContainer.attr('item');
 
         $.confirm(null, '.confirm[id="' + item + '_delete"]');
     });
 
-    $('body').on('click', '.confirm .btn.copy', function() {
+    $('body').on('click', '.confirm .btn.copy', function () {
         var itemContainer = $(this).parents('div[item]');
         var parent = $(this).parents('.confirm');
         var item = itemContainer.attr('item');
 
         var name, value;
 
-        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
+        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
             name = $(this).attr('property');
             value = $(this).val();
         });
 
-        if (! name) return false;
+        if (!name) return false;
 
         $.confirmClose();
         $.blockUI();
@@ -564,12 +564,12 @@ $(function() {
                 name: name,
                 value: value
             },
-            function(data) {
-                $.unblockUI(function() {
+            function (data) {
+                $.unblockUI(function () {
                     if (data.error) {
                         $.alert(data.error);
                     } else if (data.copied) {
-                        if (! value) {
+                        if (!value) {
                             location.reload();
                         } else if (data.url) {
                             location.href = data.url;
@@ -580,7 +580,7 @@ $(function() {
         );
     });
 
-    $('body').on('click', '.confirm .btn.move', function() {
+    $('body').on('click', '.confirm .btn.move', function () {
         var itemContainer = $(this).parents('div[item]');
         var parent = $(this).parents('.confirm');
         var item = itemContainer.attr('item');
@@ -588,7 +588,7 @@ $(function() {
 
         var one = null;
 
-        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
+        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
             var name = $(this).attr('property');
             var value = $(this).val();
 
@@ -598,7 +598,7 @@ $(function() {
             };
         });
 
-        if (! one) return false;
+        if (!one) return false;
 
         $.confirmClose();
         $.blockUI();
@@ -612,8 +612,8 @@ $(function() {
                 name: one.name,
                 value: one.value
             },
-            function(data) {
-                $.unblockUI(function() {
+            function (data) {
+                $.unblockUI(function () {
                     if (data.error) {
                         $.alert(data.error);
                     } else if (data.moved && data.url) {
@@ -624,7 +624,7 @@ $(function() {
         );
     });
 
-    $('body').on('click', '.confirm .btn.bind', function() {
+    $('body').on('click', '.confirm .btn.bind', function () {
         var itemContainer = $(this).parents('div[item]');
         var parent = $(this).parents('.confirm');
         var item = itemContainer.attr('item');
@@ -633,7 +633,7 @@ $(function() {
         var ones = {};
         var count = 0;
 
-        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
+        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
             var name = $(this).attr('property');
             var value = $(this).val();
 
@@ -643,7 +643,7 @@ $(function() {
             }
         });
 
-        if (! count) return false;
+        if (!count) return false;
 
         $.confirmClose();
         $.blockUI();
@@ -655,9 +655,9 @@ $(function() {
                 checked: checked[item],
                 ones: ones
             },
-            function(data) {
+            function (data) {
                 if (data.error) {
-                    $.unblockUI(function() {
+                    $.unblockUI(function () {
                         $.alert(data.error);
                     });
                 } else if (data.attached) {
@@ -667,7 +667,7 @@ $(function() {
         );
     });
 
-    $('body').on('click', '.confirm .btn.unbind', function() {
+    $('body').on('click', '.confirm .btn.unbind', function () {
         var itemContainer = $(this).parents('div[item]');
         var parent = $(this).parents('.confirm');
         var item = itemContainer.attr('item');
@@ -676,7 +676,7 @@ $(function() {
         var ones = {};
         var count = 0;
 
-        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
+        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
             var name = $(this).attr('property');
             var value = $(this).val();
 
@@ -686,7 +686,7 @@ $(function() {
             }
         });
 
-        if (! count) return false;
+        if (!count) return false;
 
         $.confirmClose();
         $.blockUI();
@@ -698,9 +698,9 @@ $(function() {
                 checked: checked[item],
                 ones: ones
             },
-            function(data) {
+            function (data) {
                 if (data.error) {
-                    $.unblockUI(function() {
+                    $.unblockUI(function () {
                         $.alert(data.error);
                     });
                 } else if (data.detached) {
@@ -710,7 +710,7 @@ $(function() {
         );
     });
 
-    $('body').on('click', '.confirm .favorite-list.add div[rubric]', function() {
+    $('body').on('click', '.confirm .favorite-list.add div[rubric]', function () {
         var parent = $(this).parents('.confirm');
         var itemContainer = $(this).parents('div[item]');
         var classId = itemContainer.attr('classId');
@@ -718,8 +718,8 @@ $(function() {
         var url = parent.attr('url');
         var addRubric = $(this).attr('rubric');
 
-        if (! url) return false;
-        if (! addRubric) return false;
+        if (!url) return false;
+        if (!addRubric) return false;
 
         $.confirmClose();
         $.blockUI();
@@ -728,21 +728,21 @@ $(function() {
             item: item,
             checked: checked[item],
             add_favorite_rubric: addRubric
-        }, function(data) {
-            $.unblockUI(function() {
+        }, function (data) {
+            $.unblockUI(function () {
                 if (data.error) {
                     $.alert(data.error);
                 } else if (data.saved) {
                     getElements(item, classId);
                 }
             });
-        }).fail(function() {
+        }).fail(function () {
             $.unblockUI();
             $.alertDefaultError();
         });
     });
 
-    $('body').on('click', '.confirm .favorite-list.remove div[rubric]', function() {
+    $('body').on('click', '.confirm .favorite-list.remove div[rubric]', function () {
         var parent = $(this).parents('.confirm');
         var itemContainer = $(this).parents('div[item]');
         var classId = itemContainer.attr('classId');
@@ -750,8 +750,8 @@ $(function() {
         var url = parent.attr('url');
         var removedRubric = $(this).attr('rubric');
 
-        if (! url) return false;
-        if (! removedRubric) return false;
+        if (!url) return false;
+        if (!removedRubric) return false;
 
         $.confirmClose();
         $.blockUI();
@@ -760,37 +760,37 @@ $(function() {
             item: item,
             checked: checked[item],
             remove_favorite_rubric: removedRubric
-        }, function(data) {
-            $.unblockUI(function() {
+        }, function (data) {
+            $.unblockUI(function () {
                 if (data.error) {
                     $.alert(data.error);
                 } else if (data.saved) {
                     getElements(item, classId);
                 }
             });
-        }).fail(function() {
+        }).fail(function () {
             $.unblockUI();
             $.alertDefaultError();
         });
     });
 
-    $('body').on('keypress', '.confirm .favorite-new input[type="text"]', function(event) {
-        if (! event) event = window.event;
+    $('body').on('keypress', '.confirm .favorite-new input[type="text"]', function (event) {
+        if (!event) event = window.event;
 
-		if (event.keyCode) {
-			var code = event.keyCode;
-		} else if (event.which) {
-			var code = event.which;
-		}
+        if (event.keyCode) {
+            var code = event.keyCode;
+        } else if (event.which) {
+            var code = event.which;
+        }
 
-		if (code == 13) {
+        if (code == 13) {
             var parent = $(this).parents('.confirm');
 
             parent.find('.btn.favorite').click();
         }
     });
 
-    $('body').on('click', '.confirm .btn.favorite', function() {
+    $('body').on('click', '.confirm .btn.favorite', function () {
         var parent = $(this).parents('.confirm');
         var itemContainer = $(this).parents('div[item]');
         var classId = itemContainer.attr('classId');
@@ -798,8 +798,8 @@ $(function() {
         var url = parent.attr('url');
         var newRubric = parent.find('.favorite-new input[type="text"]').val();
 
-        if (! url) return false;
-        if (! newRubric) return false;
+        if (!url) return false;
+        if (!newRubric) return false;
 
         $.confirmClose();
         $.blockUI();
@@ -808,21 +808,21 @@ $(function() {
             item: item,
             checked: checked[item],
             new_favorite_rubric: newRubric
-        }, function(data) {
-            $.unblockUI(function() {
+        }, function (data) {
+            $.unblockUI(function () {
                 if (data.error) {
                     $.alert(data.error);
                 } else if (data.saved) {
                     getElements(item, classId);
                 }
             });
-        }).fail(function() {
+        }).fail(function () {
             $.unblockUI();
             $.alertDefaultError();
         });
     });
 
-    $('body').on('click', '.confirm .btn.remove', function() {
+    $('body').on('click', '.confirm .btn.remove', function () {
         var itemContainer = $(this).parents('div[item]');
         var classId = itemContainer.attr('classId');
         var item = itemContainer.attr('item');
@@ -836,9 +836,9 @@ $(function() {
                 item: item,
                 checked: checked[item]
             },
-            function(data) {
+            function (data) {
                 if (data.error) {
-                    $.unblockUI(function() {
+                    $.unblockUI(function () {
                         $.alert(data.error);
                     });
                 } else if (data.deleted) {
@@ -904,7 +904,7 @@ $(function() {
         getElements(item, classId, {page: page});
     });
 
-    $('.sidebar .elements .h2 span').click(function() {
+    $('.sidebar .elements .h2 span').click(function () {
         var block = $(this).parents('.elements');
         var rubric = block.attr('rubric');
         var display = block.attr('display');
@@ -930,7 +930,7 @@ $(function() {
 
             $.getJSON('/moonlight/rubrics/get', {
                 rubric: rubric
-            }, function(data) {
+            }, function (data) {
                 $.unblockUI();
 
                 if (data.html) {
@@ -941,7 +941,7 @@ $(function() {
         }
     });
 
-    $('body').on('click', '.sidebar .elements span.open', function() {
+    $('body').on('click', '.sidebar .elements span.open', function () {
         var span = $(this);
         var li = span.parents('li').first();
         var rubric = span.attr('rubric');
@@ -975,7 +975,7 @@ $(function() {
                 rubric: rubric,
                 bind: bind,
                 classId: classId
-            }, function(data) {
+            }, function (data) {
                 $.unblockUI();
 
                 if (data.html) {
@@ -987,7 +987,7 @@ $(function() {
         }
     });
 
-    $('body').on('contextmenu', '.sidebar .elements a', function(event) {
+    $('body').on('contextmenu', '.sidebar .elements a', function (event) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -1017,11 +1017,11 @@ $(function() {
         }).fadeIn(200);
     });
 
-    $('body').on('click', '.sidebar .contextmenu', function(event) {
+    $('body').on('click', '.sidebar .contextmenu', function (event) {
         event.stopPropagation();
     });
 
-    $('body').on('click', '.sort-toggler', function() {
+    $('body').on('click', '.sort-toggler', function () {
         var itemContainer = $(this).parents('div[item]');
         var th = itemContainer.find('th.browse');
         var sort = th.attr('sort');
@@ -1037,7 +1037,7 @@ $(function() {
         }
     });
 
-    $('body').on('click', 'li.column-toggler', function() {
+    $('body').on('click', 'li.column-toggler', function () {
         var li = $(this);
         var dropdown = li.find('.dropdown');
         var display = li.attr('display');
@@ -1051,11 +1051,11 @@ $(function() {
         }
     });
 
-    $('body').on('click', 'li.column-toggler .dropdown', function(e) {
+    $('body').on('click', 'li.column-toggler .dropdown', function (e) {
         e.stopPropagation();
     });
 
-    $('body').on('click', 'li.column-toggler .dropdown ul > li[show]', function(e) {
+    $('body').on('click', 'li.column-toggler .dropdown ul > li[show]', function (e) {
         var li = $(this);
         var name = li.attr('name');
         var show = li.attr('show');
@@ -1073,7 +1073,47 @@ $(function() {
         });
     });
 
-    $('body').on('click', 'li.column-toggler .dropdown .btn', function(e) {
+    $('body').on('keyup change', 'li.column-toggler .dropdown ul > li.perpage input', $.debounce(function () {
+        var input = $(this);
+        var perpage = input.val();
+        var itemContainer = input.parents('div[item]');
+        var classId = itemContainer.attr('classId');
+        var item = itemContainer.attr('item');
+
+        $.post('/moonlight/perpage', {
+            item: item,
+            classId: classId,
+            perpage: perpage
+        });
+    }, 500));
+
+    $('body').on('keypress', 'li.column-toggler .dropdown ul > li.perpage input', function (event) {
+        var input = $(this);
+        var perpage = input.val();
+        var itemContainer = input.parents('div[item]');
+        var classId = itemContainer.attr('classId');
+        var item = itemContainer.attr('item');
+
+        if (! event) event = window.event;
+
+        if (event.keyCode) {
+            var code = event.keyCode;
+        } else if (event.which) {
+            var code = event.which;
+        }
+
+        if (code == 13) {
+            $.post('/moonlight/perpage', {
+                item: item,
+                classId: classId,
+                perpage: perpage
+            }, function () {
+                $('li.column-toggler .dropdown .btn').click();
+            });
+        }
+    });
+
+    $('body').on('click', 'li.column-toggler .dropdown .btn', function (e) {
         var itemContainer = $(this).parents('div[item]');
         var li = $(this).parents('li.column-toggler');
         var dropdown = li.find('.dropdown');
@@ -1082,7 +1122,7 @@ $(function() {
 
         li.attr('display', 'hide');
 
-        dropdown.fadeOut(200, function() {
+        dropdown.fadeOut(200, function () {
             getElements(item, classId);
         });
     });
