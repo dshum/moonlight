@@ -586,10 +586,17 @@ class TrashController extends Controller
 
         $orders = implode(', ', $orders);
 
-        $elements = $criteria->paginate(static::PER_PAGE);
+        if (cache()->has("per_page_{$loggedUser->id}_{$currentItem->getNameId()}")) {
+            $perPage = cache()->get("per_page_{$loggedUser->id}_{$currentItem->getNameId()}");
+        } elseif ($currentItem->getPerPage()) {
+            $perPage = $currentItem->getPerPage();
+        } else {
+            $perPage = static::PER_PAGE;
+        }
+
+        $elements = $criteria->paginate($perPage);
 
         $total = $elements->total();
-        $perPage = static::PER_PAGE;
         $currentPage = $elements->currentPage();
         $hasMorePages = $elements->hasMorePages();
         $nextPage = $elements->currentPage() + 1;

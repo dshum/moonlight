@@ -25,6 +25,7 @@ class SearchController extends Controller
      * Sort items.
      *
      * @return Response
+     * @throws \Exception
      */
     public function sort(Request $request)
     {
@@ -55,6 +56,7 @@ class SearchController extends Controller
      * Show element list.
      *
      * @return Response
+     * @throws \Exception
      */
     public function elements(Request $request)
     {

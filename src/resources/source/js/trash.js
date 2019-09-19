@@ -341,4 +341,101 @@ $(function() {
 
         submit(page);
     });
+
+    $('body').on('click', 'li.column-toggler', function() {
+        var li = $(this);
+        var dropdown = li.find('.dropdown');
+        var display = li.attr('display');
+
+        if (display == 'show') {
+            li.attr('display', 'hide');
+            dropdown.fadeOut(200);
+        } else {
+            li.attr('display', 'show');
+            dropdown.fadeIn(200);
+        }
+    });
+
+    $('body').on('click', 'li.column-toggler .dropdown', function(e) {
+        e.stopPropagation();
+    });
+
+    $('body').on('click', 'li.column-toggler .dropdown ul > li[show]', function(e) {
+        var li = $(this);
+        var name = li.attr('name');
+        var show = li.attr('show');
+        var itemContainer = li.parents('div[item]');
+        var item = itemContainer.attr('item');
+
+        show = show == 'true' ? 'false' : 'true';
+
+        li.attr('show', show);
+
+        $.post('/moonlight/column', {
+            item: item,
+            name: name,
+            show: show
+        });
+    });
+
+    $('body').on('keyup change', 'li.column-toggler .dropdown ul > li.perpage input', $.debounce(function () {
+        var input = $(this);
+        var perpage = input.val();
+        var itemContainer = input.parents('div[item]');
+        var item = itemContainer.attr('item');
+
+        $.post('/moonlight/perpage', {
+            item: item,
+            perpage: perpage
+        });
+    }, 500));
+
+    $('body').on('keypress', 'li.column-toggler .dropdown ul > li.perpage input', function (event) {
+        var input = $(this);
+        var perpage = input.val();
+        var itemContainer = input.parents('div[item]');
+        var item = itemContainer.attr('item');
+
+        if (! event) event = window.event;
+
+        if (event.keyCode) {
+            var code = event.keyCode;
+        } else if (event.which) {
+            var code = event.which;
+        }
+
+        if (code == 13) {
+            $.post('/moonlight/perpage', {
+                item: item,
+                perpage: perpage
+            }, function () {
+                $('li.column-toggler .dropdown .btn').click();
+            });
+        }
+    });
+
+    $('body').on('click', 'li.column-toggler .dropdown .btn', function(e) {
+        var itemContainer = $(this).parents('div[item]');
+        var li = $(this).parents('li.column-toggler');
+        var dropdown = li.find('.dropdown');
+        var item = itemContainer.attr('item');
+
+        li.attr('display', 'hide');
+
+        dropdown.fadeOut(200, function() {
+            var url = new URL(location.href);
+            var query_string = url.search;
+            var search_params = new URLSearchParams(query_string);
+
+            search_params.set('page', '1');
+            url.search = search_params.toString();
+
+            if (window.history.replaceState) {
+                window.history.replaceState({}, null, url.toString());
+                getElements(item);
+            } else {
+                window.location.href = url.toString();
+            }
+        });
+    });
 });
