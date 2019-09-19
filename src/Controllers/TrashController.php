@@ -2,32 +2,18 @@
 
 namespace Moonlight\Controllers;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Moonlight\Main\Element;
 use Moonlight\Main\UserActionType;
 use Moonlight\Models\UserAction;
-use Moonlight\Properties\BaseProperty;
+use Moonlight\Properties\MainProperty;
 use Moonlight\Properties\OrderProperty;
-use Moonlight\Properties\DateProperty;
-use Moonlight\Properties\DatetimeProperty;
-use Carbon\Carbon;
+use Moonlight\Properties\PasswordProperty;
 
 class TrashController extends Controller
 {
     const PER_PAGE = 10;
-
-    /**
-     * Return the total count of element list.
-     *
-     * @return Response
-     */
-    public function total($item)
-    {
-        return $item->getClass()->onlyTrashed()->count();
-    }
 
     /**
      * Return the count of element list.
@@ -84,7 +70,7 @@ class TrashController extends Controller
 
         $criteria = $item->getClass()->onlyTrashed();
 
-        if ( ! $loggedUser->isSuperUser()) {
+        if (! $loggedUser->isSuperUser()) {
             if (
                 $permissionDenied
                 && sizeof($allowedElementList)
@@ -126,7 +112,7 @@ class TrashController extends Controller
 
         $currentItem = $site->getItemByName($class);
 
-        if ( ! $currentItem) {
+        if (! $currentItem) {
             return response()->json([]);
         }
 
@@ -150,6 +136,226 @@ class TrashController extends Controller
         $elements = $this->elementListView($request, $currentItem);
 
         return response()->json(['html' => $elements]);
+    }
+
+    protected function elementListView(Request $request, $currentItem)
+    {
+        $scope = [];
+
+        $loggedUser = Auth::guard('moonlight')->user();
+
+        $site = \App::make('site');
+
+        /*
+         * Item plugin
+         */
+        $itemPluginView = null;
+
+        $itemPlugin = $site->getItemPlugin($currentItem->getNameId());
+
+        if ($itemPlugin) {
+            $view = \App::make($itemPlugin)->index($currentItem);
+
+            if ($view) {
+                $itemPluginView = is_string($view)
+                    ? $view : $view->render();
+            }
+        }
+
+        $propertyList = $currentItem->getPropertyList();
+
+        if (! $loggedUser->isSuperUser()) {
+            $permissionDenied = true;
+            $deniedElementList = [];
+            $allowedElementList = [];
+
+            $groupList = $loggedUser->getGroups();
+
+            foreach ($groupList as $group) {
+                $itemPermission = $group->getItemPermission($currentItem->getNameId())
+                    ? $group->getItemPermission($currentItem->getNameId())->permission
+                    : $group->default_permission;
+
+                if ($itemPermission != 'deny') {
+                    $permissionDenied = false;
+                    $deniedElementList = [];
+                }
+
+                $elementPermissionList = $group->elementPermissions;
+
+                $elementPermissionMap = [];
+
+                foreach ($elementPermissionList as $elementPermission) {
+                    $classId = $elementPermission->class_id;
+                    $permission = $elementPermission->permission;
+
+                    $array = explode(Element::ID_SEPARATOR, $classId);
+                    $id = array_pop($array);
+                    $class = implode(Element::ID_SEPARATOR, $array);
+
+                    if ($class == $currentItem->getNameId()) {
+                        $elementPermissionMap[$id] = $permission;
+                    }
+                }
+
+                foreach ($elementPermissionMap as $id => $permission) {
+                    if ($permission == 'deny') {
+                        $deniedElementList[$id] = $id;
+                    } else {
+                        $allowedElementList[$id] = $id;
+                    }
+                }
+            }
+        }
+
+        $criteria = $currentItem->getClass()->onlyTrashed()->where(
+            function ($query) use ($loggedUser, $currentItem, $propertyList, $request) {
+                foreach ($propertyList as $property) {
+                    $property->setRequest($request);
+                    $query = $property->searchQuery($query);
+                }
+            }
+        );
+
+        if (! $loggedUser->isSuperUser()) {
+            if (
+                $permissionDenied
+                && sizeof($allowedElementList)
+            ) {
+                $criteria->whereIn('id', $allowedElementList);
+            } elseif (
+                ! $permissionDenied
+                && sizeof($deniedElementList)
+            ) {
+                $criteria->whereNotIn('id', $deniedElementList);
+            } elseif ($permissionDenied) {
+                $scope['total'] = 0;
+                $scope['mode'] = 'trash';
+
+                return view('moonlight::elements', $scope)->render();
+            }
+        }
+
+        $class = $currentItem->getNameId();
+        $order = cache()->get("order_{$loggedUser->id}_{$class}");
+
+        if (isset($order['field']) && isset($order['direction'])) {
+            $orderByList = [$order['field'] => $order['direction']];
+        } else {
+            $orderByList = ['deleted_at' => 'desc'];
+        }
+
+        $orders = [];
+
+        foreach ($orderByList as $field => $direction) {
+            $criteria->orderBy($field, $direction);
+            $property = $currentItem->getPropertyByName($field);
+            if ($property instanceof OrderProperty) {
+                $orders[$field] = 'порядку';
+            } elseif ($property->getName() == 'created_at') {
+                $orders[$field] = 'дате создания';
+            } elseif ($property->getName() == 'updated_at') {
+                $orders[$field] = 'дате изменения';
+            } elseif ($property->getName() == 'deleted_at') {
+                $orders[$field] = 'дате удаления';
+            } else {
+                $orders[$field] = 'полю &laquo;'.$property->getTitle().'&raquo;';
+            }
+        }
+
+        $orders = implode(', ', $orders);
+
+        if (cache()->has("per_page_{$loggedUser->id}_{$currentItem->getNameId()}")) {
+            $perPage = cache()->get("per_page_{$loggedUser->id}_{$currentItem->getNameId()}");
+        } elseif ($currentItem->getPerPage()) {
+            $perPage = $currentItem->getPerPage();
+        } else {
+            $perPage = static::PER_PAGE;
+        }
+
+        $elements = $criteria->paginate($perPage);
+
+        $total = $elements->total();
+        $currentPage = $elements->currentPage();
+        $hasMorePages = $elements->hasMorePages();
+        $nextPage = $elements->currentPage() + 1;
+        $lastPage = $elements->lastPage();
+
+        if ($currentPage > $lastPage) {
+            $total = 0;
+        }
+
+        $properties = [];
+        $columns = [];
+        $views = [];
+
+        foreach ($propertyList as $property) {
+            if ($property->getHidden()) {
+                continue;
+            }
+            if (! $property->getShow() && $property->getName() != 'deleted_at') {
+                continue;
+            }
+
+            $properties[] = $property;
+        }
+
+        foreach ($propertyList as $property) {
+            if (
+                $property instanceof MainProperty
+                || $property instanceof PasswordProperty
+                || $property->getHidden()
+                || $property->getName() == 'deleted_at'
+            ) {
+                continue;
+            }
+
+            $show = cache()->get(
+                "show_column_{$loggedUser->id}_{$currentItem->getNameId()}_{$property->getName()}",
+                $property->getShow()
+            );
+
+            $columns[] = [
+                'name' => $property->getName(),
+                'title' => $property->getTitle(),
+                'show' => $show,
+            ];
+        }
+
+        foreach ($elements as $element) {
+            foreach ($properties as $property) {
+                $propertyScope = $property->setElement($element)->getListView();
+
+                $views[Element::getClassId($element)][$property->getName()] = view(
+                    'moonlight::properties.'.$property->getClassName().'.list', $propertyScope
+                )->render();
+            }
+        }
+
+        $scope['currentItem'] = $currentItem;
+        $scope['itemPluginView'] = $itemPluginView;
+        $scope['properties'] = $properties;
+        $scope['columns'] = $columns;
+        $scope['total'] = $total;
+        $scope['perPage'] = $perPage;
+        $scope['currentPage'] = $currentPage;
+        $scope['hasMorePages'] = $hasMorePages;
+        $scope['nextPage'] = $nextPage;
+        $scope['lastPage'] = $lastPage;
+        $scope['elements'] = $elements;
+        $scope['views'] = $views;
+        $scope['orderByList'] = $orderByList;
+        $scope['orders'] = $orders;
+        $scope['hasOrderProperty'] = false;
+        $scope['mode'] = 'trash';
+        $scope['copyPropertyView'] = null;
+        $scope['movePropertyView'] = null;
+        $scope['bindPropertyViews'] = null;
+        $scope['unbindPropertyViews'] = null;
+        $scope['favoriteRubrics'] = null;
+        $scope['elementFavoriteRubrics'] = null;
+
+        return view('moonlight::elements', $scope)->render();
     }
 
     /**
@@ -285,7 +491,9 @@ class TrashController extends Controller
         $views = [];
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) continue;
+            if ($property->getHidden()) {
+                continue;
+            }
 
             $properties[] = $property;
         }
@@ -329,6 +537,16 @@ class TrashController extends Controller
         $scope['totals'] = $totals;
 
         return view('moonlight::trashed', $scope);
+    }
+
+    /**
+     * Return the total count of element list.
+     *
+     * @return Response
+     */
+    public function total($item)
+    {
+        return $item->getClass()->onlyTrashed()->count();
     }
 
     public function item(Request $request, $class)
@@ -379,11 +597,15 @@ class TrashController extends Controller
         $views = [];
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) continue;
+            if ($property->getHidden()) {
+                continue;
+            }
 
             $propertyScope = $property->setRequest($request)->getSearchView();
 
-            if (! $propertyScope) continue;
+            if (! $propertyScope) {
+                continue;
+            }
 
             $links[$property->getName()] = view(
                 'moonlight::properties.'.$property->getClassName().'.link', $propertyScope
@@ -457,197 +679,5 @@ class TrashController extends Controller
         $scope['totals'] = $totals;
 
         return view('moonlight::trash', $scope);
-    }
-
-    protected function elementListView(Request $request, $currentItem)
-    {
-        $scope = [];
-
-        $loggedUser = Auth::guard('moonlight')->user();
-
-        $site = \App::make('site');
-
-        /*
-         * Item plugin
-         */
-
-        $itemPluginView = null;
-
-        $itemPlugin = $site->getItemPlugin($currentItem->getNameId());
-
-        if ($itemPlugin) {
-            $view = \App::make($itemPlugin)->index($currentItem);
-
-            if ($view) {
-                $itemPluginView = is_string($view)
-                    ? $view : $view->render();
-            }
-        }
-
-        $propertyList = $currentItem->getPropertyList();
-
-        if (! $loggedUser->isSuperUser()) {
-            $permissionDenied = true;
-            $deniedElementList = [];
-            $allowedElementList = [];
-
-            $groupList = $loggedUser->getGroups();
-
-            foreach ($groupList as $group) {
-                $itemPermission = $group->getItemPermission($currentItem->getNameId())
-                    ? $group->getItemPermission($currentItem->getNameId())->permission
-                    : $group->default_permission;
-
-                if ($itemPermission != 'deny') {
-                    $permissionDenied = false;
-                    $deniedElementList = [];
-                }
-
-                $elementPermissionList = $group->elementPermissions;
-
-                $elementPermissionMap = [];
-
-                foreach ($elementPermissionList as $elementPermission) {
-                    $classId = $elementPermission->class_id;
-                    $permission = $elementPermission->permission;
-
-                    $array = explode(Element::ID_SEPARATOR, $classId);
-                    $id = array_pop($array);
-                    $class = implode(Element::ID_SEPARATOR, $array);
-
-                    if ($class == $currentItem->getNameId()) {
-                        $elementPermissionMap[$id] = $permission;
-                    }
-                }
-
-                foreach ($elementPermissionMap as $id => $permission) {
-                    if ($permission == 'deny') {
-                        $deniedElementList[$id] = $id;
-                    } else {
-                        $allowedElementList[$id] = $id;
-                    }
-                }
-            }
-        }
-
-        $criteria = $currentItem->getClass()->onlyTrashed()->where(
-            function($query) use ($loggedUser, $currentItem, $propertyList, $request) {
-                foreach ($propertyList as $property) {
-                    $property->setRequest($request);
-                    $query = $property->searchQuery($query);
-                }
-            }
-        );
-
-        if (! $loggedUser->isSuperUser()) {
-            if (
-                $permissionDenied
-                && sizeof($allowedElementList)
-            ) {
-                $criteria->whereIn('id', $allowedElementList);
-            } elseif (
-                ! $permissionDenied
-                && sizeof($deniedElementList)
-            ) {
-                $criteria->whereNotIn('id', $deniedElementList);
-            } elseif ($permissionDenied) {
-                $scope['total'] = 0;
-                $scope['mode'] = 'trash';
-                return view('moonlight::elements', $scope)->render();
-            }
-        }
-
-        $class = $currentItem->getNameId();
-        $order = cache()->get("order_{$loggedUser->id}_{$class}");
-
-        if (isset($order['field']) && isset($order['direction'])) {
-            $orderByList = [$order['field'] => $order['direction']];
-        } else {
-            $orderByList = ['deleted_at' => 'desc'];
-        }
-
-        $orders = [];
-
-        foreach ($orderByList as $field => $direction) {
-            $criteria->orderBy($field, $direction);
-            $property = $currentItem->getPropertyByName($field);
-            if ($property instanceof OrderProperty) {
-                $orders[$field] = 'порядку';
-            } elseif ($property->getName() == 'created_at') {
-                $orders[$field] = 'дате создания';
-            } elseif ($property->getName() == 'updated_at') {
-                $orders[$field] = 'дате изменения';
-            } elseif ($property->getName() == 'deleted_at') {
-                $orders[$field] = 'дате удаления';
-            } else {
-                $orders[$field] = 'полю &laquo;'.$property->getTitle().'&raquo;';
-            }
-        }
-
-        $orders = implode(', ', $orders);
-
-        if (cache()->has("per_page_{$loggedUser->id}_{$currentItem->getNameId()}")) {
-            $perPage = cache()->get("per_page_{$loggedUser->id}_{$currentItem->getNameId()}");
-        } elseif ($currentItem->getPerPage()) {
-            $perPage = $currentItem->getPerPage();
-        } else {
-            $perPage = static::PER_PAGE;
-        }
-
-        $elements = $criteria->paginate($perPage);
-
-        $total = $elements->total();
-        $currentPage = $elements->currentPage();
-        $hasMorePages = $elements->hasMorePages();
-        $nextPage = $elements->currentPage() + 1;
-        $lastPage = $elements->lastPage();
-
-        if ($currentPage > $lastPage) {
-            $total = 0;
-        }
-
-        $properties = [];
-        $views = [];
-
-        foreach ($propertyList as $property) {
-            if ($property->getHidden()) continue;
-            if (! $property->getShow() && $property->getName() != 'deleted_at') continue;
-
-            $properties[] = $property;
-        }
-
-        foreach ($elements as $element) {
-            foreach ($properties as $property) {
-                $propertyScope = $property->setElement($element)->getListView();
-
-                $views[Element::getClassId($element)][$property->getName()] = view(
-                    'moonlight::properties.'.$property->getClassName().'.list', $propertyScope
-                )->render();
-            }
-        }
-
-        $scope['currentItem'] = $currentItem;
-        $scope['itemPluginView'] = $itemPluginView;
-        $scope['properties'] = $properties;
-        $scope['total'] = $total;
-        $scope['perPage'] = $perPage;
-        $scope['currentPage'] = $currentPage;
-        $scope['hasMorePages'] = $hasMorePages;
-        $scope['nextPage'] = $nextPage;
-        $scope['lastPage'] = $lastPage;
-        $scope['elements'] = $elements;
-        $scope['views'] = $views;
-        $scope['orderByList'] = $orderByList;
-        $scope['orders'] = $orders;
-        $scope['hasOrderProperty'] = false;
-        $scope['mode'] = 'trash';
-        $scope['copyPropertyView'] = null;
-        $scope['movePropertyView'] = null;
-        $scope['bindPropertyViews'] = null;
-        $scope['unbindPropertyViews'] = null;
-        $scope['favoriteRubrics'] = null;
-        $scope['elementFavoriteRubrics'] = null;
-
-        return view('moonlight::elements', $scope)->render();
     }
 }

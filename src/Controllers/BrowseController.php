@@ -1656,16 +1656,12 @@ class BrowseController extends Controller
         }
 
         foreach ($propertyList as $property) {
-            if ($property instanceof MainProperty) {
-                continue;
-            }
-            if ($property instanceof PasswordProperty) {
-                continue;
-            }
-            if ($property->getHidden()) {
-                continue;
-            }
-            if ($property->getName() == 'deleted_at') {
+            if (
+                $property instanceof MainProperty
+                || $property instanceof PasswordProperty
+                || $property->getHidden()
+                || $property->getName() == 'deleted_at'
+            ) {
                 continue;
             }
 
@@ -1676,7 +1672,7 @@ class BrowseController extends Controller
 
             $columns[] = [
                 'name' => $property->getName(),
-                'title' => $property->gettitle(),
+                'title' => $property->getTitle(),
                 'show' => $show,
             ];
         }
