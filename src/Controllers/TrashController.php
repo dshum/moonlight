@@ -109,6 +109,7 @@ class TrashController extends Controller
      * Show element list.
      *
      * @return Response
+     * @throws \Exception
      */
     public function elements(Request $request)
     {
@@ -155,6 +156,7 @@ class TrashController extends Controller
      * Restore element.
      *
      * @return Response
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function restore(Request $request, $classId)
     {
@@ -203,6 +205,7 @@ class TrashController extends Controller
      * Delete element.
      *
      * @return Response
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function delete(Request $request, $classId)
     {
@@ -257,6 +260,7 @@ class TrashController extends Controller
      * View element.
      *
      * @return View
+     * @throws \Throwable
      */
     public function view(Request $request, $classId)
     {
@@ -585,6 +589,7 @@ class TrashController extends Controller
         $elements = $criteria->paginate(static::PER_PAGE);
 
         $total = $elements->total();
+        $perPage = static::PER_PAGE;
         $currentPage = $elements->currentPage();
         $hasMorePages = $elements->hasMorePages();
         $nextPage = $elements->currentPage() + 1;
@@ -618,6 +623,7 @@ class TrashController extends Controller
         $scope['itemPluginView'] = $itemPluginView;
         $scope['properties'] = $properties;
         $scope['total'] = $total;
+        $scope['perPage'] = $perPage;
         $scope['currentPage'] = $currentPage;
         $scope['hasMorePages'] = $hasMorePages;
         $scope['nextPage'] = $nextPage;
