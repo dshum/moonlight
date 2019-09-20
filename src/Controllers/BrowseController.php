@@ -232,9 +232,6 @@ class BrowseController extends Controller
             if ($property->getHidden()) {
                 continue;
             }
-            if (! $property->getShow()) {
-                continue;
-            }
 
             $properties[] = $property;
         }
@@ -242,16 +239,12 @@ class BrowseController extends Controller
         foreach ($editing as $id => $fields) {
             $element = $currentItem->getClass()->find($id);
 
-            if (! $element) {
-                continue;
-            }
-            if (! $loggedUser->hasUpdateAccess($element)) {
-                continue;
-            }
-            if (! is_array($fields)) {
-                continue;
-            }
-            if (! sizeof($fields)) {
+            if (
+                ! $element
+                || ! $loggedUser->hasUpdateAccess($element)
+                || ! is_array($fields)
+                || ! sizeof($fields)
+            ) {
                 continue;
             }
 
@@ -1636,16 +1629,19 @@ class BrowseController extends Controller
         $views = [];
 
         foreach ($propertyList as $property) {
+            if ($property instanceof PasswordProperty) {
+                continue;
+            }
+            if ($property->getHidden()) {
+                continue;
+            }
+
             $show = cache()->get(
                 "show_column_{$loggedUser->id}_{$currentItem->getNameId()}_{$property->getName()}",
                 $property->getShow()
             );
 
-            if (
-                $property instanceof PasswordProperty
-                || $property->getHidden()
-                || ! $show
-            ) {
+            if (! $show) {
                 continue;
             }
 
