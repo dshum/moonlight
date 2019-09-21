@@ -9,6 +9,8 @@ use Exception;
 
 class ImageProperty extends BaseProperty
 {
+    const GETIMAGE_EXPIRE = 86400;
+
     protected $folderName = null;
     protected $hash = null;
     protected $folderPath = null;
@@ -125,38 +127,44 @@ class ImageProperty extends BaseProperty
 
     public function width($name = null)
     {
-        if (! $this->exists($name)) return 0;
+        $key = "{$this->item->getNameId()}_{$this->getName()}_{$name}_imagesize";
 
-        if ($this->driver) {
-            $filename = $this->getDriverFilename($name);
-            $metadata = Storage::disk($this->driver)->getMetadata($filename);
-            return $metadata['metadata']['width'] ?? 0;
+        if (cache()->has($key)) {
+            return cache()->get($key)[0] ?? 0;
         }
 
-        try {
-            list($width, $height, $type, $attr) = getimagesize($this->abspath($name));
-            return $width;
-        } catch (Exception $e) {
+        if (! $this->exists($name)) {
+            cache()->put($key, null, self::GETIMAGE_EXPIRE);
             return 0;
         }
+
+        $path = $this->driver ? $this->src($name) : $this->abspath($name);
+        $imagesize = getimagesize($path);
+
+        cache()->put($key, $imagesize, self::GETIMAGE_EXPIRE);
+
+        return $imagesize[0];
     }
 
     public function height($name = null)
     {
-        if (! $this->exists($name)) return 0;
+        $key = "{$this->item->getNameId()}_{$this->getName()}_{$name}_imagesize";
 
-        if ($this->driver) {
-            $filename = $this->getDriverFilename($name);
-            $metadata = Storage::disk($this->driver)->getMetadata($filename);
-            return $metadata['metadata']['height'] ?? 0;
+        if (cache()->has($key)) {
+            return cache()->get($key)[1] ?? 0;
         }
 
-        try {
-            list($width, $height, $type, $attr) = getimagesize($this->abspath($name));
-            return $height;
-        } catch (Exception $e) {
+        if (! $this->exists($name)) {
+            cache()->put($key, null, self::GETIMAGE_EXPIRE);
             return 0;
         }
+
+        $path = $this->driver ? $this->src($name) : $this->abspath($name);
+        $imagesize = getimagesize($path);
+
+        cache()->put($key, $imagesize, self::GETIMAGE_EXPIRE);
+
+        return $imagesize[1];
     }
 
     public function path($name = null)
@@ -417,26 +425,28 @@ class ImageProperty extends BaseProperty
 
     public function drop()
     {
+        $key = "{$this->item->getNameId()}_{$this->getName()}_imagesize";
+
         if ($this->driver) {
             $filename = $this->getDriverFilename();
             Storage::disk($this->driver)->delete($filename);
         } elseif ($this->exists()) {
-            try {
-                unlink($this->abspath());
-            } catch (\Exception $e) {
-            }
+            unlink($this->abspath());
         }
 
+        cache()->forget($key);
+
         foreach ($this->resizes as $name => $resize) {
+            $key = "{$this->item->getNameId()}_{$this->getName()}_{$name}_imagesize";
+
             if ($this->driver) {
                 $filename = $this->getDriverFilename($name);
                 Storage::disk($this->driver)->delete($filename);
             } elseif ($this->exists($name)) {
-                try {
-                    unlink($this->abspath($name));
-                } catch (\Exception $e) {
-                }
+                unlink($this->abspath($name));
             }
+
+            cache()->forget($key);
         }
     }
 
