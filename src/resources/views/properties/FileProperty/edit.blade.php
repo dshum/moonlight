@@ -1,12 +1,12 @@
-<label>{{ $title }}:</label><span name="{{ $name }}" class="error"></span><br>
+<label>{{ $title }}:</label><span name="{{ $name }}" class="error"></span>
 @if ($exists)
-    <a href="{{ $path }}" target="_blank">{{ $filename }}</a> <small>{{ $filesize }} Кб<br/></small>
+    <div class="grey"><a href="{{ $path }}" target="_blank">{{ $filename }}</a>, {{ $filesize }} Кб<br/></div>
 @else
-    <small>Не загружено</small>
+    <div class="grey">Не загружено</div>
 @endif
 @if (! $readonly)
     @foreach ($captions as $caption)
-        <small class="red">{{ $caption }}</small><br>
+        <div><small class="caption">{{ $caption }}</small></div>
     @endforeach
     <div class="loadfile">
         <div class="file" name="{{ $name }}">Выберите файл</div>

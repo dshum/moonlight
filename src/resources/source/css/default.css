@@ -65,6 +65,11 @@ small {
     color: #999;
 }
 
+small.caption {
+    font-size: 0.8rem;
+    color: orangered;
+}
+
 form {
     margin: 0;
     padding: 0;
