@@ -459,12 +459,25 @@ class ImageProperty extends BaseProperty
     {
         $exists = $this->exists();
 
+        $resizes = [];
+
         if ($exists) {
             $src = $this->src();
             $width = $this->width();
             $height = $this->height();
             $filesize = $this->filesize_kb(null, 1);
             $filename = $this->filename();
+            foreach ($this->resizes as $resizeName => $resize) {
+                $resizes[] = [
+                    'name' => $resizeName,
+                    'exists' => $this->exists($resizeName),
+                    'src' => $this->src($resizeName),
+                    'width' => $this->width($resizeName),
+                    'height' => $this->height($resizeName),
+                    'filesize' => $this->filesize_kb($resizeName, 1),
+                    'filename' => $this->filename($resizeName),
+                ];
+            }
         } else {
             $src = null;
             $width = null;
@@ -484,6 +497,7 @@ class ImageProperty extends BaseProperty
             'height' => $height,
             'filesize' => $filesize,
             'filename' => $filename,
+            'resizes' => $resizes,
         ];
     }
 }
