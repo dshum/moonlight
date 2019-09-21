@@ -125,40 +125,38 @@ class ImageProperty extends BaseProperty
 
     public function width($name = null)
     {
+        if (! $this->exists($name)) return 0;
+
         if ($this->driver) {
             $filename = $this->getDriverFilename($name);
             $metadata = Storage::disk($this->driver)->getMetadata($filename);
             return $metadata['metadata']['width'] ?? 0;
         }
 
-        if ($this->exists($name)) {
-            try {
-                list($width, $height, $type, $attr) = getimagesize($this->abspath($name));
-                return $width;
-            } catch (Exception $e) {
-            }
+        try {
+            list($width, $height, $type, $attr) = getimagesize($this->abspath($name));
+            return $width;
+        } catch (Exception $e) {
+            return 0;
         }
-
-        return 0;
     }
 
     public function height($name = null)
     {
+        if (! $this->exists($name)) return 0;
+
         if ($this->driver) {
             $filename = $this->getDriverFilename($name);
             $metadata = Storage::disk($this->driver)->getMetadata($filename);
             return $metadata['metadata']['height'] ?? 0;
         }
 
-        if ($this->exists($name)) {
-            try {
-                list($width, $height, $type, $attr) = getimagesize($this->abspath($name));
-                return $height;
-            } catch (Exception $e) {
-            }
+        try {
+            list($width, $height, $type, $attr) = getimagesize($this->abspath($name));
+            return $height;
+        } catch (Exception $e) {
+            return 0;
         }
-
-        return 0;
     }
 
     public function path($name = null)
@@ -202,12 +200,14 @@ class ImageProperty extends BaseProperty
 
     public function filesize($name = null)
     {
+        if (! $this->exists($name)) return 0;
+
         if ($this->driver) {
             $filename = $this->getDriverFilename($name);
             return Storage::disk($this->driver)->size($filename);
         }
 
-        return $this->exists($name) ? filesize($this->abspath($name)) : 0;
+        return filesize($this->abspath($name));
     }
 
     public function filesize_kb($name = null, $precision = 0)

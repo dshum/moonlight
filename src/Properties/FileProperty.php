@@ -64,13 +64,15 @@ class FileProperty extends BaseProperty
 
     public function filesize()
     {
+        if (! $this->exists()) return 0;
+
         if ($this->driver) {
             $filename = $this->getDriverFilename();
 
             return Storage::disk($this->driver)->size($filename);
         }
 
-        return $this->exists() ? filesize($this->abspath()) : 0;
+        return filesize($this->abspath());
     }
 
     public function getDriverFilename($name = null)
