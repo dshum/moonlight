@@ -2,7 +2,10 @@
 @if ($exists)
     <div class="grey">
         <a href="{{ $src }}" target="_blank">{{ $filename }}</a>,
-        <span title="Размер изображения">{{ $width }}&#215;{{ $height }}</span> пикселов, {{ $filesize }} Кб
+        @if ($width && $height)
+            <span title="Размер изображения">{{ $width }}&#215;{{ $height }}</span> пикселов,
+        @endif
+        {{ $filesize }} Кб
     </div>
     <div>
         <img src="{{ $src }}" alt="{{ $filename }}">
@@ -15,7 +18,10 @@
         @if ($resize['exists'])
             <div class="grey">
                 <a href="{{ $resize['src'] }}" target="_blank">{{ $resize['filename'] }}</a>,
-                <span title="Размер изображения">{{ $resize['width'] }}&#215;{{ $resize['height'] }}</span> пикселов, {{ $resize['filesize'] }} Кб
+                @if ($resize['width'] && $resize['height'])
+                    <span title="Размер изображения">{{ $resize['width'] }}&#215;{{ $resize['height'] }}</span> пикселов,
+                @endif
+                {{ $resize['filesize'] }} Кб
             </div>
             <div>
                 <img src="{{ $resize['src'] }}" alt="{{ $resize['filename'] }}">
