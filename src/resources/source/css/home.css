@@ -63,8 +63,12 @@
 }
 
 .main .favorite-settings {
+    position: relative;
+}
+
+.main .favorite-settings > .container {
     position: absolute;
-    right: 0;
+    right: -1rem;
     width: 2rem;
     height: 2rem;
     line-height: 2rem;
@@ -74,12 +78,12 @@
     background-color: lightblue;
 }
 
-.main .favorite-settings:hover {
-    background-color: navy;
+.main .favorite-settings > .container:hover {
+    background-color: darkslategray;
     transition: 0.2s ease;
 }
 
-.main .favorite-settings .fa {
+.main .favorite-settings > .container .fa {
     width: 2rem;
     height: 2rem;
     line-height: 2rem;
