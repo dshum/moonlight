@@ -1,18 +1,18 @@
 .leaf {
-    position: relative;
     margin: 1rem 0;
-    width: 60rem;
-    clear: both;
+    width: 62rem;
+    padding: 0.5rem 1rem;
 }
 
 .main .row {
-    clear: both;
+    display: block;
 }
 
 .main .elements {
-    float: left;
+    display: inline-block;
     width: 20rem;
     margin-bottom: 1.5rem;
+    vertical-align: top;
 }
 
 .main .elements .h2 {
