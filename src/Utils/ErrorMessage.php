@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Moonlight\Utils;
 
@@ -12,6 +12,10 @@ class ErrorMessage {
 
 	const TIME_DELAY = 60;
 
+    /**
+     * @param \Exception $e
+     * @return bool|void
+     */
 	public static function send(Exception $e)
 	{
 		if (
@@ -21,54 +25,12 @@ class ErrorMessage {
 			return false;
 		}
 
-		$to = Config::get('mail.buglover.address') ?: Config::get('mail.from.address');
-
-		$server =
-			isset($_SERVER['HTTP_HOST'])
-			? $_SERVER['HTTP_HOST']
-			: (defined('HTTP_HOST') ? HTTP_HOST : '');
-
-		$uri =
-			isset($_SERVER['REQUEST_URI'])
-			? $server.$_SERVER['REQUEST_URI']
-			: $_SERVER['PHP_SELF'];
-
-		$ip =
-			isset($_SERVER['HTTP_X_REAL_IP'])
-			? $_SERVER['HTTP_X_REAL_IP']
-			: isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-
-		$ip2 =
-			isset($_SERVER['HTTP_X_FORWARDED_FOR'])
-			? $_SERVER['HTTP_X_FORWARDED_FOR']
-			: isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-
-		$useragent =
-			isset($_SERVER['HTTP_USER_AGENT'])
-			? $_SERVER['HTTP_USER_AGENT']
-			: '';
-
-		$referer =
-			isset($_SERVER['HTTP_REFERER'])
-			? $_SERVER['HTTP_REFERER']
-			: '';
-
-		$method =
-			isset($_SERVER['REQUEST_METHOD'])
-			? $_SERVER['REQUEST_METHOD']
-			: '';
-
-		$exception = get_class($e);
-
-		$get = var_export($_GET, true);
-		$post = var_export($_POST, true);
-		$cookie = var_export($_COOKIE, true);
+        $exception = get_class($e);
 
 		$filename = md5(
 			$exception.' - '.$e->getMessage().' - '.$e->getTraceAsString()
 		);
 
-		$send = false;
 		$count = 0;
 		$diff = 0;
 
@@ -86,31 +48,32 @@ class ErrorMessage {
 			if (time() - $time > static::TIME_DELAY) {
 				$count = static::reset($filepath);
 				$diff = time() - $time;
-				$send = true;
 			} else {
 				static::increment($filepath);
+				return;
 			}
 		} else {
 			static::reset($filepath);
-
-			$send = true;
 		}
 
-		if (! $send) return;
-
+        $server = self::getServer();
+        $uri = self::getRequestUri();
+        $get = var_export($_GET, true);
+        $post = var_export($_POST, true);
+        $cookie = var_export($_COOKIE, true);
 		$date = Carbon::now();
-
+        $to = Config::get('mail.buglover.address') ?: Config::get('mail.from.address');
 		$subject = $uri.' - '.$exception.' - '.$e->getMessage();
 
 		$scope = [
 			'e' => $e,
 			'server' => $server,
 			'uri' => $uri,
-			'ip' => $ip,
-			'ip2' => $ip2,
-			'useragent' => $useragent,
-			'referer' => $referer,
-			'method' => $method,
+            'method' => self::getRequestMethod(),
+			'ip' => self::getIP(),
+			'ip2' => self::getIP2(),
+			'useragent' => self::getUserAgent(),
+			'referer' => self::getReferer(),
 			'exception' => $exception,
 			'get' => $get,
 			'post' => $post,
@@ -125,12 +88,47 @@ class ErrorMessage {
 		Mail::send(new Error($scope));
 	}
 
+    public static function getServer()
+    {
+        return $_SERVER['HTTP_HOST'] ?? (defined('HTTP_HOST') ? HTTP_HOST : null);
+    }
+
+    public static function getRequestUri()
+    {
+        return $_SERVER['REQUEST_URI'] ?? $_SERVER['PHP_SELF'] ?? null;
+    }
+
+    public static function getRequestMethod()
+    {
+        return $_SERVER['REQUEST_METHOD'] ?? null;
+    }
+
+    public static function getReferer()
+    {
+        return $_SERVER['HTTP_REFERER'] ?? null;
+    }
+
+    public static function getUserAgent()
+    {
+        return $_SERVER['HTTP_USER_AGENT'] ?? null;
+    }
+
+	public static function getIP()
+    {
+        return $_SERVER['HTTP_X_REAL_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? null;
+    }
+
+    public static function getIP2()
+    {
+        return $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? null;
+    }
+
 	protected static function reset($filepath)
 	{
 		$count = 0;
 
 		if (
-			file_exists($filepath) 
+			file_exists($filepath)
 			&& $f = fopen($filepath, 'r')
 		) {
 			$count = (int)fread($f, 4096);
@@ -150,7 +148,7 @@ class ErrorMessage {
 		$count = 0;
 
 		if (
-			file_exists($filepath) 
+			file_exists($filepath)
 			&& $f = fopen($filepath, 'r')
 		) {
 			$count = (int)fread($f, 4096);
