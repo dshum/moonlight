@@ -195,26 +195,32 @@ $(function() {
         $(':file[name="' + name + '"]').val('');
     });
 
-    tinymce.init({
-        selector: 'textarea[tinymce="true"]',
-        themes: 'modern',
-        skin: 'custom',
-        language: 'ru',
-        plugins: ['lists', 'link', 'image', 'paste', 'table', 'code', 'preview'],
-        menubar: 'file edit view insert format tools table',
-        toolbar: 'undo redo | styleselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
-        width: '50rem',
-        height: '20rem',
-        convert_urls: false,
-        verify_html: false,
-        forced_root_block: false,
-        entity_encoding: 'raw',
-        invalid_elements: 'script,style',
-        setup: function(editor) {
-            editor.on('keypress keydown', function(event) {
-                return $.onCtrlS(event);
-            });
-        }
+    $('textarea[tinymce="true"]').each(function () {
+        var name = $(this).attr('name');
+        var toolbar = $(this).attr('toolbar')
+            || 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | subscript superscript code';
+
+        tinymce.init({
+            selector: 'textarea[tinymce="true"][name="' + name + '"]',
+            themes: 'modern',
+            skin: 'custom',
+            language: 'ru',
+            plugins: ['lists', 'link', 'image', 'paste', 'table', 'code', 'preview'],
+            menubar: 'file edit view insert format tools table',
+            toolbar: toolbar,
+            width: '50rem',
+            height: '20rem',
+            convert_urls: false,
+            verify_html: false,
+            forced_root_block: false,
+            entity_encoding: 'raw',
+            invalid_elements: 'script,style',
+            setup: function(editor) {
+                editor.on('keypress keydown', function(event) {
+                    return $.onCtrlS(event);
+                });
+            }
+        });
     });
 
     $('form').submit(function() {
