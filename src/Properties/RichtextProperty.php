@@ -2,27 +2,27 @@
 
 namespace Moonlight\Properties;
 
-class RichtextProperty extends BaseProperty {
-
-	protected $typograph = true;
+class RichtextProperty extends BaseProperty
+{
+    protected $typograph = true;
     protected $toolbar = 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | subscript superscript code';
 
-	public static function create($name)
-	{
-		return new self($name);
-	}
+    public static function create($name)
+    {
+        return new self($name);
+    }
 
-	public function setTypograph($typograph)
-	{
-		$this->typograph = $typograph;
+    public function setTypograph($typograph)
+    {
+        $this->typograph = $typograph;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function getTypograph()
-	{
-		return $this->typograph;
-	}
+    public function getTypograph()
+    {
+        return $this->typograph;
+    }
 
     public function setToolbar($toolbar)
     {
@@ -36,10 +36,10 @@ class RichtextProperty extends BaseProperty {
         return $this->toolbar;
     }
 
-	public function refresh()
-	{
-		return false;
-	}
+    public function refresh()
+    {
+        return false;
+    }
 
     public function getEditView()
     {

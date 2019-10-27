@@ -220,7 +220,7 @@ $(function() {
             td.find('.view-container').show();
             td.find('.edit-container').hide();
 
-            td.find('.edit-container').find('input,textarea')
+            td.find('.edit-container').find('input,select,textarea')
                 .attr('disabled', 'disabled');
         } else {
             td.attr('mode', 'edit');
@@ -228,7 +228,7 @@ $(function() {
             td.find('.view-container').hide();
             td.find('.edit-container').show();
 
-            td.find('.edit-container').find('input,textarea')
+            td.find('.edit-container').find('input,select,textarea')
                 .removeAttr('disabled')
                 .focus();
         }
@@ -243,6 +243,10 @@ $(function() {
     });
 
     $('body').on('click', 'table.elements td.editable input', function(e) {
+        e.stopPropagation();
+    });
+
+    $('body').on('click', 'table.elements td.editable select', function(e) {
         e.stopPropagation();
     });
 

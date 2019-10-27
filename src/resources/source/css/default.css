@@ -1085,6 +1085,11 @@ table.elements td.editable input.number {
     width: 4rem;
 }
 
+table.elements td.editable select {
+    width: 8rem;
+    height: 2rem;
+}
+
 table.elements td.editable textarea {
     width: 8rem;
     height: 5rem;
@@ -1406,10 +1411,6 @@ ul.pager > li.page input {
     color: #357;
 }
 
-.date .fa {
-    color: slateblue;
-}
-
 .mainp .fa {
     color: tomato;
 }
@@ -1438,7 +1439,19 @@ ul.pager > li.page input {
     color: darkorchid;
 }
 
+.image .fa {
+    color: limegreen;
+}
+
 .file .fa {
+    color: saddlebrown;
+}
+
+.select .fa {
+    color: darkturquoise;
+}
+
+.date .fa {
     color: slateblue;
 }
 
