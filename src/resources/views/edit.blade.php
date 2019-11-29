@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="/packages/moonlight/css/edit.min.css">
     <style>
         .CodeMirror {
-            margin-top: 0.2rem;
             height: 30rem;
             border: 2px solid #999;
             border-radius: 2px;
