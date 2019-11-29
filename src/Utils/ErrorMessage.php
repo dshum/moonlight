@@ -2,9 +2,8 @@
 
 namespace Moonlight\Utils;
 
-use Config;
 use Exception;
-use Mail;
+use Illuminate\Support\Facades\Mail;
 use Moonlight\Mail\Error;
 use Carbon\Carbon;
 
@@ -19,8 +18,8 @@ class ErrorMessage {
 	public static function send(Exception $e)
 	{
 		if (
-			! Config::get('mail.from.address')
-			|| ! Config::get('mail.buglover.address')
+			! config('mail.from.address')
+			|| ! config('mail.buglover.address')
 		) {
 			return false;
 		}
@@ -62,7 +61,7 @@ class ErrorMessage {
         $post = var_export($_POST, true);
         $cookie = var_export($_COOKIE, true);
 		$date = Carbon::now();
-        $to = Config::get('mail.buglover.address') ?: Config::get('mail.from.address');
+        $to = config('mail.buglover.address') ?: config('mail.from.address');
 		$subject = $uri.' - '.$exception.' - '.$e->getMessage();
 
 		$scope = [

@@ -2,7 +2,7 @@
 
 namespace Moonlight\Properties;
 
-class RichtextProperty extends BaseProperty
+class TinymceProperty extends BaseProperty
 {
     protected $typograph = true;
     protected $toolbar = 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | subscript superscript code';

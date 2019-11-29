@@ -223,6 +223,29 @@ $(function() {
         });
     });
 
+    $('textarea[codemirror="true"]').each(function() {
+        let editor = CodeMirror.fromTextArea(this, {
+            lineNumbers: true,
+            mode: "htmlmixed",
+            theme: "eclipse",
+            indentUnit: 4,
+            indentWithTabs: true,
+            autoRefresh: true,
+            extraKeys: {
+                "Ctrl-Space": "autocomplete",
+                "Ctrl-S": function(cm) {
+                    editor.save();
+                },
+                "F11": function(cm) {
+                    cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                },
+                "Esc": function(cm) {
+                    if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+                }
+            }
+        });
+    });
+
     $('form').submit(function() {
         var form = $(this);
 
