@@ -207,11 +207,20 @@ abstract class BaseProperty
 
     public function set()
     {
+        if ($this->getHidden() || $this->getReadonly()) {
+            return $this;
+        }
+
         $name = $this->getName();
         $value = $this->buildInput();
 
         $this->element->$name = $value;
 
+        return $this;
+    }
+
+    public function setAfterCreate()
+    {
         return $this;
     }
 

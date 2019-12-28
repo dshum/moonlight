@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Moonlight\Properties;
 
@@ -45,6 +45,10 @@ class CheckboxProperty extends BaseProperty {
 
 	public function set()
 	{
+        if ($this->getHidden() || $this->getReadonly()) {
+            return $this;
+        }
+
 		$request = $this->getRequest();
         $name = $this->getName();
 

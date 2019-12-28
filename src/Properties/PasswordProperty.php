@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Moonlight\Properties;
 
@@ -15,7 +15,11 @@ class PasswordProperty extends BaseProperty
 	}
 
 	public function set()
-	{   
+	{
+        if ($this->getHidden() || $this->getReadonly()) {
+            return $this;
+        }
+
 		$name = $this->getName();
 		$value = $this->buildInput();
 
@@ -34,7 +38,7 @@ class PasswordProperty extends BaseProperty
 
 		return $this;
 	}
-    
+
     public function searchQuery($query)
 	{
 		return $query;
@@ -44,7 +48,7 @@ class PasswordProperty extends BaseProperty
 	{
 		return null;
 	}
-    
+
     public function getListView()
     {
         return null;

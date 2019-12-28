@@ -464,40 +464,13 @@ class EditController extends Controller
         }
 
         foreach ($propertyList as $propertyName => $property) {
-            if ($property instanceof OrderProperty) {
-                $property->
-                setElement($element)->
-                set();
-                continue;
-            }
-
-            if ($property instanceof PasswordProperty) {
-                $property->
-                setElement($element)->
-                set();
-                continue;
-            }
-
-            if (
-                $property->getHidden()
-                || $property->getReadonly()
-            ) continue;
-
-            $property->
-            setRequest($request)->
-            setElement($element)->
-            set();
+            $property->setRequest($request)->setElement($element)->set();
         }
 
         $element->save();
 
         foreach ($propertyList as $propertyName => $property) {
-            if ($property->isManyToMany()) {
-                $property->
-                setElement($element)->
-                set();
-                continue;
-            }
+            $property->setElement($element)->setAfterCreate();
         }
 
         UserAction::log(
@@ -592,16 +565,7 @@ class EditController extends Controller
         }
 
         foreach ($propertyList as $propertyName => $property) {
-            if (
-                $property->getHidden()
-                || $property->getReadonly()
-                || $property instanceof OrderProperty
-            ) continue;
-
-            $property->
-            setRequest($request)->
-            setElement($element)->
-            set();
+            $property->setRequest($request)->setElement($element)->set();
         }
 
         $element->save();

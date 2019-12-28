@@ -2,76 +2,61 @@
 
 namespace Moonlight\Properties;
 
-use Moonlight\Main\Item;
-
 class OrderProperty extends BaseProperty
 {
-	protected $relatedClass = null;
+    protected $relatedProperty = null;
 
-	public static function create($name)
-	{
-		return new self($name);
-	}
+    public static function create($name)
+    {
+        return new self($name);
+    }
 
-	public function setRelatedClass($relatedClass)
-	{
-		Item::assertClass($relatedClass);
+    public function getRelatedProperty()
+    {
+        return $this->relatedProperty;
+    }
 
-		$this->relatedClass = $relatedClass;
+    public function setRelatedProperty($relatedProperty)
+    {
+        $this->relatedProperty = $relatedProperty;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function getRelatedClass()
-	{
-		return $this->relatedClass;
-	}
+    public function getTitle()
+    {
+        return 'Порядок';
+    }
 
-	public function setItem(Item $item)
-	{
-		$item->setOrderProperty($this->name);
+    public function getReadonly()
+    {
+        return false;
+    }
 
-		parent::setItem($item);
+    public function getHidden()
+    {
+        return true;
+    }
 
-		return $this;
-	}
+    public function set()
+    {
+        $name = $this->getName();
 
-	public function getTitle()
-	{
-		return 'Порядок';
-	}
+        if ($this->element->$name === null) {
+            $order = $this->element->max($name);
+            $this->element->$name = $order !== null ? $order + 1 : 0;
+        }
 
-	public function getReadonly()
-	{
-		return false;
-	}
+        return $this;
+    }
 
-	public function getHidden()
-	{
-		return true;
-	}
-
-	public function set()
-	{
-		$name = $this->getName();
-
-		try {
-			$maxOrder = $this->element->max($name);
-			$this->element->$name = (int)$maxOrder + 1;
-		} catch (\Exception $e) {
-			$this->element->$name = 1;
-		}
-
-		return $this;
-	}
-
-	public function searchQuery($query)
-	{
-		return $query;
-	}
+    public function searchQuery($query)
+    {
+        return $query;
+    }
 
     public function getEditView()
-	{
-		return null;
-	}
+    {
+        return null;
+    }
 }

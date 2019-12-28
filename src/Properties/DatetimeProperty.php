@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Moonlight\Properties;
 
@@ -107,32 +107,22 @@ class DatetimeProperty extends BaseProperty
 
 		return $scope;
 	}
-    
+
     public function buildInput()
     {
         $request = $this->getRequest();
         $name = $this->getName();
-        
+
         $date = $request->input($name.'_date');
         $time = $request->input($name.'_time');
-        
+
         if ( ! mb_strlen($date)) $date = null;
         if ( $date === 'null') $date = null;
 
         $value = $date
             ? $date.' '.$time
             : null;
-        
+
         return $value;
     }
-    
-    public function set()
-	{
-        $name = $this->getName();
-        $value = $this->buildInput();
-
-        $this->element->$name = $value;
-
-		return $this;
-	}
 }

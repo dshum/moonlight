@@ -290,19 +290,22 @@ class SearchController extends Controller
         $orders = [];
 
         foreach ($orderByList as $field => $direction) {
-            $criteria->orderBy($field, $direction);
-
             $property = $currentItem->getPropertyByName($field);
 
             if ($property instanceof OrderProperty) {
-                $orders[$field] = 'порядку';
+                $criteria->orderBy('id', 'desc');
+                $orders['id'] = 'порядку добавления';
             } elseif ($property->getName() == 'created_at') {
+                $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате создания';
             } elseif ($property->getName() == 'updated_at') {
+                $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате изменения';
             } elseif ($property->getName() == 'deleted_at') {
+                $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате удаления';
             } else {
+                $criteria->orderBy($field, $direction);
                 $orders[$field] = 'полю &laquo;'.$property->getTitle().'&raquo;';
             }
         }

@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Moonlight\Properties;
 
@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Moonlight\Main\Item;
 use Moonlight\Main\Element;
 
-class ManyToManyProperty extends BaseProperty 
+class ManyToManyProperty extends BaseProperty
 {
 	protected $relatedClass = null;
     protected $relatedMethod = null;
-	protected $showOrder = false;
-    
+    protected $order = null;
+
 	protected $list = [];
 	protected $parent = null;
 
@@ -45,7 +45,7 @@ class ManyToManyProperty extends BaseProperty
 	{
 		return $this->relatedClass;
 	}
-    
+
     public function setRelatedMethod($relatedMethod)
 	{
 		$this->relatedMethod = $relatedMethod;
@@ -58,17 +58,17 @@ class ManyToManyProperty extends BaseProperty
 		return $this->relatedMethod;
 	}
 
-	public function setShowOrder($showOrder)
-	{
-		$this->showOrder = $showOrder;
+    public function setOrderField($order)
+    {
+        $this->order = $order;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function getShowOrder()
-	{
-		return $this->showOrder;
-	}
+    public function getOrderField()
+    {
+        return $this->order;
+    }
 
 	public function setList($list)
 	{
@@ -91,24 +91,17 @@ class ManyToManyProperty extends BaseProperty
 		foreach ($list as $element) {
             $ids[] = $element->id;
 		}
-		
+
 		return $ids;
 	}
-    
+
     public function setElement(Model $element)
 	{
-        $site = \App::make('site');
-        
 		$name = $this->getName();
-        $relatedClass = $this->getRelatedClass();
-		$relatedItem = $site->getItemByName($relatedClass);
-		$mainProperty = $relatedItem->getMainProperty();
-        
+
 		$this->element = $element;
 
-		if (method_exists($this->element, $name)) {
-			$this->setList($this->element->{$name}()->get());
-		}
+        $this->setList($this->element->{$name}()->get());
 
 		return $this;
 	}
@@ -121,17 +114,44 @@ class ManyToManyProperty extends BaseProperty
 
 		return $this;
 	}
-    
-    public function set()
-	{
-        $name = $this->getName();
-		$ids = $this->buildInput();
 
-		try {
-			if (method_exists($this->element, $name)) {
-				$this->element->{$name}()->sync($ids);
-			}
-		} catch (\Exception $e) {}
+    public function set()
+    {
+        if (
+            $this->getHidden()
+            || $this->getReadonly()
+            || ! $this->element->id
+        ) {
+            return $this;
+        }
+
+        $name = $this->getName();
+        $ids = $this->buildInput();
+
+        $this->element->{$name}()->sync($ids);
+
+        return $this;
+    }
+
+    public function setAfterCreate()
+	{
+        if ($this->getHidden() || $this->getReadonly()) {
+            return $this;
+        }
+
+        $name = $this->getName();
+        $ids = $this->buildInput();
+
+        if ($this->getOrderField()) {
+            $array = [];
+            foreach ($ids as $id) {
+                $array[$id] = [$this->getOrderField() => $this->element->id];
+            }
+        } else {
+            $array = $ids;
+        }
+
+        $this->element->{$name}()->sync($array);
 
 		return $this;
 	}
@@ -140,11 +160,7 @@ class ManyToManyProperty extends BaseProperty
 	{
 		$name = $this->getName();
 
-		try {
-			if (method_exists($this->element, $name)) {
-				$this->element->{$name}()->detach();
-			}
-		} catch (\Exception $e) {}
+        $this->element->{$name}()->detach();
 
 		return $this;
 	}
@@ -153,11 +169,7 @@ class ManyToManyProperty extends BaseProperty
 	{
         $name = $this->getName();
 
-		try {
-			if (method_exists($this->element, $name)) {
-				$this->element->{$name}()->sync($ids);
-			}
-		} catch (\Exception $e) {}
+        $this->element->{$name}()->sync($ids);
 
 		return $this;
 	}
@@ -166,11 +178,7 @@ class ManyToManyProperty extends BaseProperty
 	{
         $name = $this->getName();
 
-		try {
-			if (method_exists($this->element, $name)) {
-				$this->element->{$name}()->attach($id);
-			}
-		} catch (\Exception $e) {}
+        $this->element->{$name}()->attach($id);
 
 		return $this;
 	}
@@ -179,11 +187,7 @@ class ManyToManyProperty extends BaseProperty
 	{
         $name = $this->getName();
 
-		try {
-			if (method_exists($this->element, $name)) {
-				$this->element->{$name}()->detach($id);
-			}
-		} catch (\Exception $e) {}
+        $this->element->{$name}()->detach($id);
 
 		return $this;
 	}
@@ -191,7 +195,7 @@ class ManyToManyProperty extends BaseProperty
 	public function searchQuery($query)
 	{
 		$site = \App::make('site');
-		
+
 		$relatedClass = $this->getRelatedClass();
 		$relatedItem = $site->getItemByName($relatedClass);
 		$relatedMethod = $this->getRelatedMethod();
@@ -220,11 +224,11 @@ class ManyToManyProperty extends BaseProperty
 
 		return $query;
 	}
-    
+
     public function getListView()
 	{
 		$site = \App::make('site');
-		
+
 		$relatedClass = $this->getRelatedClass();
 		$relatedItem = $site->getItemByName($relatedClass);
 		$mainProperty = $relatedItem->getMainProperty();
@@ -248,7 +252,7 @@ class ManyToManyProperty extends BaseProperty
 
 		return $scope;
 	}
-    
+
     public function getEditView()
 	{
 		$site = \App::make('site');
@@ -280,11 +284,11 @@ class ManyToManyProperty extends BaseProperty
 
 		return $scope;
 	}
-    
+
     public function getSearchView()
 	{
         $site = \App::make('site');
-        
+
 		$request = $this->getRequest();
         $name = $this->getName();
         $id = (int)$request->input($name);
@@ -292,13 +296,13 @@ class ManyToManyProperty extends BaseProperty
 		$relatedItem = $site->getItemByName($relatedClass);
         $mainProperty = $relatedItem->getMainProperty();
 
-		$element = $id 
+		$element = $id
             ? $relatedClass::find($id)
             : null;
-        
+
         $value = $element
             ? [
-                'id' => $element->id, 
+                'id' => $element->id,
                 'name' => $element->{$mainProperty}
             ] : null;
 
@@ -312,7 +316,7 @@ class ManyToManyProperty extends BaseProperty
 
 		return $scope;
 	}
-    
+
     public function isManyToMany()
 	{
 		return true;

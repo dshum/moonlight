@@ -135,9 +135,8 @@ class BrowseController extends Controller
     {
         $scope = [];
 
-        $loggedUser = Auth::guard('moonlight')->user();
-
         $class = $request->input('item');
+        $classId = $request->input('classId');
 
         $site = \App::make('site');
 
@@ -149,39 +148,85 @@ class BrowseController extends Controller
             return response()->json($scope);
         }
 
-        if (! $currentItem->getOrderProperty()) {
+        $currentElement = $classId ? Element::getByClassId($classId) : null;
+        $currentElementClass = $currentElement ? Element::getClass($currentElement) : null;
+        $currentElementItem = $currentElement ? Element::getItem($currentElement) : null;
+
+        $propertyList = $currentItem->getPropertyList();
+
+        $orderProperty = null;
+        $relatedMethod = null;
+
+        foreach ($propertyList as $property) {
+            if (! $property instanceof OrderProperty) {
+                continue;
+            }
+
+            $relatedProperty = $property->getRelatedProperty()
+                ? $currentItem->getPropertyByName($property->getRelatedProperty())
+                : null;
+
+            $relatedClass = $relatedProperty ? $relatedProperty->getRelatedClass() : null;
+
+            if ($relatedClass != $currentElementClass) {
+                continue;
+            }
+
+            $orderProperty = $property->getName();
+
+            if ($relatedProperty && $relatedProperty->isManyToMany()) {
+                $relatedMethod = $relatedProperty->getRelatedMethod();
+
+                if ($relatedProperty->getOrderField()) {
+                    $orderProperty = $relatedProperty->getOrderField();
+                }
+            }
+
+            break;
+        }
+
+        if (! $orderProperty) {
             $scope['error'] = 'Поле для ручной сортировки не найдено.';
 
             return response()->json($scope);
         }
 
-        $orderProperty = $currentItem->getOrderProperty();
-
         $elements = $request->input('elements');
+
+        if (! is_array($elements) || sizeof($elements) < 2) {
+            $scope['error'] = 'Недостаточно элементов для ручной сортировки.';
+
+            return response()->json($scope);
+        }
+
+        $loggedUser = Auth::guard('moonlight')->user();
 
         $ordered = [];
 
-        if (is_array($elements) && sizeof($elements) > 1) {
-            foreach ($elements as $order => $id) {
-                $element = $currentItem->getClass()->find($id);
+        foreach ($elements as $order => $id) {
+            $element = $currentItem->getClass()->find($id);
 
-                if ($element && $loggedUser->hasUpdateAccess($element)) {
-                    $element->{$orderProperty} = $order;
-
-                    $element->save();
-
-                    $ordered[$order] = $id;
-                }
+            if (! $element || ! $loggedUser->hasUpdateAccess($element)) {
+                continue;
             }
 
-            if ($ordered) {
-                UserAction::log(
-                    UserActionType::ACTION_TYPE_ORDER_ELEMENT_LIST_ID,
-                    $class.': '.implode(', ', $ordered)
-                );
-
-                $scope['ordered'] = 'ok';
+            if ($currentElement && $relatedMethod) {
+                $currentElement->{$relatedMethod}()->updateExistingPivot($id, [$orderProperty => $order]);
+            } else {
+                $element->{$orderProperty} = $order;
+                $element->save();
             }
+
+            $ordered[$order] = $id;
+        }
+
+        if (sizeof($ordered)) {
+            UserAction::log(
+                UserActionType::ACTION_TYPE_ORDER_ELEMENT_LIST_ID,
+                $class.': '.implode(', ', $ordered)
+            );
+
+            $scope['ordered'] = 'ok';
         }
 
         return response()->json($scope);
@@ -278,7 +323,7 @@ class BrowseController extends Controller
                     $rules[$name][] = $rule;
 
                     if (strpos($rule, ':')) {
-                        list($name2, $value2) = explode(':', $rule, 2);
+                        [$name2, $value2] = explode(':', $rule, 2);
                         $messages[$name.'.'.$name2] = $message;
                     } else {
                         $messages[$name.'.'.$rule] = $message;
@@ -854,12 +899,8 @@ class BrowseController extends Controller
         $removeRubric = $request->input('remove_favorite_rubric');
         $newRubric = $request->input('new_favorite_rubric');
 
-        $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)->
-        orderBy('order')->
-        get();
-
-        $favoritesAll = Favorite::where('user_id', $loggedUser->id)->
-        get();
+        $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)->orderBy('order')->get();
+        $favoritesAll = Favorite::where('user_id', $loggedUser->id)->get();
 
         $rubricOrders = [];
         $favoriteOrders = [];
@@ -927,11 +968,8 @@ class BrowseController extends Controller
 
         // Add a new rubric
         if ($newRubric) {
-            $nextOrder =
-                isset($rubricOrders)
-                && sizeof($rubricOrders)
-                    ? max($rubricOrders) + 1
-                    : 1;
+            $nextOrder = isset($rubricOrders) && sizeof($rubricOrders)
+                ? max($rubricOrders) + 1 : 1;
 
             $favoriteRubric = new FavoriteRubric;
 
@@ -1030,9 +1068,7 @@ class BrowseController extends Controller
                         $property->isOneToOne()
                         && $property->getRelatedClass() == $currentItem->getName()
                     ) {
-                        $count = $element->
-                        hasMany($itemName, $property->getName())->
-                        count();
+                        $count = $element->hasMany($itemName, $property->getName())->count();
 
                         if ($count) {
                             break;
@@ -1041,9 +1077,7 @@ class BrowseController extends Controller
                         $property->isManyToMany()
                         && $property->getRelatedClass() == $currentItem->getName()
                     ) {
-                        $count = $element->
-                        {$property->getRelatedMethod()}()->
-                        count();
+                        $count = $element->{$property->getRelatedMethod()}()->count();
 
                         if ($count) {
                             break;
@@ -1386,8 +1420,7 @@ class BrowseController extends Controller
             $view = \App::make($itemPlugin)->index($currentItem);
 
             if ($view) {
-                $itemPluginView = is_string($view)
-                    ? $view : $view->render();
+                $itemPluginView = is_string($view) ? $view : $view->render();
             }
         }
 
@@ -1440,33 +1473,7 @@ class BrowseController extends Controller
             }
         }
 
-        $criteria = $currentItem->getClass()->where(
-            function ($query) use ($propertyList, $currentElement, $currentClass) {
-                if ($currentElement) {
-                    $query->orWhere('id', null);
-                }
-
-                foreach ($propertyList as $property) {
-                    if (
-                        $currentElement
-                        && $property->isOneToOne()
-                        && $property->getRelatedClass() == $currentClass
-                    ) {
-                        $query->orWhere(
-                            $property->getName(), $currentElement->id
-                        );
-                    } elseif (
-                        ! $currentElement
-                        && $property->isOneToOne()
-                        && $property->getParent()
-                    ) {
-                        $query->orWhere(
-                            $property->getName(), null
-                        );
-                    }
-                }
-            }
-        );
+        $criteria = $currentItem->getClass();
 
         foreach ($propertyList as $property) {
             if (
@@ -1475,6 +1482,20 @@ class BrowseController extends Controller
                 && $property->getRelatedClass() == $currentClass
             ) {
                 $criteria = $currentElement->{$property->getRelatedMethod()}();
+                break;
+            } elseif (
+                $currentElement
+                && $property->isOneToOne()
+                && $property->getRelatedClass() == $currentClass
+            ) {
+                $criteria->where($property->getName(), $currentElement->id);
+                break;
+            } elseif (
+                ! $currentElement
+                && $property->isOneToOne()
+                && $property->getParent()
+            ) {
+                $criteria->whereNull($property->getName());
                 break;
             }
         }
@@ -1545,7 +1566,7 @@ class BrowseController extends Controller
         }
 
         $class = $currentItem->getNameId();
-        $order = Cache()->get("order_{$loggedUser->id}_{$class}");
+        $order = cache()->get("order_{$loggedUser->id}_{$class}");
 
         if (isset($order['field']) && isset($order['direction'])) {
             $orderByList = [$order['field'] => $order['direction']];
@@ -1557,18 +1578,23 @@ class BrowseController extends Controller
         $hasOrderProperty = false;
 
         foreach ($orderByList as $field => $direction) {
-            $criteria->orderBy($field, $direction);
-
             $property = $currentItem->getPropertyByName($field);
 
-            if ($property instanceof OrderProperty) {
-                $orders[$field] = 'порядку';
+            if (! $property) {
+                continue;
+            }
 
-                if (
-                    ! $currentElement
-                    || ! $property->getRelatedClass()
-                    || $property->getRelatedClass() == $currentClass
-                ) {
+            $criteria->orderBy($field, $direction);
+
+            if ($property instanceof OrderProperty) {
+                $relatedProperty = $property->getRelatedProperty()
+                    ? $currentItem->getPropertyByName($property->getRelatedProperty())
+                    : null;
+
+                $relatedClass = $relatedProperty ? $relatedProperty->getRelatedClass() : null;
+
+                if ($relatedClass == $currentClass) {
+                    $orders[$field] = 'порядку';
                     $hasOrderProperty = true;
                 }
             } elseif ($property->getName() == 'created_at') {
@@ -1623,7 +1649,6 @@ class BrowseController extends Controller
         /*
          * Views
          */
-
         $properties = [];
         $columns = [];
         $views = [];
@@ -1632,6 +1657,7 @@ class BrowseController extends Controller
             if ($property instanceof PasswordProperty) {
                 continue;
             }
+
             if ($property->getHidden()) {
                 continue;
             }
@@ -1696,7 +1722,6 @@ class BrowseController extends Controller
         /*
          * Copy and move views
          */
-
         $copyPropertyView = null;
         $movePropertyView = null;
         $bindPropertyViews = [];
@@ -1705,10 +1730,10 @@ class BrowseController extends Controller
         $currentElementItem = $currentElement ? Element::getItem($currentElement) : null;
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) {
-                continue;
-            }
-            if (! $property->isOneToOne()) {
+            if (
+                $property->getHidden()
+                || ! $property->isOneToOne()
+            ) {
                 continue;
             }
 
@@ -1739,10 +1764,10 @@ class BrowseController extends Controller
         }
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) {
-                continue;
-            }
-            if (! $property->isManyToMany()) {
+            if (
+                $property->getHidden()
+                || ! $property->isManyToMany()
+            ) {
                 continue;
             }
 
@@ -1766,13 +1791,11 @@ class BrowseController extends Controller
         /*
          * Favorites
          */
+        $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)
+            ->orderBy('order')
+            ->get();
 
-        $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)->
-        orderBy('order')->
-        get();
-
-        $favorites = Favorite::where('user_id', $loggedUser->id)->
-        get();
+        $favorites = Favorite::where('user_id', $loggedUser->id)->get();
 
         $favoriteRubricMap = [];
         $elementFavoriteRubrics = [];
@@ -1942,7 +1965,9 @@ class BrowseController extends Controller
         $elements = $criteria->limit(static::PER_PAGE)->get();
 
         foreach ($elements as $element) {
-            if ($element->id == $term_id) continue;
+            if ($element->id == $term_id) {
+                continue;
+            }
 
             $scope['suggestions'][] = [
                 'value' => $element->$mainProperty,
@@ -2045,21 +2070,6 @@ class BrowseController extends Controller
 
             $mainPropertyTitle = $item->getMainPropertyTitle();
 
-            $hasOrderProperty = false;
-
-            foreach ($propertyList as $property) {
-                if (
-                    $property instanceof OrderProperty
-                    && (
-                        ! $property->getRelatedClass()
-                        || $property->getRelatedClass() == Element::getClass($element)
-                    )
-                ) {
-                    $hasOrderProperty = true;
-                    break;
-                }
-            }
-
             foreach ($propertyList as $property) {
                 if (
                     $property->isOneToOne()
@@ -2080,7 +2090,6 @@ class BrowseController extends Controller
                     /*
                      * Item styles and scripts
                      */
-
                     $styles = array_merge($styles, $site->getItemStyles($bind));
                     $scripts = array_merge($scripts, $site->getItemScripts($bind));
 
@@ -2104,7 +2113,6 @@ class BrowseController extends Controller
                     /*
                      * Item styles and scripts
                      */
-
                     $styles = array_merge($styles, $site->getItemStyles($bind));
                     $scripts = array_merge($scripts, $site->getItemScripts($bind));
 
@@ -2181,7 +2189,6 @@ class BrowseController extends Controller
                 /*
                  * Item styles and scripts
                  */
-
                 $styles = array_merge($styles, $site->getItemStyles($bind));
                 $scripts = array_merge($scripts, $site->getItemScripts($bind));
             }

@@ -150,6 +150,10 @@ class FileProperty extends BaseProperty
 
     public function set()
     {
+        if ($this->getHidden() || $this->getReadonly()) {
+            return $this;
+        }
+
         $request = $this->getRequest();
         $name = $this->getName();
 
