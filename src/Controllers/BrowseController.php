@@ -1438,14 +1438,14 @@ class BrowseController extends Controller
                 && $property->isOneToOne()
                 && $property->getRelatedClass() == $currentClass
             ) {
-                $criteria->where($property->getName(), $currentElement->id);
+                $criteria = $criteria->where($property->getName(), $currentElement->id);
                 break;
             } elseif (
                 ! $currentElement
                 && $property->isOneToOne()
                 && $property->getParent()
             ) {
-                $criteria->whereNull($property->getName());
+                $criteria = $criteria->whereNull($property->getName());
                 break;
             }
         }
@@ -1455,12 +1455,12 @@ class BrowseController extends Controller
                 $permissionDenied
                 && sizeof($allowedElementList)
             ) {
-                $criteria->whereIn('id', $allowedElementList);
+                $criteria = $criteria->whereIn('id', $allowedElementList);
             } elseif (
                 ! $permissionDenied
                 && sizeof($deniedElementList)
             ) {
-                $criteria->whereNotIn('id', $deniedElementList);
+                $criteria = $criteria->whereNotIn('id', $deniedElementList);
             } elseif ($permissionDenied) {
                 return response()->json(['count' => 0]);
             }
@@ -1539,7 +1539,7 @@ class BrowseController extends Controller
 
                 $relatedClass = $relatedProperty ? $relatedProperty->getRelatedClass() : null;
 
-                if ($relatedClass == $currentClass) {
+                if (! $relatedClass || $relatedClass == $currentClass) {
                     $criteria->orderBy($field, $direction);
                     $orders[$field] = 'порядку';
                     $hasOrderProperty = true;
