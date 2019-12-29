@@ -294,6 +294,10 @@ class SearchController extends Controller
         foreach ($orderByList as $field => $direction) {
             $property = $currentItem->getPropertyByName($field);
 
+            if (! $property) {
+                continue;
+            }
+
             if ($property->isOrder()) {
                 $criteria->orderBy('id', 'desc');
                 $orders['id'] = 'порядку добавления';

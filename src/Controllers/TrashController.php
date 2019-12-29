@@ -257,13 +257,10 @@ class TrashController extends Controller
             if ($property->getName() == $currentItemClass->getCreatedAtColumn()) {
                 $orders[$field] = 'дате создания';
             } elseif ($property->getName() == $currentItemClass->getUpdatedAtColumn()) {
-                $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате изменения';
             } elseif ($property->getName() == $currentItemClass->getDeletedAtColumn()) {
-                $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате удаления';
             } else {
-                $criteria->orderBy($field, $direction);
                 $orders[$field] = 'полю &laquo;'.$property->getTitle().'&raquo;';
             }
         }

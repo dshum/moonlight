@@ -1532,8 +1532,6 @@ class BrowseController extends Controller
                 continue;
             }
 
-            $criteria->orderBy($field, $direction);
-
             if ($property->isOrder()) {
                 $relatedProperty = $property->getRelatedProperty()
                     ? $currentItem->getPropertyByName($property->getRelatedProperty())
@@ -1542,16 +1540,21 @@ class BrowseController extends Controller
                 $relatedClass = $relatedProperty ? $relatedProperty->getRelatedClass() : null;
 
                 if ($relatedClass == $currentClass) {
+                    $criteria->orderBy($field, $direction);
                     $orders[$field] = 'порядку';
                     $hasOrderProperty = true;
                 }
             } elseif ($property->getName() == $currentItemClass->getCreatedAtColumn()) {
+                $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате создания';
             } elseif ($property->getName() == $currentItemClass->getUpdatedAtColumn()) {
+                $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате изменения';
             } elseif ($property->getName() == $currentItemClass->getDeletedAtColumn()) {
+                $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате удаления';
             } else {
+                $criteria->orderBy($field, $direction);
                 $orders[$field] = 'полю &laquo;'.$property->getTitle().'&raquo;';
             }
         }
