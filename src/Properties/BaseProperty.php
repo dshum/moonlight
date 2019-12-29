@@ -368,12 +368,37 @@ abstract class BaseProperty
         return $this->captions;
     }
 
+    public function isMain()
+    {
+        return false;
+    }
+
+    public function isOrder()
+    {
+        return false;
+    }
+
     public function isOneToOne()
     {
         return false;
     }
 
     public function isManyToMany()
+    {
+        return false;
+    }
+
+    public function isVirtual()
+    {
+        return false;
+    }
+
+    public function isShowEditable()
+    {
+        return true;
+    }
+
+    public function isAlwaysVisible()
     {
         return false;
     }

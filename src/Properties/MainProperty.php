@@ -1,11 +1,11 @@
-<?php 
+<?php
 
 namespace Moonlight\Properties;
 
 use Moonlight\Main\Item;
 use Moonlight\Main\Element;
 
-class MainProperty extends BaseProperty 
+class MainProperty extends BaseProperty
 {
 	public static function create($name)
 	{
@@ -25,7 +25,7 @@ class MainProperty extends BaseProperty
     {
         return true;
     }
-    
+
     public function set()
 	{
         $name = $this->getName();
@@ -59,7 +59,7 @@ class MainProperty extends BaseProperty
 
 		return $query;
 	}
-    
+
     public function getListView()
 	{
 		$element = $this->getElement();
@@ -75,11 +75,11 @@ class MainProperty extends BaseProperty
 
 		return $scope;
     }
-    
+
     public function getSearchView()
 	{
         $site = \App::make('site');
-        
+
 		$request = $this->getRequest();
         $name = $this->getName();
         $class = $this->getItemClass();
@@ -88,8 +88,8 @@ class MainProperty extends BaseProperty
 
         $id = (int)$request->input($name);
         $text = $request->input($name.'_autocomplete');
-        
-        $element = $id 
+
+        $element = $id
             ? $class::find($id)
             : null;
 
@@ -104,4 +104,14 @@ class MainProperty extends BaseProperty
 
 		return $scope;
 	}
+
+    public function isMain()
+    {
+        return true;
+    }
+
+    public function isShowEditable()
+    {
+        return false;
+    }
 }

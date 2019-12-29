@@ -30,4 +30,9 @@ class VirtualProperty extends BaseProperty
 	{
 		return null;
 	}
+
+    public function isVirtual()
+    {
+        return true;
+    }
 }

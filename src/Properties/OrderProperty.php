@@ -59,4 +59,9 @@ class OrderProperty extends BaseProperty
     {
         return null;
     }
+
+    public function isOrder()
+    {
+        return true;
+    }
 }

@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Moonlight\Main;
 
@@ -6,10 +6,10 @@ use Moonlight\Properties\OrderProperty;
 use Moonlight\Properties\DatetimeProperty;
 use Moonlight\Properties\BaseProperty;
 
-class Item 
+class Item
 {
     const DEFAULT_PER_PAGE = 10;
-    
+
 	public $properties = [];
 
 	protected $name = null;
@@ -108,7 +108,7 @@ class Item
 	{
 		return $this->root;
 	}
-    
+
     public function setCreate($value = true)
 	{
 		$this->create = $value;
@@ -180,43 +180,43 @@ class Item
 
 	public function addOrder($name = 'order', $direction = 'asc')
 	{
-		$this->
-		addOrderBy($name, $direction)->
-		addProperty(
-			OrderProperty::create($name)
-		);
+		$this
+            ->addOrderBy($name, $direction)
+            ->addProperty(
+                OrderProperty::create($name)
+            );
 
 		return $this;
 	}
 
 	public function addTimestamps($readonly = true)
 	{
-		$this->
-		addProperty(
-			DatetimeProperty::create('created_at')->
-			setTitle('Создано')->
-			setReadonly($readonly)->
-			setFillNow(true)->
-			setRequired(true)->
-			setShow(true)
-		)->
-		addProperty(
-			DatetimeProperty::create('updated_at')->
-			setTitle('Изменено')->
-            setReadonly(true)
-		);
+		$this
+            ->addProperty(
+                DatetimeProperty::create('created_at')->
+                setTitle('Создано')->
+                setReadonly($readonly)->
+                setFillNow(true)->
+                setRequired(true)->
+                setShow(true)
+            )
+            ->addProperty(
+                DatetimeProperty::create('updated_at')->
+                setTitle('Изменено')->
+                setReadonly(true)
+            );
 
 		return $this;
 	}
 
 	public function addSoftDeletes()
 	{
-		$this->
-		addProperty(
-			DatetimeProperty::create('deleted_at')->
-			setTitle('Удалено')->
-			setReadonly(true)
-		);
+		$this
+            ->addProperty(
+                DatetimeProperty::create('deleted_at')->
+                setTitle('Удалено')->
+                setReadonly(true)
+            );
 
 		return $this;
 	}

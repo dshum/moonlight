@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
 use Moonlight\Main\Element;
 use Moonlight\Main\Site;
@@ -25,6 +26,7 @@ use Moonlight\Properties\VirtualProperty;
 class BrowseController extends Controller
 {
     const PER_PAGE = 10;
+    const MAX_PER_PAGE = 500;
 
     /**
      * Show/hide column.
@@ -84,7 +86,7 @@ class BrowseController extends Controller
      * Set per page.
      *
      * @param \Illuminate\Http\Request $request
-     * @return Response
+     * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
     public function perPage(Request $request)
@@ -99,7 +101,7 @@ class BrowseController extends Controller
 
         if ($perPage < 1) {
             $perPage = static::PER_PAGE;
-        } elseif ($perPage > 500) {
+        } elseif ($perPage > static::MAX_PER_PAGE) {
             $perPage = static::PER_PAGE;
         }
 
@@ -129,7 +131,7 @@ class BrowseController extends Controller
     /**
      * Order elements.
      *
-     * @return Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function order(Request $request)
     {
@@ -150,7 +152,6 @@ class BrowseController extends Controller
 
         $currentElement = $classId ? Element::getByClassId($classId) : null;
         $currentElementClass = $currentElement ? Element::getClass($currentElement) : null;
-        $currentElementItem = $currentElement ? Element::getItem($currentElement) : null;
 
         $propertyList = $currentItem->getPropertyList();
 
@@ -158,7 +159,7 @@ class BrowseController extends Controller
         $relatedMethod = null;
 
         foreach ($propertyList as $property) {
-            if (! $property instanceof OrderProperty) {
+            if (! $property->isOrder()) {
                 continue;
             }
 
@@ -236,7 +237,7 @@ class BrowseController extends Controller
      * Save elements.
      *
      * @param \Illuminate\Http\Request $request
-     * @return Response
+     * @return \Illuminate\Http\JsonResponse
      * @throws \Throwable
      */
     public function save(Request $request)
@@ -396,7 +397,8 @@ class BrowseController extends Controller
     /**
      * Copy elements.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function copy(Request $request)
     {
@@ -452,44 +454,16 @@ class BrowseController extends Controller
             $clone = new $element;
 
             foreach ($propertyList as $propertyName => $property) {
-                if ($property instanceof OrderProperty) {
+                if (
+                    $propertyName == $element->getCreatedAtColumn()
+                    || $propertyName == $element->getUpdatedAtColumn()
+                    || $propertyName == $element->getDeletedAtColumn()
+                ) {
+                    continue;
+                }
+
+                if ($property->isOrder()) {
                     $property->setElement($clone)->set();
-                    continue;
-                }
-
-                if (
-                    $property instanceof ManyToManyProperty
-                    || $property instanceof VirtualProperty
-                ) {
-                    continue;
-                }
-
-                if (
-                    $property->getReadonly()
-                    && ! $property->getRequired()
-                ) {
-                    continue;
-                }
-
-                if (
-                    $property instanceof FileProperty
-                    && ! $property->getRequired()
-                ) {
-                    continue;
-                }
-
-                if (
-                    $property instanceof ImageProperty
-                    && ! $property->getRequired()
-                ) {
-                    continue;
-                }
-
-                if (
-                    $propertyName == 'created_at'
-                    || $propertyName == 'updated_at'
-                    || $propertyName == 'deleted_at'
-                ) {
                     continue;
                 }
 
@@ -537,7 +511,8 @@ class BrowseController extends Controller
     /**
      * Move elements.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function move(Request $request)
     {
@@ -590,19 +565,14 @@ class BrowseController extends Controller
         $propertyList = $currentItem->getPropertyList();
 
         foreach ($propertyList as $propertyName => $property) {
-            if ($property->getHidden()) {
-                continue;
-            }
-            if ($property->getReadonly()) {
-                continue;
-            }
-            if (! $property->isOneToOne()) {
-                continue;
-            }
-            if ($propertyName != $name) {
-                continue;
-            }
-            if (! $value && $property->getRequired()) {
+
+            if (
+                $property->getHidden()
+                || $property->getReadonly()
+                || ! $property->isOneToOne()
+                || $propertyName != $name
+                || (! $value && $property->getRequired())
+            ) {
                 continue;
             }
 
@@ -644,7 +614,8 @@ class BrowseController extends Controller
     /**
      * Bind element.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function bind(Request $request)
     {
@@ -695,31 +666,20 @@ class BrowseController extends Controller
         $propertyList = $currentItem->getPropertyList();
 
         foreach ($propertyList as $propertyName => $property) {
-            if ($property->getHidden()) {
-                continue;
-            }
-            if ($property->getReadonly()) {
-                continue;
-            }
-            if (! $property->isManyToMany()) {
-                continue;
-            }
-            if (! isset($ones[$propertyName])) {
-                continue;
-            }
-            if (! $ones[$propertyName]) {
+            if (
+                $property->getHidden()
+                || $property->getReadonly()
+                || ! $property->isManyToMany()
+                || ! isset($ones[$propertyName])
+                || ! $ones[$propertyName]
+            ) {
                 continue;
             }
 
             $value = $ones[$propertyName];
 
-            $relatedClass = $property->getRelatedClass();
-            $relatedItem = $site->getItemByName($relatedClass);
-
             foreach ($elements as $element) {
-                $property->setElement($element);
-
-                $property->attach($value);
+                $property->setElement($element)->attach($value);
 
                 $element->save();
 
@@ -746,7 +706,8 @@ class BrowseController extends Controller
     /**
      * Unbind element.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function unbind(Request $request)
     {
@@ -797,31 +758,20 @@ class BrowseController extends Controller
         $propertyList = $currentItem->getPropertyList();
 
         foreach ($propertyList as $propertyName => $property) {
-            if ($property->getHidden()) {
-                continue;
-            }
-            if ($property->getReadonly()) {
-                continue;
-            }
-            if (! $property->isManyToMany()) {
-                continue;
-            }
-            if (! isset($ones[$propertyName])) {
-                continue;
-            }
-            if (! $ones[$propertyName]) {
+            if (
+                $property->getHidden()
+                || $property->getReadonly()
+                || ! $property->isManyToMany()
+                || ! isset($ones[$propertyName])
+                || ! $ones[$propertyName]
+            ) {
                 continue;
             }
 
             $value = $ones[$propertyName];
 
-            $relatedClass = $property->getRelatedClass();
-            $relatedItem = $site->getItemByName($relatedClass);
-
             foreach ($elements as $element) {
-                $property->setElement($element);
-
-                $property->detach($value);
+                $property->setElement($element)->detach($value);
 
                 $element->save();
 
@@ -869,8 +819,6 @@ class BrowseController extends Controller
             return response()->json($scope);
         }
 
-        $mainProperty = $currentItem->getMainProperty();
-
         $checked = $request->input('checked');
 
         if (! is_array($checked) || ! sizeof($checked)) {
@@ -890,7 +838,7 @@ class BrowseController extends Controller
         }
 
         if (! sizeof($elements)) {
-            $scope['error'] = 'Нет элементов для добавление в избранное.';
+            $scope['error'] = 'Нет элементов для добавления в избранное.';
 
             return response()->json($scope);
         }
@@ -1007,7 +955,9 @@ class BrowseController extends Controller
     /**
      * Delete elements.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function delete(Request $request)
     {
@@ -1133,7 +1083,9 @@ class BrowseController extends Controller
     /**
      * Delete elements from trash.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function forceDelete(Request $request)
     {
@@ -1153,7 +1105,6 @@ class BrowseController extends Controller
             return response()->json($scope);
         }
 
-        $mainProperty = $currentItem->getMainProperty();
         $propertyList = $currentItem->getPropertyList();
 
         $checked = $request->input('checked');
@@ -1212,7 +1163,9 @@ class BrowseController extends Controller
     /**
      * Restore elements from trash.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function restore(Request $request)
     {
@@ -1231,8 +1184,6 @@ class BrowseController extends Controller
 
             return response()->json($scope);
         }
-
-        $mainProperty = $currentItem->getMainProperty();
 
         $checked = $request->input('checked');
 
@@ -1286,7 +1237,9 @@ class BrowseController extends Controller
     /**
      * Open closed item.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
      */
     public function open(Request $request)
     {
@@ -1306,6 +1259,7 @@ class BrowseController extends Controller
         }
 
         $cid = $classId ?: Site::ROOT;
+
         cache()->forever("open_{$loggedUser->id}_{$cid}_{$class}", true);
 
         return response()->json([]);
@@ -1314,7 +1268,9 @@ class BrowseController extends Controller
     /**
      * Close opened item.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
      */
     public function close(Request $request)
     {
@@ -1334,6 +1290,7 @@ class BrowseController extends Controller
         }
 
         $cid = $classId ?: Site::ROOT;
+
         cache()->forever("open_{$loggedUser->id}_{$cid}_{$class}", false);
 
         return response()->json([]);
@@ -1342,7 +1299,9 @@ class BrowseController extends Controller
     /**
      * Show element list.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
      */
     public function elements(Request $request)
     {
@@ -1393,8 +1352,7 @@ class BrowseController extends Controller
             cache()->forget("order_{$loggedUser->id}_{$class}");
         }
 
-        $element = $classId
-            ? Element::getByClassId($classId) : null;
+        $element = $classId ? Element::getByClassId($classId) : null;
 
         $html = $this->elementListView($element, $currentItem);
 
@@ -1409,9 +1367,7 @@ class BrowseController extends Controller
 
         $site = \App::make('site');
 
-        /*
-         * Item plugin
-         */
+        // Item plugin
         $itemPluginView = null;
 
         $itemPlugin = $site->getItemPlugin($currentItem->getNameId());
@@ -1427,6 +1383,7 @@ class BrowseController extends Controller
         $currentClassId = $currentElement ? Element::getClassId($currentElement) : null;
         $currentClass = $currentElement ? Element::getClass($currentElement) : null;
 
+        $currentItemClass = $currentItem->getClass();
         $propertyList = $currentItem->getPropertyList();
 
         if (! $loggedUser->isSuperUser()) {
@@ -1516,9 +1473,7 @@ class BrowseController extends Controller
             }
         }
 
-        /*
-         * Browse filter
-         */
+        // Browse filter
         $browseFilterView = null;
 
         $browseFilter = $site->getBrowseFilter($currentItem->getNameId());
@@ -1586,7 +1541,7 @@ class BrowseController extends Controller
 
             $criteria->orderBy($field, $direction);
 
-            if ($property instanceof OrderProperty) {
+            if ($property->isOrder()) {
                 $relatedProperty = $property->getRelatedProperty()
                     ? $currentItem->getPropertyByName($property->getRelatedProperty())
                     : null;
@@ -1597,11 +1552,11 @@ class BrowseController extends Controller
                     $orders[$field] = 'порядку';
                     $hasOrderProperty = true;
                 }
-            } elseif ($property->getName() == 'created_at') {
+            } elseif ($property->getName() == $currentItemClass->getCreatedAtColumn()) {
                 $orders[$field] = 'дате создания';
-            } elseif ($property->getName() == 'updated_at') {
+            } elseif ($property->getName() == $currentItemClass->getUpdatedAtColumn()) {
                 $orders[$field] = 'дате изменения';
-            } elseif ($property->getName() == 'deleted_at') {
+            } elseif ($property->getName() == $currentItemClass->getDeletedAtColumn()) {
                 $orders[$field] = 'дате удаления';
             } else {
                 $orders[$field] = 'полю &laquo;'.$property->getTitle().'&raquo;';
@@ -1646,18 +1601,12 @@ class BrowseController extends Controller
             $lastPage = $elements->lastPage();
         }
 
-        /*
-         * Views
-         */
+        // Views
         $properties = [];
         $columns = [];
         $views = [];
 
         foreach ($propertyList as $property) {
-            if ($property instanceof PasswordProperty) {
-                continue;
-            }
-
             if ($property->getHidden()) {
                 continue;
             }
@@ -1676,10 +1625,9 @@ class BrowseController extends Controller
 
         foreach ($propertyList as $property) {
             if (
-                $property instanceof MainProperty
-                || $property instanceof PasswordProperty
-                || $property->getHidden()
-                || $property->getName() == 'deleted_at'
+                $property->getHidden()
+                || ! $property->isShowEditable()
+                || $property->getName() == $currentItemClass->getDeletedAtColumn()
             ) {
                 continue;
             }
@@ -1705,23 +1653,20 @@ class BrowseController extends Controller
                     && ! $property->getReadonly()
                 ) {
                     $propertyScope = $property->setElement($element)->getEditableView();
-
-                    $views[$classId][$property->getName()] = view(
-                        'moonlight::properties.'.$property->getClassName().'.editable', $propertyScope
-                    )->render();
+                    $suffix = 'editable';
                 } else {
                     $propertyScope = $property->setElement($element)->getListView();
-
-                    $views[$classId][$property->getName()] = view(
-                        'moonlight::properties.'.$property->getClassName().'.list', $propertyScope
-                    )->render();
+                    $suffix = 'list';
                 }
+
+                $views[$classId][$property->getName()] = view(
+                    "moonlight::properties.{$property->getClassName()}.$suffix",
+                    $propertyScope
+                )->render();
             }
         }
 
-        /*
-         * Copy and move views
-         */
+        // Copy and move views
         $copyPropertyView = null;
         $movePropertyView = null;
         $bindPropertyViews = [];
@@ -1788,9 +1733,7 @@ class BrowseController extends Controller
             $copyPropertyView = 'Корень сайта';
         }
 
-        /*
-         * Favorites
-         */
+        // Favorites
         $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)
             ->orderBy('order')
             ->get();
@@ -1844,7 +1787,8 @@ class BrowseController extends Controller
     /**
      * Show element list for autocomplete.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function autocomplete(Request $request)
     {
@@ -1982,13 +1926,13 @@ class BrowseController extends Controller
     /**
      * Show browse element.
      *
-     * @return View
+     * @param \Illuminate\Http\Request $request
+     * @param $classId
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function element(Request $request, $classId)
     {
         $scope = [];
-
-        $loggedUser = Auth::guard('moonlight')->user();
 
         $element = Element::getByClassId($classId);
 
@@ -2018,17 +1962,11 @@ class BrowseController extends Controller
         $styles = [];
         $scripts = [];
 
-        /*
-         * Browse styles and scripts
-         */
-
+        // Browse styles and scripts
         $styles = array_merge($styles, $site->getBrowseStyles($classId));
         $scripts = array_merge($scripts, $site->getBrowseScripts($classId));
 
-        /*
-         * Browse plugin
-         */
-
+        // Browse plugin
         $browsePluginView = null;
 
         $browsePlugin = $site->getBrowsePlugin($classId);
@@ -2041,8 +1979,6 @@ class BrowseController extends Controller
                     ? $view : $view->render();
             }
         }
-
-        $itemList = $site->getItemList();
 
         $binds = [];
         $items = [];
@@ -2068,8 +2004,6 @@ class BrowseController extends Controller
 
             $propertyList = $item->getPropertyList();
 
-            $mainPropertyTitle = $item->getMainPropertyTitle();
-
             foreach ($propertyList as $property) {
                 if (
                     $property->isOneToOne()
@@ -2087,9 +2021,7 @@ class BrowseController extends Controller
                         ];
                     }
 
-                    /*
-                     * Item styles and scripts
-                     */
+                    // Item styles and scripts
                     $styles = array_merge($styles, $site->getItemStyles($bind));
                     $scripts = array_merge($scripts, $site->getItemScripts($bind));
 
@@ -2110,9 +2042,7 @@ class BrowseController extends Controller
                         ];
                     }
 
-                    /*
-                     * Item styles and scripts
-                     */
+                    // Item styles and scripts
                     $styles = array_merge($styles, $site->getItemStyles($bind));
                     $scripts = array_merge($scripts, $site->getItemScripts($bind));
 
@@ -2146,20 +2076,18 @@ class BrowseController extends Controller
     /**
      * Show browse root.
      *
-     * @return View
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function root(Request $request)
     {
         $scope = [];
-
-        $loggedUser = Auth::guard('moonlight')->user();
 
         $site = \App::make('site');
 
         $styles = [];
         $scripts = [];
 
-        $itemList = $site->getItemList();
         $binds = $site->getBinds();
 
         $plugin = null;
@@ -2186,9 +2114,7 @@ class BrowseController extends Controller
                     ];
                 }
 
-                /*
-                 * Item styles and scripts
-                 */
+                // Item styles and scripts
                 $styles = array_merge($styles, $site->getItemStyles($bind));
                 $scripts = array_merge($scripts, $site->getItemScripts($bind));
             }
