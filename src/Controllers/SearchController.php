@@ -5,6 +5,7 @@ namespace Moonlight\Controllers;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Response;
 use Moonlight\Main\Element;
 use Moonlight\Models\Favorite;
 use Moonlight\Models\FavoriteRubric;
@@ -19,7 +20,8 @@ class SearchController extends Controller
     /**
      * Sort items.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
     public function sort(Request $request)
@@ -39,7 +41,7 @@ class SearchController extends Controller
 
         if (in_array($sort, ['rate', 'date', 'name', 'default'])) {
             $search['sort'] = $sort;
-            $search = cache()->forever("search_items_{$loggedUser->id}", $search);
+            cache()->forever("search_items_{$loggedUser->id}", $search);
         }
 
         $html = $this->itemListView($currentItem);
@@ -138,13 +140,12 @@ class SearchController extends Controller
     /**
      * Show element list.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
     public function elements(Request $request)
     {
-        $scope = [];
-
         $loggedUser = Auth::guard('moonlight')->user();
 
         $class = $request->input('item');
@@ -204,6 +205,7 @@ class SearchController extends Controller
             }
         }
 
+        $currentItemClass = $currentItem->getClass();
         $propertyList = $currentItem->getPropertyList();
 
         if (! $loggedUser->isSuperUser()) {
@@ -292,16 +294,16 @@ class SearchController extends Controller
         foreach ($orderByList as $field => $direction) {
             $property = $currentItem->getPropertyByName($field);
 
-            if ($property instanceof OrderProperty) {
+            if ($property->isOrder()) {
                 $criteria->orderBy('id', 'desc');
                 $orders['id'] = 'порядку добавления';
-            } elseif ($property->getName() == 'created_at') {
+            } elseif ($property->getName() == $currentItemClass->getCreatedAtColumn()) {
                 $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате создания';
-            } elseif ($property->getName() == 'updated_at') {
+            } elseif ($property->getName() == $currentItemClass->getUpdatedAtColumn()) {
                 $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате изменения';
-            } elseif ($property->getName() == 'deleted_at') {
+            } elseif ($property->getName() == $currentItemClass->getDeletedAtColumn()) {
                 $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате удаления';
             } else {
@@ -343,8 +345,8 @@ class SearchController extends Controller
             );
 
             if (
-                $property instanceof PasswordProperty
-                || $property->getHidden()
+                $property->getHidden()
+                || $property->getName() == $currentItemClass->getDeletedAtColumn()
                 || ! $show
             ) {
                 continue;
@@ -355,10 +357,9 @@ class SearchController extends Controller
 
         foreach ($propertyList as $property) {
             if (
-                $property instanceof MainProperty
-                || $property instanceof PasswordProperty
-                || $property->getHidden()
-                || $property->getName() == 'deleted_at'
+                $property->getHidden()
+                || ! $property->isShowEditable()
+                || $property->getName() == $currentItemClass->getDeletedAtColumn()
             ) {
                 continue;
             }
@@ -377,22 +378,23 @@ class SearchController extends Controller
 
         foreach ($elements as $element) {
             foreach ($properties as $property) {
+                $classId = Element::getClassId($element);
+
                 if (
                     $property->getEditable()
                     && ! $property->getReadonly()
                 ) {
                     $propertyScope = $property->setElement($element)->getEditableView();
-
-                    $views[Element::getClassId($element)][$property->getName()] = view(
-                        'moonlight::properties.'.$property->getClassName().'.editable', $propertyScope
-                    )->render();
+                    $suffix = 'editable';
                 } else {
                     $propertyScope = $property->setElement($element)->getListView();
-
-                    $views[Element::getClassId($element)][$property->getName()] = view(
-                        'moonlight::properties.'.$property->getClassName().'.list', $propertyScope
-                    )->render();
+                    $suffix = 'list';
                 }
+
+                $views[$classId][$property->getName()] = view(
+                    "moonlight::properties.{$property->getClassName()}.$suffix",
+                    $propertyScope
+                )->render();
             }
         }
 
@@ -402,13 +404,11 @@ class SearchController extends Controller
         $unbindPropertyViews = [];
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) {
-                continue;
-            }
-            if (! $property->isOneToOne()) {
-                continue;
-            }
-            if (! $property->getParent()) {
+            if (
+                $property->getHidden()
+                || ! $property->isOneToOne()
+                || ! $property->getParent()
+            ) {
                 continue;
             }
 
@@ -426,10 +426,10 @@ class SearchController extends Controller
         }
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) {
-                continue;
-            }
-            if (! $property->isManyToMany()) {
+            if (
+                $property->getHidden()
+                || ! $property->isManyToMany()
+            ) {
                 continue;
             }
 
@@ -516,6 +516,7 @@ class SearchController extends Controller
             return redirect()->route('moonlight.search');
         }
 
+        $currentItemClass = $currentItem->getClass();
         $propertyList = $currentItem->getPropertyList();
 
         $properties = [];
@@ -523,19 +524,18 @@ class SearchController extends Controller
         $links = [];
         $views = [];
         $orderProperties = [];
-        $ones = [];
         $hasOrderProperty = false;
 
         foreach ($propertyList as $property) {
-            if ($property instanceof OrderProperty) {
+            if ($property->isOrder()) {
                 $orderProperties[] = $property;
                 $hasOrderProperty = true;
             }
 
-            if ($property->getHidden()) {
-                continue;
-            }
-            if ($property->getName() == 'deleted_at') {
+            if (
+                $property->getHidden()
+                || $property->getName() == $currentItemClass->getDeletedAtColumn()
+            ) {
                 continue;
             }
 
@@ -543,10 +543,10 @@ class SearchController extends Controller
         }
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) {
-                continue;
-            }
-            if ($property->getName() == 'deleted_at') {
+            if (
+                $property->getHidden()
+                || $property->getName() == $currentItemClass->getDeletedAtColumn()
+            ) {
                 continue;
             }
 
@@ -669,7 +669,7 @@ class SearchController extends Controller
             $activeProperties[$item->getNameId()][$property->getName()] = 1;
         }
 
-        $search = cache()->forever("search_properties_{$loggedUser->id}", $activeProperties);
+        cache()->forever("search_properties_{$loggedUser->id}", $activeProperties);
 
         return response()->json($scope);
     }
@@ -677,8 +677,6 @@ class SearchController extends Controller
     public function index(Request $request)
     {
         $scope = [];
-
-        $loggedUser = Auth::guard('moonlight')->user();
 
         $items = $this->itemListView();
 

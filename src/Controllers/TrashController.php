@@ -240,7 +240,7 @@ class TrashController extends Controller
         if (isset($order['field']) && isset($order['direction'])) {
             $orderByList = [$order['field'] => $order['direction']];
         } else {
-            $orderByList = ['deleted_at' => 'desc'];
+            $orderByList = [$currentItemClass->getDeletedAtColumn() => 'desc'];
         }
 
         $orders = [];
@@ -248,11 +248,13 @@ class TrashController extends Controller
         foreach ($orderByList as $field => $direction) {
             $property = $currentItem->getPropertyByName($field);
 
-            if ($property->isOrder()) {
-                $criteria->orderBy($currentItemClass->getDeletedAtColumn(), 'desc');
-                $orders[$currentItemClass->getDeletedAtColumn()] = 'дате удаления';
-            } elseif ($property->getName() == $currentItemClass->getCreatedAtColumn()) {
-                $criteria->orderBy($field, $direction);
+            if (! $property) {
+                continue;
+            }
+
+            $criteria->orderBy($field, $direction);
+
+            if ($property->getName() == $currentItemClass->getCreatedAtColumn()) {
                 $orders[$field] = 'дате создания';
             } elseif ($property->getName() == $currentItemClass->getUpdatedAtColumn()) {
                 $criteria->orderBy($field, $direction);

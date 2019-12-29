@@ -41,7 +41,6 @@ class BrowseController extends Controller
         $site = \App::make('site');
 
         $currentItem = $site->getItemByName($class);
-        $currentItemClass = $currentItem->getClass();
 
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
@@ -1601,19 +1600,16 @@ class BrowseController extends Controller
         $views = [];
 
         foreach ($propertyList as $property) {
-            if (
-                $property->getHidden()
-                || $property->getName() == $currentItemClass->getDeletedAtColumn()
-            ) {
-                continue;
-            }
-
             $show = cache()->get(
                 "show_column_{$loggedUser->id}_{$currentItem->getNameId()}_{$property->getName()}",
                 $property->getShow()
             );
 
-            if (! $show) {
+            if (
+                $property->getHidden()
+                || $property->getName() == $currentItemClass->getDeletedAtColumn()
+                || ! $show
+            ) {
                 continue;
             }
 
