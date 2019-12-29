@@ -44,9 +44,4 @@ class PasswordProperty extends BaseProperty
 	{
 		return null;
 	}
-
-    public function isShowEditable()
-    {
-        return false;
-    }
 }
