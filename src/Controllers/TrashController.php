@@ -4,12 +4,10 @@ namespace Moonlight\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Response;
 use Moonlight\Main\Element;
 use Moonlight\Main\UserActionType;
 use Moonlight\Models\UserAction;
-use Moonlight\Properties\MainProperty;
-use Moonlight\Properties\OrderProperty;
-use Moonlight\Properties\PasswordProperty;
 
 class TrashController extends Controller
 {
@@ -18,6 +16,7 @@ class TrashController extends Controller
     /**
      * Return the count of element list.
      *
+     * @param $item
      * @return Response
      */
     public function count($item)
@@ -94,7 +93,8 @@ class TrashController extends Controller
     /**
      * Show element list.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
     public function elements(Request $request)
@@ -146,9 +146,7 @@ class TrashController extends Controller
 
         $site = \App::make('site');
 
-        /*
-         * Item plugin
-         */
+        // Item plugin
         $itemPluginView = null;
 
         $itemPlugin = $site->getItemPlugin($currentItem->getNameId());
@@ -162,6 +160,7 @@ class TrashController extends Controller
             }
         }
 
+        $currentItemClass = $currentItem->getClass();
         $propertyList = $currentItem->getPropertyList();
 
         if (! $loggedUser->isSuperUser()) {
@@ -211,8 +210,7 @@ class TrashController extends Controller
         $criteria = $currentItem->getClass()->onlyTrashed()->where(
             function ($query) use ($loggedUser, $currentItem, $propertyList, $request) {
                 foreach ($propertyList as $property) {
-                    $property->setRequest($request);
-                    $query = $property->searchQuery($query);
+                    $query = $property->setRequest($request)->searchQuery($query);
                 }
             }
         );
@@ -250,16 +248,16 @@ class TrashController extends Controller
         foreach ($orderByList as $field => $direction) {
             $property = $currentItem->getPropertyByName($field);
 
-            if ($property instanceof OrderProperty) {
-                $criteria->orderBy('deleted_at', 'desc');
-                $orders['deleted_at'] = 'дате удаления';
-            } elseif ($property->getName() == 'created_at') {
+            if ($property->isOrder()) {
+                $criteria->orderBy($currentItemClass->getDeletedAtColumn(), 'desc');
+                $orders[$currentItemClass->getDeletedAtColumn()] = 'дате удаления';
+            } elseif ($property->getName() == $currentItemClass->getCreatedAtColumn()) {
                 $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате создания';
-            } elseif ($property->getName() == 'updated_at') {
+            } elseif ($property->getName() == $currentItemClass->getUpdatedAtColumn()) {
                 $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате изменения';
-            } elseif ($property->getName() == 'deleted_at') {
+            } elseif ($property->getName() == $currentItemClass->getDeletedAtColumn()) {
                 $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате удаления';
             } else {
@@ -297,12 +295,15 @@ class TrashController extends Controller
         foreach ($propertyList as $property) {
             $show = cache()->get(
                 "show_column_{$loggedUser->id}_{$currentItem->getNameId()}_{$property->getName()}",
-                $property->getName() == 'deleted_at' ? true : $property->getShow()
+                $property->getShow()
             );
 
+            if ($property->getName() == $currentItemClass->getDeletedAtColumn()) {
+                $show = true;
+            }
+
             if (
-                $property instanceof PasswordProperty
-                || $property->getHidden()
+                $property->getHidden()
                 || ! $show
             ) {
                 continue;
@@ -313,16 +314,16 @@ class TrashController extends Controller
 
         foreach ($propertyList as $property) {
             if (
-                $property instanceof MainProperty
-                || $property instanceof PasswordProperty
-                || $property->getHidden()
+                $property->getHidden()
+                || ! $property->isShowEditable()
+                || $property->getName() == $currentItemClass->getDeletedAtColumn()
             ) {
                 continue;
             }
 
             $show = cache()->get(
                 "show_column_{$loggedUser->id}_{$currentItem->getNameId()}_{$property->getName()}",
-                $property->getName() == 'deleted_at' ? true : $property->getShow()
+                $property->getShow()
             );
 
             $columns[] = [
@@ -371,7 +372,9 @@ class TrashController extends Controller
     /**
      * Restore element.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @param $classId
+     * @return \Illuminate\Http\JsonResponse
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function restore(Request $request, $classId)
@@ -393,8 +396,6 @@ class TrashController extends Controller
 
             return response()->json($scope);
         }
-
-        $site = \App::make('site');
 
         $currentItem = Element::getItem($element);
 
@@ -420,7 +421,9 @@ class TrashController extends Controller
     /**
      * Delete element.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @param $classId
+     * @return \Illuminate\Http\JsonResponse
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function delete(Request $request, $classId)
@@ -442,8 +445,6 @@ class TrashController extends Controller
 
             return response()->json($scope);
         }
-
-        $site = \App::make('site');
 
         $currentItem = Element::getItem($element);
 
@@ -475,7 +476,9 @@ class TrashController extends Controller
     /**
      * View element.
      *
-     * @return View
+     * @param \Illuminate\Http\Request $request
+     * @param $classId
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      * @throws \Throwable
      */
     public function view(Request $request, $classId)
@@ -552,6 +555,7 @@ class TrashController extends Controller
     /**
      * Return the total count of element list.
      *
+     * @param $item
      * @return Response
      */
     public function total($item)
@@ -655,7 +659,7 @@ class TrashController extends Controller
         return view('moonlight::trashItem', $scope);
     }
 
-    public function index(Request $request)
+    public function index()
     {
         $scope = [];
 

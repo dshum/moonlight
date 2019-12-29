@@ -15,13 +15,6 @@ use Moonlight\Main\UserActionType;
 use Moonlight\Models\Favorite;
 use Moonlight\Models\FavoriteRubric;
 use Moonlight\Models\UserAction;
-use Moonlight\Properties\FileProperty;
-use Moonlight\Properties\ImageProperty;
-use Moonlight\Properties\MainProperty;
-use Moonlight\Properties\ManyToManyProperty;
-use Moonlight\Properties\OrderProperty;
-use Moonlight\Properties\PasswordProperty;
-use Moonlight\Properties\VirtualProperty;
 
 class BrowseController extends Controller
 {
@@ -48,6 +41,7 @@ class BrowseController extends Controller
         $site = \App::make('site');
 
         $currentItem = $site->getItemByName($class);
+        $currentItemClass = $currentItem->getClass();
 
         if (! $currentItem) {
             $scope['error'] = 'Класс элементов не найден.';
@@ -1607,7 +1601,10 @@ class BrowseController extends Controller
         $views = [];
 
         foreach ($propertyList as $property) {
-            if ($property->getHidden()) {
+            if (
+                $property->getHidden()
+                || $property->getName() == $currentItemClass->getDeletedAtColumn()
+            ) {
                 continue;
             }
 

@@ -16,10 +16,6 @@ class PasswordProperty extends BaseProperty
 
 	public function set()
 	{
-        if ($this->getHidden() || $this->getReadonly()) {
-            return $this;
-        }
-
 		$name = $this->getName();
 		$value = $this->buildInput();
 
