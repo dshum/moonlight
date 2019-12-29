@@ -45,11 +45,6 @@ class PasswordProperty extends BaseProperty
 		return null;
 	}
 
-    public function getListView()
-    {
-        return null;
-    }
-
     public function isShowEditable()
     {
         return false;
