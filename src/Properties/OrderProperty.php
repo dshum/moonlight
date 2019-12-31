@@ -40,7 +40,14 @@ class OrderProperty extends BaseProperty
 
     public function set()
     {
+        $item = $this->getItem();
+        $relatedPropertyName = $this->getRelatedProperty();
+        $relatedProperty = $item->getPropertyByName($relatedPropertyName);
         $name = $this->getName();
+
+        if ($relatedProperty && $relatedProperty->isManyToMany()) {
+            return $this;
+        }
 
         if ($this->element->$name === null) {
             $order = $this->element->max($name);
