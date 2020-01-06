@@ -162,7 +162,7 @@ class BrowseController extends Controller
 
             $relatedClass = $relatedProperty ? $relatedProperty->getRelatedClass() : null;
 
-            if ($relatedClass != $currentElementClass) {
+            if ($relatedClass && $relatedClass != $currentElementClass) {
                 continue;
             }
 
