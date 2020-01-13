@@ -647,7 +647,7 @@ class BrowseController extends Controller
         }
 
         if (! sizeof($elements)) {
-            $scope['error'] = 'Нет элементов для переноса.';
+            $scope['error'] = 'Нет элементов для привязывания.';
 
             return response()->json($scope);
         }
@@ -672,9 +672,13 @@ class BrowseController extends Controller
             $value = $ones[$propertyName];
 
             foreach ($elements as $element) {
-                $property->setElement($element)->attach($value);
-
-                $element->save();
+                if ($property->getOrderField()) {
+                    $property->setElement($element)->attach([
+                        $value => [$property->getOrderField() => $element->id]
+                    ]);
+                } else {
+                    $property->setElement($element)->attach($value);
+                }
 
                 $attached[] = Element::getClassId($element);
             }
@@ -739,7 +743,7 @@ class BrowseController extends Controller
         }
 
         if (! sizeof($elements)) {
-            $scope['error'] = 'Нет элементов для переноса.';
+            $scope['error'] = 'Нет элементов для отвязывания.';
 
             return response()->json($scope);
         }
@@ -765,8 +769,6 @@ class BrowseController extends Controller
 
             foreach ($elements as $element) {
                 $property->setElement($element)->detach($value);
-
-                $element->save();
 
                 $detached[] = Element::getClassId($element);
             }
