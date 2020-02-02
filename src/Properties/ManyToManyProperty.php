@@ -178,7 +178,7 @@ class ManyToManyProperty extends BaseProperty
 	{
         $name = $this->getName();
 
-        $this->element->{$name}()->attach($id);
+        $this->element->{$name}()->syncWithoutDetaching($id);
 
 		return $this;
 	}
