@@ -672,12 +672,18 @@ class BrowseController extends Controller
             $value = $ones[$propertyName];
 
             foreach ($elements as $element) {
+                $property->setElement($element);
+
+                if ($property->find($value)) {
+                    continue;
+                }
+
                 if ($property->getOrderField()) {
-                    $property->setElement($element)->attach([
+                    $property->attach([
                         $value => [$property->getOrderField() => $element->id]
                     ]);
                 } else {
-                    $property->setElement($element)->attach($value);
+                    $property->attach($value);
                 }
 
                 $attached[] = Element::getClassId($element);

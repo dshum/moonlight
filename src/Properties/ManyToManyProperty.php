@@ -165,6 +165,13 @@ class ManyToManyProperty extends BaseProperty
 		return $this;
 	}
 
+	public function find($id)
+    {
+        $name = $this->getName();
+
+        return $this->element->{$name}()->find($id);
+    }
+
 	public function sync($ids)
 	{
         $name = $this->getName();
@@ -178,7 +185,7 @@ class ManyToManyProperty extends BaseProperty
 	{
         $name = $this->getName();
 
-        $this->element->{$name}()->syncWithoutDetaching($id);
+        $this->element->{$name}()->attach($id);
 
 		return $this;
 	}
