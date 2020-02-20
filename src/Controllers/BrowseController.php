@@ -1904,11 +1904,7 @@ class BrowseController extends Controller
             }
         }
 
-        $orderByList = $currentItem->getOrderByList();
-
-        foreach ($orderByList as $field => $direction) {
-            $criteria->orderBy($field, $direction);
-        }
+        $criteria->orderBy('id', 'asc');
 
         $elements = $criteria->limit(static::PER_PAGE)->get();
 
@@ -1976,7 +1972,7 @@ class BrowseController extends Controller
         $browsePlugin = $site->getBrowsePlugin($classId);
 
         if ($browsePlugin) {
-            $view = \App::make($browsePlugin)->index($element);
+            $view = \App::make($browsePlugin)->index($request, $element);
 
             if ($view) {
                 $browsePluginView = is_string($view)
