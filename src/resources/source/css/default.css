@@ -805,19 +805,6 @@ ul.header .dropdown ul > li.checked span.eye {
     background-color: #395;
 }
 
-div.empty {
-    margin: 2rem 0;
-    clear: both;
-}
-
-div.empty > div:last-child {
-    display: table;
-    background-color: slateblue;
-    color: white;
-    padding: 2px 5px;
-    border-radius: 2px;
-}
-
 /* Table buttons */
 
 .buttons {
