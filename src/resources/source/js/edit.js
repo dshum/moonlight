@@ -535,12 +535,14 @@ $(function () {
 
     $('.sidebar .elements .h2 span').click(function () {
         var block = $(this).parents('.elements');
-        var rubric = block.attr('rubric');
-        var display = block.attr('display');
+        var rubric = block.data('rubric');
+        var display = block.data('display');
         var ul = block.find('ul').first();
 
+        console.log(display);
+
         if (display == 'show') {
-            block.attr('display', 'hide');
+            block.data('display', 'hide');
             ul.hide();
 
             $.post('/moonlight/rubrics/close', {
@@ -548,7 +550,7 @@ $(function () {
             });
 
         } else if (display == 'hide') {
-            block.attr('display', 'show');
+            block.data('display', 'show');
             ul.show();
 
             $.post('/moonlight/rubrics/open', {
@@ -564,7 +566,7 @@ $(function () {
 
                 if (data.html) {
                     block.append(data.html);
-                    block.attr('display', 'show');
+                    block.data('display', 'show');
                 }
             });
         }
@@ -573,15 +575,13 @@ $(function () {
     $('body').on('click', '.sidebar .elements span.open', function () {
         var span = $(this);
         var li = span.parents('li').first();
-        var rubric = span.attr('rubric');
-        var bind = span.attr('bind');
-        var classId = span.attr('classId');
-        var display = span.attr('display');
+        var rubric = span.data('rubric');
+        var classId = span.data('class-id');
+        var display = span.data('display');
 
         if (display == 'show') {
-            $('.sidebar .elements ul[node="' + classId + '"]').slideUp(200);
-
-            span.attr('display', 'hide');
+            $('.sidebar .elements ul[data-node="' + classId + '"]').slideUp(200);
+            span.data('display', 'hide').removeClass('rotate');
 
             $.post('/moonlight/rubrics/node/close', {
                 rubric: rubric,
@@ -589,9 +589,8 @@ $(function () {
             });
 
         } else if (display == 'hide') {
-            $('.sidebar .elements ul[node="' + classId + '"]').slideDown(200);
-
-            span.attr('display', 'show');
+            $('.sidebar .elements ul[data-node="' + classId + '"]').slideDown(200);
+            span.data('display', 'show').addClass('rotate');
 
             $.post('/moonlight/rubrics/node/open', {
                 rubric: rubric,
@@ -602,15 +601,13 @@ $(function () {
 
             $.getJSON('/moonlight/rubrics/node/get', {
                 rubric: rubric,
-                bind: bind,
-                classId: classId
-            }, function (data) {
+                class_id: classId
+            }, function (response) {
                 $.unblockUI();
 
-                if (data.html) {
-                    $(data.html).hide().appendTo(li).slideDown(200);
-
-                    span.attr('display', 'show');
+                if (response.html) {
+                    $(response.html).hide().appendTo(li).slideDown(200);
+                    span.data('display', 'show').addClass('rotate');
                 }
             });
         }
@@ -627,10 +624,10 @@ $(function () {
         var left = a.offset().left;
         var top = a.offset().top - sidebar.offset().top + a.height() + 2;
 
-        menu.find('li.title span').html(a.text());
-        menu.find('li.title small').html(a.attr('item'));
-        menu.find('li.edit a').attr('href', a.attr('href') + '/edit');
-        menu.find('li.browse a').attr('href', a.attr('href'));
+        menu.find('li.title > span').text(a.text());
+        menu.find('li.title > small').text(a.data('item-title'));
+        menu.find('li.edit > a').attr('href', a.data('edit-url'));
+        menu.find('li.browse > a').attr('href', a.attr('href'));
 
         if (top + menu.height() > $(window).height()) {
             if (top - menu.height() - a.height() - 4 < 0) {

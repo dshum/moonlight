@@ -1,1 +1,1 @@
-table.users.elements{width:auto}table.users td{padding:1rem 1rem}table.users td div{margin-bottom:.5rem}table.users th.remove,table.users td.remove{text-align:center;padding-left:.5rem;padding-right:.5rem;cursor:pointer}table.users td.remove .fa{color:crimson}
+table.users.elements{width:auto}table.users th,table.users td{padding:.5rem 1rem!important}table.users td div{margin-bottom:.5rem}table.users th.remove,table.users td.remove{text-align:center;cursor:pointer}table.users th.remove .fa{width:1rem}table.users td.remove .fa{width:1rem;color:crimson}
