@@ -36,7 +36,7 @@ abstract class BaseProperty
 
     public function getClassName()
     {
-        return class_basename(get_class($this));
+        return class_basename($this);
     }
 
     public function getItem()
@@ -47,10 +47,7 @@ abstract class BaseProperty
     public function setItem(Item $item)
     {
         $this->item = $item;
-
-        $itemClass = $item->getName();
-
-        $this->itemClass = new $itemClass;
+        $this->itemClass = $item->getClass();
 
         return $this;
     }
@@ -58,11 +55,6 @@ abstract class BaseProperty
     public function getItemClass()
     {
         return $this->itemClass;
-    }
-
-    public function getItemName()
-    {
-        return $this->item->getName();
     }
 
     public function getShow()
@@ -207,10 +199,6 @@ abstract class BaseProperty
 
     public function set()
     {
-        if ($this->getHidden() || $this->getReadonly()) {
-            return $this;
-        }
-
         $name = $this->getName();
         $value = $this->buildInput();
 
@@ -247,13 +235,11 @@ abstract class BaseProperty
 
     public function getListView()
     {
-        $scope = [
+        return [
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'value' => $this->getValue(),
         ];
-
-        return $scope;
     }
 
     public function getTitle()
@@ -282,14 +268,12 @@ abstract class BaseProperty
 
     public function getEditView()
     {
-        $scope = [
+        return [
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'value' => $this->getValue(),
             'readonly' => $this->getReadonly(),
         ];
-
-        return $scope;
     }
 
     public function getReadonly()
@@ -398,18 +382,8 @@ abstract class BaseProperty
         return true;
     }
 
-    public function isAlwaysVisible()
-    {
-        return false;
-    }
-
     public function refresh()
     {
         return true;
-    }
-
-    protected function camelize($input, $separator = '_')
-    {
-        return str_replace($separator, '', ucwords($input, $separator));
     }
 }

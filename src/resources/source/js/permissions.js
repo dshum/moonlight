@@ -1,8 +1,8 @@
-jQuery.expr[':'].contains = function(a, i, m) {
+jQuery.expr[':'].contains = function (a, i, m) {
     return jQuery(a).text().toUpperCase().indexOf(m[3].toUpperCase()) >= 0;
 };
 
-$(function() {
+$(function () {
     $('#filter').keyup(function () {
         var str = $(this).val();
 
@@ -37,32 +37,28 @@ $(function() {
         }
     });
 
-    $('table.permissions.elements tbody tr td[permission]').click(function() {
+    $('table.permissions.elements tbody tr td[data-permission]').click(function () {
         if ($(this).hasClass('active')) return false;
 
         var url = $('input[name="url"]').val();
         var group = $('input[name="group"]').val();
-        var item = $(this).parent('tr').attr('item');
-        var permission = $(this).attr('permission');
+        var item = $(this).parent('tr').data('item');
+        var permission = $(this).data('permission');
 
         $.blockUI();
 
-        $.post(
-            url,
-            {
-                item: item,
-                permission: permission
-            },
-            function(data) {
-                $.unblockUI();
+        $.post(url, {
+            item: item,
+            permission: permission
+        }, function (response) {
+            $.unblockUI();
 
-                if (data.error) {
-                    $.alert(data.error);
-                } else {
-                    $('table.permissions.elements tbody tr[item="' + item + '"] td[permission]').removeClass('active');
-                    $('table.permissions.elements tbody tr[item="' + item + '"] td[permission="' + permission + '"]').addClass('active');
-                }
+            if (response.error) {
+                $.alert(response.error);
+            } else {
+                $('table.permissions.elements tbody tr[data-item="' + item + '"] td[data-permission]').removeClass('active');
+                $('table.permissions.elements tbody tr[data-item="' + item + '"] td[data-permission="' + permission + '"]').addClass('active');
             }
-        );
+        });
     });
 });

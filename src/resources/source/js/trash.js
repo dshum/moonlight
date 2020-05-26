@@ -1,37 +1,39 @@
-jQuery.expr[':'].contains = function(a, i, m) {
+jQuery.expr[':'].contains = function (a, i, m) {
     return jQuery(a).text().toUpperCase().indexOf(m[3].toUpperCase()) >= 0;
 };
 
-$(function() {
+$(function () {
     var checked = {};
 
-    var getElements = function(item, addition) {
-        var form = $('form[name="trash-form"]');
+    var getElements = function (item, params) {
+        var form = $('form[name="search-form"]');
+        var itemContainer = $('div.item[data-item="' + item + '"]');
+        var url = itemContainer.data('url');
         var formData = new FormData(form[0]);
-        var params = {
+        var data = {
             item: item
         };
 
-        if (addition) {
-            for (var index in addition) {
-                params[index] = addition[index];
-            }
+        for (var pair of formData.entries()) {
+            data[pair[0]] = pair[1];
         }
 
-        for(var pair of formData.entries()) {
-            params[pair[0]] = pair[1];
+        if (params) {
+            for (var index in params) {
+                data[index] = params[index];
+            }
         }
 
         $.blockUI();
 
         $.ajax({
-            url: '/moonlight/trash/list',
-            data: params
+            url: url,
+            data: data
         }).done(function (response) {
             $.unblockUI();
 
             if (response.html) {
-                $('.list-container').html(response.html);
+                itemContainer.html(response.html);
             }
         }).fail(function (response) {
             $.unblockUI();
@@ -39,10 +41,11 @@ $(function() {
         });
     };
 
-    var submit = function(page) {
-        $('input:hidden[name="page"]').val(page);
+    var submit = function (item, page) {
+        var form = $('form[name="search-form"]');
 
-        $('form[name="trash-form"]').submit();
+        form.find('input:hidden[name="page"]').val(page);
+        form.submit();
     };
 
     $('body').on('keyup change', '#filter', function () {
@@ -56,62 +59,70 @@ $(function() {
         }
     });
 
-    $('.search-form-links div.link').click(function() {
-        var item = $(this).attr('item');
-        var name = $(this).attr('name');
+    $('.search-form-links div.link').click(function () {
+        var searchFormContainer = $(this).parents('div.search-form[data-item]');
+        var item = searchFormContainer.data('item');
+        var name = $(this).data('name');
         var active = ! $(this).hasClass('active');
 
         $(this).toggleClass('active');
-        $('.search-form-params div.block[name="' + name + '"]').toggleClass('active');
+        $('.search-form-params div.block[data-name="' + name + '"]').toggleClass('active');
 
         if (active) {
-            $('.search-form-params div.block[name="' + name + '"]')
+            $('.search-form-params div.block[data-name="' + name + '"]')
                 .find('input, select')
                 .removeAttr('disabled');
         } else {
-            $('.search-form-params div.block[name="' + name + '"]')
+            $('.search-form-params div.block[data-name="' + name + '"]')
                 .find('input, select')
                 .attr('disabled', 'disabled');
         }
 
-        $.post('/moonlight/search/active/' + item + '/' + name, {
+        $.post('/moonlight/search/active', {
+            item: item,
+            name: name,
             active: active
         });
     });
 
-    $('.search-form-params div.close').click(function() {
-        var item = $(this).attr('item');
-        var name = $(this).attr('name');
+    $('.search-form-params div.close').click(function () {
+        var searchFormContainer = $(this).parents('div.search-form[data-item]');
+        var item = searchFormContainer.data('item');
+        var name = $(this).data('name');
 
-        $('.search-form-links div.link[name="' + name + '"]').removeClass('active');
-        $('.search-form-params div.block[name="' + name + '"]').removeClass('active');
-        $('.search-form-params div.block[name="' + name + '"]')
+        $('.search-form-links div.link[data-name="' + name + '"]').removeClass('active');
+        $('.search-form-params div.block[data-name="' + name + '"]').removeClass('active');
+        $('.search-form-params div.block[data-name="' + name + '"]')
             .find('input, select')
             .attr('disabled', 'disabled');
 
-        $.post('/moonlight/search/active/' + item + '/' + name, {
+        $.post('/moonlight/search/active', {
+            item: item,
+            name: name,
             active: false
         });
     });
 
-    $('.search-form-params div.block[name]:not(.active)')
+    $('.search-form-params div.block[data-name]:not(.active)')
         .find('input, select')
         .attr('disabled', 'disabled');
 
-    $('.search-form-params input[name].date').calendar({
+    $('.search-form-params input.date').calendar({
         dateFormat: '%Y-%m-%d'
     });
 
-    $('.search-form-params input.one').each(function() {
+    $('.search-form-params input.one').each(function () {
+        var searchFormContainer = $(this).parents('div.search-form[data-item]');
+        var item = searchFormContainer.data('item');
         var parent = $(this).parents('div.row');
-        var item = $(this).attr('item');
-        var name = $(this).attr('property');
+        var name = $(this).data('property');
         var width = $(this).outerWidth() - 2;
 
         $(this).autocomplete({
             serviceUrl: '/moonlight/elements/autocomplete',
             params: {
-                item: item
+                item: item,
+                mode: 'trash'
             },
             onSelect: function (suggestion) {
                 parent.find('input:hidden[name="' + name + '"]').val(suggestion.id);
@@ -121,28 +132,28 @@ $(function() {
         });
     });
 
-    $('.search-form-params .addition.unset[property]').click(function() {
+    $('.search-form-params .addition.unset[data-property]').click(function () {
         var parent = $(this).parents('div.row');
-        var name = $(this).attr('property');
+        var name = $(this).data('property');
 
         parent.find('input:hidden[name="' + name + '"]').val('');
         parent.find('input:text[name="' + name + '_autocomplete"]').val('');
     });
 
-    $('body').on('click', 'table.elements th span[resetorder]', function() {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
+    $('body').on('click', 'table.elements th span[data-reset-order]', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
 
         getElements(item, {
             resetorder: true
         });
     });
 
-    $('body').on('click', 'table.elements th span[order][direction]', function() {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
-        var order = $(this).attr('order');
-        var direction = $(this).attr('direction');
+    $('body').on('click', 'table.elements th span[data-order][data-direction]', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var order = $(this).data('order');
+        var direction = $(this).data('direction');
 
         getElements(item, {
             order: order,
@@ -150,11 +161,11 @@ $(function() {
         });
     });
 
-    $('body').on('click', 'th.check', function() {
+    $('body').on('click', 'th.check', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var tr = $(this).parent();
         var table = tr.parents('table');
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
 
         if (typeof checked[item] === 'undefined') {
             checked[item] = [];
@@ -165,14 +176,14 @@ $(function() {
 
             tr.removeClass('checked');
 
-            table.find('tbody tr').each(function() {
+            table.find('tbody tr').each(function () {
                 $(this).removeClass('checked');
             });
         } else {
             tr.addClass('checked');
 
-            table.find('tbody tr').each(function() {
-                var elementId = $(this).attr('elementId');
+            table.find('tbody tr').each(function () {
+                var elementId = $(this).data('element-id');
                 var index = checked[item].indexOf(elementId);
 
                 if (index === -1) {
@@ -192,11 +203,11 @@ $(function() {
         }
     });
 
-    $('body').on('click', 'td.check', function() {
+    $('body').on('click', 'td.check', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var tr = $(this).parent();
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
-        var elementId = tr.attr('elementId');
+        var elementId = tr.data('element-id');
 
         if (typeof checked[item] === 'undefined') {
             checked[item] = [];
@@ -227,149 +238,131 @@ $(function() {
         }
     });
 
-    $('body').on('click', '.button.restore.enabled', function() {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
+    $('body').on('click', '.button.restore.enabled', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
 
-        $.confirm(null, '.confirm[id="' + item + '_restore"]');
+        $.confirm(null, 'div.item[data-item="' + item + '"] .confirm[data-confirm-type="restore"]');
     });
 
-    $('body').on('click', '.button.delete.enabled', function() {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
+    $('body').on('click', '.button.delete.enabled', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
 
-        $.confirm(null, '.confirm[id="' + item + '_delete"]');
+        $.confirm(null, 'div.item[data-item="' + item + '"] .confirm[data-confirm-type="delete"]');
     });
 
-    $('body').on('click', '.confirm .btn.restore', function() {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
+    $('body').on('click', '.confirm .btn.restore, .confirm .btn.remove', function () {
+        var confirmContainer = $(this).parents('.confirm');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var url = confirmContainer.data('url');
 
         $.confirmClose();
         $.blockUI();
 
-        $.post(
-            '/moonlight/elements/restore',
-            {
-                item: item,
-                checked: checked[item]
-            },
-            function(data) {
-                $.unblockUI(function() {
-                    if (data.error) {
-                        $.alert(data.error);
-                    } else if (data.restored) {
-                        getElements(item);
-                    }
-                });
-            }
-        );
+        $.post(url, {
+            item: item,
+            checked: checked[item]
+        }, function (response) {
+            $.unblockUI(function () {
+                if (response.error) {
+                    $.alert(response.error);
+                } else if (response.deleted) {
+                    getElements(item);
+                }
+            });
+        });
     });
 
-    $('body').on('click', '.confirm .btn.remove', function() {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
-
-        $.confirmClose();
-        $.blockUI();
-
-        $.post(
-            '/moonlight/elements/delete/force',
-            {
-                item: item,
-                checked: checked[item]
-            },
-            function(data) {
-                $.unblockUI(function() {
-                    if (data.error) {
-                        $.alert(data.error);
-                    } else if (data.deleted) {
-                        getElements(item);
-                    }
-                });
-            }
-        );
-    });
-
-    $('body').on('click', 'ul.pager > li[prev].active', function () {
+    $('body').on('click', 'ul.pager > li[data-link="prev"].active', function () {
+        var itemContainer = li.parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var pager = $(this).parent();
-        var item = pager.attr('item');
-        var page = parseInt(pager.attr('page')) - 1;
+        var page = parseInt(pager.data('page')) - 1;
 
         if (page < 1) page = 1;
 
-        submit(page);
+        submit(item, page);
     });
 
-    $('body').on('click', 'ul.pager > li[first].active', function () {
+    $('body').on('click', 'ul.pager > li[data-link="first"].active', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var pager = $(this).parent();
-        var item = pager.attr('item');
 
-        submit(1);
+        submit(item, 1);
     });
 
     $('body').on('keydown', 'ul.pager > li.page > input', function (event) {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var pager = $(this).parents('ul.pager');
-        var item = pager.attr('item');
         var page = parseInt($(this).val());
-        var last = parseInt(pager.attr('last'));
+        var last = parseInt(pager.data('last'));
         var code = event.keyCode || event.which;
 
         if (code === 13) {
             if (isNaN(page) || page < 1) page = 1;
             if (page > last) page = last;
 
-            submit(page);
+            submit(item, page);
         }
     });
 
-    $('body').on('click', 'ul.pager > li[last].active', function () {
+    $('body').on('click', 'ul.pager > li[data-link="last"].active', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var pager = $(this).parent();
-        var item = pager.attr('item');
-        var last = pager.attr('last');
+        var last = pager.data('last');
 
-        submit(last);
+        submit(item, last);
     });
 
-    $('body').on('click', 'ul.pager > li[next].active', function () {
+    $('body').on('click', 'ul.pager > li[data-link="next"].active', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var pager = $(this).parent();
-        var item = pager.attr('item');
-        var page = parseInt(pager.attr('page')) + 1;
-        var last = parseInt(pager.attr('last'));
+        var page = parseInt(pager.data('page')) + 1;
+        var last = parseInt(pager.data('last'));
 
         if (page > last) page = last;
 
-        submit(page);
+        submit(item, page);
     });
 
-    $('body').on('click', 'li.column-toggler', function() {
+    $('body').on('click', 'li.column-toggler', function () {
         var li = $(this);
         var dropdown = li.find('.dropdown');
-        var display = li.attr('display');
+        var display = li.data('display');
 
         if (display == 'show') {
-            li.attr('display', 'hide');
+            li.data('display', 'hide').removeClass('open');
             dropdown.fadeOut(200);
         } else {
-            li.attr('display', 'show');
+            li.data('display', 'show').addClass('open');
             dropdown.fadeIn(200);
         }
     });
 
-    $('body').on('click', 'li.column-toggler .dropdown', function(e) {
+    $('body').on('click', 'li.column-toggler .dropdown', function (e) {
         e.stopPropagation();
     });
 
-    $('body').on('click', 'li.column-toggler .dropdown ul > li[show]', function(e) {
+    $('body').on('click', 'li.column-toggler .dropdown ul > li', function (e) {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var li = $(this);
-        var name = li.attr('name');
-        var show = li.attr('show');
-        var itemContainer = li.parents('div[item]');
-        var item = itemContainer.attr('item');
+        var name = li.data('name');
+        var show = li.data('show');
 
-        show = show == 'true' ? 'false' : 'true';
-
-        li.attr('show', show);
+        if (show == true) {
+            li.data('show', false).removeClass('checked');
+            show = false;
+        } else {
+            li.data('show', true).addClass('checked');
+            show = true;
+        }
 
         $.post('/moonlight/column', {
             item: item,
@@ -378,11 +371,11 @@ $(function() {
         });
     });
 
-    $('body').on('keyup change', 'li.column-toggler .dropdown ul > li.perpage input', $.debounce(function () {
+    $('body').on('keyup change', 'li.column-toggler .dropdown .perpage input', $.debounce(function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var input = $(this);
         var perpage = input.val();
-        var itemContainer = input.parents('div[item]');
-        var item = itemContainer.attr('item');
 
         $.post('/moonlight/perpage', {
             item: item,
@@ -390,11 +383,11 @@ $(function() {
         });
     }, 500));
 
-    $('body').on('keypress', 'li.column-toggler .dropdown ul > li.perpage input', function (event) {
+    $('body').on('keypress', 'li.column-toggler .dropdown .perpage input', function (event) {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var input = $(this);
         var perpage = input.val();
-        var itemContainer = input.parents('div[item]');
-        var item = itemContainer.attr('item');
 
         if (! event) event = window.event;
 
@@ -414,15 +407,15 @@ $(function() {
         }
     });
 
-    $('body').on('click', 'li.column-toggler .dropdown .btn', function(e) {
-        var itemContainer = $(this).parents('div[item]');
+    $('body').on('click', 'li.column-toggler .dropdown .btn', function (e) {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var li = $(this).parents('li.column-toggler');
         var dropdown = li.find('.dropdown');
-        var item = itemContainer.attr('item');
 
-        li.attr('display', 'hide');
+        li.data('display', 'hide');
 
-        dropdown.fadeOut(200, function() {
+        dropdown.fadeOut(200, function () {
             var url = new URL(location.href);
             var query_string = url.search;
             var search_params = new URLSearchParams(query_string);

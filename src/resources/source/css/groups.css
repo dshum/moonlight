@@ -2,8 +2,9 @@ table.groups.elements {
     width: auto;
 }
 
+table.groups th,
 table.groups td {
-    padding: 1rem 1rem;
+    padding: 0.5rem 1rem !important;
 }
 
 table.groups td div {
@@ -13,11 +14,14 @@ table.groups td div {
 table.groups th.remove,
 table.groups td.remove {
     text-align: center;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
     cursor: pointer;
 }
 
+table.groups th.remove .fa {
+    width: 1rem;
+}
+
 table.groups td.remove .fa {
+    width: 1rem;
     color: crimson;
 }

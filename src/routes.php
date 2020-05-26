@@ -1,225 +1,148 @@
 <?php
 
-use \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Support\Facades\Route;
 use Moonlight\Middleware\SessionNameMiddleware;
 use Moonlight\Middleware\GuestMiddleware;
 use Moonlight\Middleware\AuthMiddleware;
 use Moonlight\Middleware\HistoryMiddleware;
 use Moonlight\Middleware\QueryLogMiddleware;
 
-Route::group(['prefix' => 'moonlight'], function() {
-    Route::group(['middleware' => [
+Route::group([
+    'middleware' => [
         AddQueuedCookiesToResponse::class,
         SessionNameMiddleware::class,
         StartSession::class,
         GuestMiddleware::class,
         VerifyCsrfToken::class,
-    ]], function () {
-        Route::get('/login', ['as' => 'moonlight.login', 'uses' => 'Moonlight\Controllers\LoginController@index']);
+    ],
+], function () {
+    Route::get('/login', 'LoginController@index')->name('moonlight.login');
+    Route::post('/login', 'LoginController@login');
 
-        Route::post('/login', ['as' => 'moonlight.login', 'uses' => 'Moonlight\Controllers\LoginController@login']);
+    Route::get('/reset', 'ResetController@index')->name('moonlight.reset');
+    Route::post('/reset/send', 'ResetController@send')->name('moonlight.reset.send');
+    Route::get('/reset/create', 'ResetController@create')->name('moonlight.reset.create');
+    Route::post('/reset/save', 'ResetController@save')->name('moonlight.reset.save');
+});
 
-        Route::get('/reset', ['as' => 'moonlight.reset', 'uses' => 'Moonlight\Controllers\ResetController@index']);
-
-        Route::post('/reset/send', ['as' => 'moonlight.reset.send', 'uses' => 'Moonlight\Controllers\ResetController@send']);
-
-        Route::get('/reset/create', ['as' => 'moonlight.reset.create', 'uses' => 'Moonlight\Controllers\ResetController@create']);
-
-        Route::post('/reset/save', ['as' => 'moonlight.reset.save', 'uses' => 'Moonlight\Controllers\ResetController@save']);
-    });
-
-    Route::group(['middleware' => [
+Route::group([
+    'middleware' => [
         AddQueuedCookiesToResponse::class,
         SessionNameMiddleware::class,
         StartSession::class,
         AuthMiddleware::class,
         VerifyCsrfToken::class,
         QueryLogMiddleware::class,
-    ]], function () {
-        Route::get('/', ['as' => 'moonlight.home', 'uses' => 'Moonlight\Controllers\HomeController@index']);
-
-        Route::get('/logout', ['as' => 'moonlight.logout', 'uses' => 'Moonlight\Controllers\LoginController@logout']);
-
-        Route::get('/profile', ['as' => 'moonlight.profile', 'uses' => 'Moonlight\Controllers\ProfileController@index']);
-
-        Route::post('/profile', ['as' => 'moonlight.profile', 'uses' => 'Moonlight\Controllers\ProfileController@save']);
-
-        Route::get('/password', ['as' => 'moonlight.password', 'uses' => 'Moonlight\Controllers\PasswordController@index']);
-
-        Route::post('/password', ['as' => 'moonlight.password', 'uses' => 'Moonlight\Controllers\PasswordController@save']);
-
-        Route::get('/users', ['as' => 'moonlight.users', 'uses' => 'Moonlight\Controllers\UserController@users']);
-
-        Route::get('/users/create', ['as' => 'moonlight.user.create', 'uses' => 'Moonlight\Controllers\UserController@create']);
-
-        Route::post('/users/create', ['as' => 'moonlight.user.add', 'uses' => 'Moonlight\Controllers\UserController@add']);
-
-        Route::get('/users/{id}', ['as' => 'moonlight.user', 'uses' => 'Moonlight\Controllers\UserController@edit'])->
-        where(['id' => '[0-9]+']);
-
-        Route::post('/users/{id}', ['as' => 'moonlight.user.save', 'uses' => 'Moonlight\Controllers\UserController@save'])->
-        where(['id' => '[0-9]+']);
-
-        Route::post('/users/{id}/delete', ['as' => 'moonlight.user.delete', 'uses' => 'Moonlight\Controllers\UserController@delete'])->
-        where(['id' => '[0-9]+']);
-
-        Route::get('/groups', ['as' => 'moonlight.groups', 'uses' => 'Moonlight\Controllers\GroupController@groups']);
-
-        Route::get('/groups/create', ['as' => 'moonlight.group.create', 'uses' => 'Moonlight\Controllers\GroupController@create']);
-
-        Route::post('/groups/create', ['as' => 'moonlight.group.add', 'uses' => 'Moonlight\Controllers\GroupController@add']);
-
-        Route::get('/groups/{id}', ['as' => 'moonlight.group', 'uses' => 'Moonlight\Controllers\GroupController@edit'])->
-        where(['id' => '[0-9]+']);
-
-        Route::post('/groups/{id}', ['as' => 'moonlight.group.save', 'uses' => 'Moonlight\Controllers\GroupController@save'])->
-        where(['id' => '[0-9]+']);
-
-        Route::post('/groups/{id}/delete', ['as' => 'moonlight.group.delete', 'uses' => 'Moonlight\Controllers\GroupController@delete'])->
-        where(['id' => '[0-9]+']);
-
-        Route::get('groups/permissions/items/{id}', ['as' => 'moonlight.group.items', 'uses' => 'Moonlight\Controllers\PermissionController@itemPermissions'])->
-        where('id', '[0-9]+');
-
-        Route::post('groups/permissions/items/{id}', ['as' => 'moonlight.group.items', 'uses' => 'Moonlight\Controllers\PermissionController@saveItemPermission'])->
-        where('id', '[0-9]+');
-
-        Route::get('groups/permissions/elements/{id}/{class}', ['as' => 'moonlight.group.elements', 'uses' => 'Moonlight\Controllers\PermissionController@elementPermissions'])->
-        where('id', '[0-9]+');
-
-        Route::post('groups/permissions/elements/{id}/{class}', ['as' => 'moonlight.group.elements', 'uses' => 'Moonlight\Controllers\PermissionController@saveElementPermission'])->
-        where('id', '[0-9]+');
-
-        Route::get('/log', ['as' => 'moonlight.log', 'uses' => 'Moonlight\Controllers\LogController@index']);
-
-        Route::get('/log/next', ['as' => 'moonlight.log.next', 'uses' => 'Moonlight\Controllers\LogController@next']);
-
-        Route::get('/favorites/edit', ['as' => 'moonlight.favorites.edit', 'uses' => 'Moonlight\Controllers\HomeController@edit']);
-
-        Route::post('/favorites/order/rubrics', ['as' => 'moonlight.favorites.orderRubrics', 'uses' => 'Moonlight\Controllers\HomeController@orderRubrics']);
-
-        Route::post('/favorites/order/favorites', ['as' => 'moonlight.favorites.orderFavorites', 'uses' => 'Moonlight\Controllers\HomeController@orderFavorites']);
-
-        Route::post('/favorites/delete/rubric', ['as' => 'moonlight.favorites.deleteRubric', 'uses' => 'Moonlight\Controllers\HomeController@deleteRubric']);
-
-        Route::post('/favorites/delete/favorite', ['as' => 'moonlight.favorites.deleteFavorite', 'uses' => 'Moonlight\Controllers\HomeController@deleteFavorite']);
-
-        Route::get('/search', ['as' => 'moonlight.search', 'uses' => 'Moonlight\Controllers\SearchController@index']);
-
-        Route::post('/search/active/{class}/{name}', ['as' => 'moonlight.search.active', 'uses' => 'Moonlight\Controllers\SearchController@active']);
-
-        Route::get('/search/list', ['as' => 'moonlight.search.list', 'uses' => 'Moonlight\Controllers\SearchController@elements']);
-
-        Route::post('search/sort', ['as' => 'moonlight.search.sort', 'uses' => 'Moonlight\Controllers\SearchController@sort']);
-
-        Route::get('/trash', ['as' => 'moonlight.trash', 'uses' => 'Moonlight\Controllers\TrashController@index']);
-
-        Route::get('/trash/count', ['as' => 'moonlight.trash.count', 'uses' => 'Moonlight\Controllers\TrashController@count']);
-
-        Route::get('/trash/list', ['as' => 'moonlight.trash.list', 'uses' => 'Moonlight\Controllers\TrashController@elements']);
-
-        Route::get('/trash/{item}', ['as' => 'moonlight.trash.item', 'uses' => 'Moonlight\Controllers\TrashController@item'])->
-        where(['item' => '[A-Za-z0-9\.]+']);
-
-        Route::get('/trash/{classId}/view', ['as' => 'moonlight.trashed.view', 'uses' => 'Moonlight\Controllers\TrashController@view'])->
-        where(['classId' => '[A-Za-z0-9\.]+']);
-
-        Route::post('/trash/{classId}/delete', ['as' => 'moonlight.trashed.delete', 'uses' => 'Moonlight\Controllers\TrashController@delete'])->
-        where(['classId' => '[A-Za-z0-9\.]+']);
-
-        Route::post('/trash/{classId}/restore', ['as' => 'moonlight.trashed.restore', 'uses' => 'Moonlight\Controllers\TrashController@restore'])->
-        where(['classId' => '[A-Za-z0-9\.]+']);
-
-        Route::get('/rubrics/get', ['as' => 'moonlight.rubrics.get', 'uses' => 'Moonlight\Controllers\RubricController@rubric']);
-
-        Route::post('/rubrics/open', ['as' => 'moonlight.rubrics.open', 'uses' => 'Moonlight\Controllers\RubricController@open']);
-
-        Route::post('/rubrics/close', ['as' => 'moonlight.rubrics.close', 'uses' => 'Moonlight\Controllers\RubricController@close']);
-
-        Route::get('/rubrics/node/get', ['as' => 'moonlight.rubrics.node.get', 'uses' => 'Moonlight\Controllers\RubricController@getNode']);
-
-        Route::post('/rubrics/node/open', ['as' => 'moonlight.rubrics.node.open', 'uses' => 'Moonlight\Controllers\RubricController@openNode']);
-
-        Route::post('/rubrics/node/close', ['as' => 'moonlight.rubrics.node.close', 'uses' => 'Moonlight\Controllers\RubricController@closeNode']);
-
-        Route::get('/elements/list', ['as' => 'moonlight.elements.list', 'uses' => 'Moonlight\Controllers\BrowseController@elements']);
-
-        Route::post('/elements/open', ['as' => 'moonlight.elements.open', 'uses' => 'Moonlight\Controllers\BrowseController@open']);
-
-        Route::post('/elements/close', ['as' => 'moonlight.elements.close', 'uses' => 'Moonlight\Controllers\BrowseController@close']);
-
-        Route::get('/elements/autocomplete', ['as' => 'moonlight.elements.autocomplete', 'uses' => 'Moonlight\Controllers\BrowseController@autocomplete']);
-
-        Route::post('/elements/order', ['as' => 'moonlight.elements.order', 'uses' => 'Moonlight\Controllers\BrowseController@order']);
-
-        Route::post('/elements/save', ['as' => 'moonlight.elements.save', 'uses' => 'Moonlight\Controllers\BrowseController@save']);
-
-        Route::post('/elements/copy', ['as' => 'moonlight.elements.copy', 'uses' => 'Moonlight\Controllers\BrowseController@copy']);
-
-        Route::post('/elements/move', ['as' => 'moonlight.elements.move', 'uses' => 'Moonlight\Controllers\BrowseController@move']);
-
-        Route::post('/elements/bind', ['as' => 'moonlight.elements.move', 'uses' => 'Moonlight\Controllers\BrowseController@bind']);
-
-        Route::post('/elements/unbind', ['as' => 'moonlight.elements.move', 'uses' => 'Moonlight\Controllers\BrowseController@unbind']);
-
-        Route::post('/elements/favorite', ['as' => 'moonlight.elements.favorite', 'uses' => 'Moonlight\Controllers\BrowseController@favorite']);
-
-        Route::post('/elements/delete', ['as' => 'moonlight.elements.delete', 'uses' => 'Moonlight\Controllers\BrowseController@delete']);
-
-        Route::post('/elements/restore', ['as' => 'moonlight.elements.restore', 'uses' => 'Moonlight\Controllers\BrowseController@restore']);
-
-        Route::post('/elements/delete/force', ['as' => 'moonlight.elements.delete.force', 'uses' => 'Moonlight\Controllers\BrowseController@forceDelete']);
-
-        Route::get('/browse/{classId}/create/{item}', ['as' => 'moonlight.element.create', 'uses' => 'Moonlight\Controllers\EditController@create'])->
-        where(['classId' => '[A-Za-z0-9\.]+', 'item' => '[A-Za-z0-9\.]+']);
-
-        Route::get('/browse/{classId}/edit', ['as' => 'moonlight.element.edit', 'uses' => 'Moonlight\Controllers\EditController@edit'])->
-        where(['classId' => '[A-Za-z0-9\.]+']);
-
-        Route::post('/browse/add/{item}', ['as' => 'moonlight.element.add', 'uses' => 'Moonlight\Controllers\EditController@add'])->
-        where(['item' => '[A-Za-z0-9\.]+']);
-
-        Route::post('/browse/{classId}/save', ['as' => 'moonlight.element.save', 'uses' => 'Moonlight\Controllers\EditController@save'])->
-        where(['classId' => '[A-Za-z0-9\.]+']);
-
-        Route::post('/browse/{classId}/copy', ['as' => 'moonlight.element.copy', 'uses' => 'Moonlight\Controllers\EditController@copy'])->
-        where(['classId' => '[A-Za-z0-9\.]+']);
-
-        Route::post('/browse/{classId}/move', ['as' => 'moonlight.element.move', 'uses' => 'Moonlight\Controllers\EditController@move'])->
-        where(['classId' => '[A-Za-z0-9\.]+']);
-
-        Route::post('/browse/{classId}/favorite', ['as' => 'moonlight.element.favorite', 'uses' => 'Moonlight\Controllers\EditController@favorite']);
-
-        Route::post('/browse/{classId}/delete', ['as' => 'moonlight.element.delete', 'uses' => 'Moonlight\Controllers\EditController@delete'])->
-        where(['classId' => '[A-Za-z0-9\.]+']);
-
-        Route::post('/browse/{classId}/plugin/{method}', ['as' => 'moonlight.browse.plugin', 'uses' => 'Moonlight\Controllers\BrowseController@plugin'])->
-        where(['classId' => '[A-Za-z0-9\.]+', 'method' => '[A-Za-z0-9]+']);
-
-        Route::post('/order', ['as' => 'moonlight.order', 'uses' => 'Moonlight\Controllers\BrowseController@order']);
-
-        Route::post('/column', ['as' => 'moonlight.column', 'uses' => 'Moonlight\Controllers\BrowseController@column']);
-
-        Route::post('/perpage', ['as' => 'moonlight.perpage', 'uses' => 'Moonlight\Controllers\BrowseController@perpage']);
-
-        Route::group(['middleware' => [
+    ],
+], function () {
+    Route::get('/', 'HomeController@index')->name('moonlight.home');
+
+    Route::get('/logout', 'LoginController@logout')->name('moonlight.logout');
+    Route::get('/profile', 'ProfileController@index')->name('moonlight.profile');
+    Route::post('/profile', 'ProfileController@save');
+    Route::get('/password', 'PasswordController@index')->name('moonlight.password');
+    Route::post('/password', 'PasswordController@save');
+
+    Route::get('/users', 'UserController@users')->name('moonlight.users');
+    Route::get('/users/create', 'UserController@create')->name('moonlight.user.create');
+    Route::get('/users/{id}', 'UserController@edit')->name('moonlight.user')->where(['id' => '[0-9]+']);
+    Route::post('/users/create', 'UserController@add')->name('moonlight.user.add');
+    Route::post('/users/{id}', 'UserController@save')->name('moonlight.user.save')->where(['id' => '[0-9]+']);
+    Route::post('/users/{id}/delete',
+        'UserController@delete')->name('moonlight.user.delete')->where(['id' => '[0-9]+']);
+
+    Route::get('/groups', 'GroupController@groups')->name('moonlight.groups');
+    Route::get('/groups/create', 'GroupController@create')->name('moonlight.group.create');
+    Route::get('/groups/{id}', 'GroupController@edit')->name('moonlight.group')->where(['id' => '[0-9]+']);
+    Route::post('/groups/create', 'GroupController@add')->name('moonlight.group.add');
+    Route::post('/groups/{id}', 'GroupController@save')->name('moonlight.group.save')->where(['id' => '[0-9]+']);
+    Route::post('/groups/{id}/delete',
+        'GroupController@delete')->name('moonlight.group.delete')->where(['id' => '[0-9]+']);
+
+    Route::get('groups/permissions/items/{group_id}',
+        'PermissionController@itemPermissions')->name('moonlight.group.items')->where('group_id', '[0-9]+');
+    Route::get('groups/permissions/elements/{group_id}/{item}',
+        'PermissionController@elementPermissions')->name('moonlight.group.elements')->where(['group_id' => '[0-9]+']);
+    Route::post('groups/permissions/items/{group_id}', 'PermissionController@saveItemPermission')->where('group_id',
+        '[0-9]+');
+    Route::post('groups/permissions/elements/{group_id}/{item}',
+        'PermissionController@saveElementPermission')->name('moonlight.group.elements')->where(['group_id' => '[0-9]+']);
+
+    Route::get('/log', 'LogController@index')->name('moonlight.log');
+    Route::get('/log/next', 'LogController@next')->name('moonlight.log.next');
+
+    Route::get('/favorites/edit', 'HomeController@edit')->name('moonlight.favorites.edit');
+    Route::post('/favorites/order/rubrics', 'HomeController@orderRubrics')->name('moonlight.favorites.orderRubrics');
+    Route::post('/favorites/order/favorites',
+        'HomeController@orderFavorites')->name('moonlight.favorites.orderFavorites');
+    Route::post('/favorites/delete/rubric', 'HomeController@deleteRubric')->name('moonlight.favorites.deleteRubric');
+    Route::post('/favorites/delete/favorite',
+        'HomeController@deleteFavorite')->name('moonlight.favorites.deleteFavorite');
+
+    Route::get('/search', 'SearchController@index')->name('moonlight.search');
+    Route::get('/search/list', 'SearchController@elements')->name('moonlight.search.list');
+    Route::post('/search/active', 'SearchController@active')->name('moonlight.search.active');
+    Route::post('search/sort', 'SearchController@sort')->name('moonlight.search.sort');
+
+    Route::get('/trash', ['as' => 'moonlight.trash', 'uses' => 'TrashController@index']);
+    Route::get('/trash/count', 'TrashController@count')->name('moonlight.trash.count');
+    Route::get('/trash/list', 'TrashController@elements')->name('moonlight.trash.list');
+    Route::get('/trash/{item}', 'TrashController@item')->name('moonlight.trash.item');
+    Route::get('/trash/{class_id}/view', 'TrashController@view')->name('moonlight.trashed.view');
+    Route::post('/trash/{class_id}/delete', 'TrashController@delete')->name('moonlight.trashed.delete');
+    Route::post('/trash/{class_id}/restore', 'TrashController@restore')->name('moonlight.trashed.restore');
+
+    Route::get('/rubrics/get', 'RubricController@rubric')->name('moonlight.rubrics.get');
+    Route::get('/rubrics/node/get', 'RubricController@getNode')->name('moonlight.rubrics.node.get');
+    Route::post('/rubrics/open', 'RubricController@open')->name('moonlight.rubrics.open');
+    Route::post('/rubrics/close', 'RubricController@close')->name('moonlight.rubrics.close');
+    Route::post('/rubrics/node/open', 'RubricController@openNode')->name('moonlight.rubrics.node.open');
+    Route::post('/rubrics/node/close', 'RubricController@closeNode')->name('moonlight.rubrics.node.close');
+
+    Route::get('/elements/list', 'BrowseController@elements')->name('moonlight.elements.list');
+    Route::get('/elements/autocomplete', 'BrowseController@autocomplete')->name('moonlight.elements.autocomplete');
+    Route::post('/elements/open', 'BrowseController@open')->name('moonlight.elements.open');
+    Route::post('/elements/close', 'BrowseController@close')->name('moonlight.elements.close');
+    Route::post('/elements/order', 'BrowseController@order')->name('moonlight.elements.order');
+    Route::post('/elements/save', 'BrowseController@save')->name('moonlight.elements.save');
+    Route::post('/elements/copy', 'BrowseController@copy')->name('moonlight.elements.copy');
+    Route::post('/elements/move', 'BrowseController@move')->name('moonlight.elements.move');
+    Route::post('/elements/bind', 'BrowseController@bind')->name('moonlight.elements.bind');
+    Route::post('/elements/unbind', 'BrowseController@unbind')->name('moonlight.elements.unbind');
+    Route::post('/elements/favorite', 'BrowseController@favorite')->name('moonlight.elements.favorite');
+    Route::post('/elements/delete', 'BrowseController@delete')->name('moonlight.elements.delete');
+    Route::post('/elements/restore', 'BrowseController@restore')->name('moonlight.elements.restore');
+    Route::post('/elements/delete/force', 'BrowseController@forceDelete')->name('moonlight.elements.delete.force');
+
+    Route::get('/browse/{class_id}/create/{item}', 'EditController@create')->name('moonlight.element.create');
+    Route::get('/browse/{class_id}/edit', 'EditController@edit')->name('moonlight.element.edit');
+    Route::post('/browse/add/{item}', 'EditController@add')->name('moonlight.element.add');
+    Route::post('/browse/{class_id}/save', 'EditController@save')->name('moonlight.element.save');
+    Route::post('/browse/{class_id}/copy', 'EditController@copy')->name('moonlight.element.copy');
+    Route::post('/browse/{class_id}/move', 'EditController@move')->name('moonlight.element.move');
+    Route::post('/browse/{class_id}/favorite', 'EditController@favorite')->name('moonlight.element.favorite');
+    Route::post('/browse/{class_id}/delete', 'EditController@delete')->name('moonlight.element.delete');
+
+    Route::post('/order', 'BrowseController@order')->name('moonlight.order');
+    Route::post('/column', 'BrowseController@column')->name('moonlight.column');
+    Route::post('/perpage', 'BrowseController@perpage')->name('moonlight.perpage');
+
+    Route::group([
+        'middleware' => [
             HistoryMiddleware::class,
-        ]], function () {
-            Route::get('/search/{item}', ['as' => 'moonlight.search.item', 'uses' => 'Moonlight\Controllers\SearchController@item'])->
-            where(['item' => '[A-Za-z0-9\.]+']);
+        ],
+    ], function () {
+        Route::get('/search/{item}', 'SearchController@item')->name('moonlight.search.item');
 
-            Route::get('/browse', ['as' => 'moonlight.browse', 'uses' => 'Moonlight\Controllers\BrowseController@root']);
-
-            Route::get('/browse/root', ['as' => 'moonlight.browse.root', 'uses' => 'Moonlight\Controllers\BrowseController@root']);
-
-            Route::get('/browse/{classId}', ['as' => 'moonlight.browse.element', 'uses' => 'Moonlight\Controllers\BrowseController@element'])->
-            where(['classId' => '[A-Za-z0-9\.]+']);
-        });
+        Route::get('/browse', 'BrowseController@root')->name('moonlight.browse');
+        Route::get('/browse/root', 'BrowseController@root')->name('moonlight.browse.root');
+        Route::get('/browse/{class_id}', 'BrowseController@element')->name('moonlight.browse.element');
     });
+});
 
-    Route::get('/{url}', function() {
-        return redirect()->route('moonlight.home');
-    });
+Route::get('/{url}', function () {
+    return redirect()->route('moonlight.home');
 });

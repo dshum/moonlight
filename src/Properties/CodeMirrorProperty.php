@@ -16,13 +16,11 @@ class CodeMirrorProperty extends BaseProperty
 
     public function getEditView()
     {
-        $scope = [
+        return [
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'value' => $this->getValue(),
             'readonly' => $this->getReadonly(),
         ];
-
-        return $scope;
     }
 }

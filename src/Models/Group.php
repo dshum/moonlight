@@ -1,33 +1,23 @@
 <?php namespace Moonlight\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Moonlight\Main\Site;
+use Illuminate\Support\Facades\App;
 use Moonlight\Main\Item;
-use Moonlight\Main\Element;
 
-class Group extends Model {
-
+class Group extends Model
+{
     /**
      * The database table used by the model.
      *
      * @var string
      */
     protected $table = 'admin_groups';
-
-    /**
-     * The user groups pivot table name.
-     *
-     * @var string
-     */
-    protected $pivotTable = 'admin_users_groups_pivot';
-
     /**
      * All of the relationships to be touched.
      *
      * @var array
      */
     protected $touches = ['users'];
-
     private $permissionTitles = [
         'deny' => 'Доступ закрыт',
         'view' => 'Просмотр элементов',
@@ -35,46 +25,14 @@ class Group extends Model {
         'delete' => 'Удаление элементов',
     ];
 
-    public static function boot()
-    {
-        parent::boot();
-
-        if (method_exists(cache()->getStore(), 'tags')) {
-            static::created(function($element) {
-                cache()->tags('admin_groups')->flush();
-            });
-
-            static::saved(function($element) {
-                cache()->tags('admin_groups')->flush();
-            });
-
-            static::deleted(function($element) {
-                cache()->tags('admin_groups')->flush();
-            });
-        }
-    }
-
     public function getDates()
     {
-        return array('created_at', 'updated_at');
+        return ['created_at', 'updated_at'];
     }
 
     public function users()
     {
-        return $this->belongsToMany('Moonlight\Models\User', $this->pivotTable);
-    }
-
-    public function getUsers()
-    {
-        if (method_exists(cache()->getStore(), 'tags')) {
-            $group = $this;
-
-            return cache()->tags('admin_users')->remember("admin_group_{$group->id}_users", 1440, function() use ($group) {
-                return $group->users()->get();
-            });
-        }
-
-        return $this->users()->get();
+        return $this->belongsToMany(User::class, 'admin_users_groups_pivot');
     }
 
     public function hasAccess($name)
@@ -82,34 +40,25 @@ class Group extends Model {
         return $this->getPermission($name) ? true : false;
     }
 
-    public function getUnserializedPermissions()
+    public function getDecodedPermissions()
     {
-        try {
-            return unserialize($this->permissions);
-        } catch (\Exception $e) {}
-
-        return null;
+        return json_decode($this->permissions, true);
     }
 
     public function getPermission($name)
     {
-        $unserializedPermissions = $this->getUnserializedPermissions();
+        $permissions = $this->getDecodedPermissions();
 
-        return
-            isset($unserializedPermissions[$name])
-                ? $unserializedPermissions[$name]
-                : null;
+        return $permissions[$name] ?? null;
     }
 
     public function setPermission($name, $value)
     {
-        $unserializedPermissions = $this->getUnserializedPermissions();
+        $permissions = json_decode($this->permissions, true);
 
-        $unserializedPermissions[$name] = $value;
+        $permissions[$name] = $value;
 
-        $permissions = serialize($unserializedPermissions);
-
-        $this->permissions = $permissions;
+        $this->permissions = json_encode($permissions);
 
         return $this;
     }
@@ -118,82 +67,70 @@ class Group extends Model {
     {
         $name = $this->default_permission;
 
-        return isset($this->permissionTitles[$name])
-            ? $this->permissionTitles[$name]
-            : null;
+        return $this->permissionTitles[$name] ?? null;
     }
 
     public function itemPermissions()
     {
-        return $this->hasMany('Moonlight\Models\GroupItemPermission');
+        return $this->hasMany(GroupItemPermission::class);
     }
 
     public function elementPermissions()
     {
-        return $this->hasMany('Moonlight\Models\GroupElementPermission');
+        return $this->hasMany(GroupElementPermission::class);
     }
 
-    public function getItemPermission($class)
+    public function getItemPermission(Item $item)
     {
-        if (method_exists(cache()->getStore(), 'tags')) {
-            $group = $this;
-
-            $permissions = cache()->tags('admin_item_permissions')->remember("permission_where_group_{$group->id}_and_item_{$class}", 1440, function() use ($group, $class) {
-                return $group->itemPermissions()->where('class', $class)->get();
-            });
-
-            return isset($permissions[0]) ? $permissions[0] : null;
-        }
-
-        return $this->itemPermissions()->where('class', $class)->first();
+        return $this->itemPermissions()->where('element_type', $item->getClassName())->first();
     }
 
     public function getElementPermissions()
     {
-        if (method_exists(cache()->getStore(), 'tags')) {
-            $group = $this;
-
-            return cache()->tags('admin_element_permissions')->remember("permissions_where_group_{$group->id}", 1440, function() use ($group) {
-                return $group->elementPermissions()->get();
-            });
-        }
-
         return $this->elementPermissions()->get();
     }
 
-    public function getElementPermission($classId)
+    public function getElementPermissionsByItem(Item $item)
     {
-        if (method_exists(cache()->getStore(), 'tags')) {
-            $group = $this;
+        return $this->elementPermissions()->where('element_type', $item->getClassName())->get();
+    }
 
-            $permissions = cache()->tags('admin_element_permissions')->remember("permission_where_group_{$group->id}_and_element_{$classId}", 1440, function() use ($group, $classId) {
-                return $group->elementPermissions()->where('class_id', $classId)->get();
-            });
+    public function getElementPermission(Model $element)
+    {
+        $site = App::make('site');
 
-            return isset($permissions[0]) ? $permissions[0] : null;
-        }
+        $item = $site->getItemByElement($element);
 
-        return $this->elementPermissions()->where('class_id', $classId)->first();
+        return $this->elementPermissions()
+            ->where('element_type', $item->getClassName())
+            ->where('element_id', $element->id)
+            ->first();
     }
 
     public function getItemAccess(Item $item)
     {
-        $itemPermission = $this->getItemPermission($item->getNameId());
+        $itemPermission = $this->getItemPermission($item);
 
-        if ($itemPermission) return $itemPermission->permission;
+        if ($itemPermission) {
+            return $itemPermission->permission;
+        }
 
         return $this->default_permission;
     }
 
     public function getElementAccess(Model $element)
     {
-        $elementPermission = $this->getElementPermission(Element::getClassId($element));
+        $site = App::make('site');
 
-        if ($elementPermission) return $elementPermission->permission;
+        $classId = $site->getClassId($element);
+        $item = $site->getItemByElement($element);
 
-        $item = Element::getItem($element);
+        $elementPermission = $this->getElementPermission($element);
+
+        if ($elementPermission) {
+            return $elementPermission->permission;
+        }
 
         return $this->getItemAccess($item);
     }
-
 }

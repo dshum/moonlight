@@ -41,9 +41,11 @@ class OrderProperty extends BaseProperty
     public function set()
     {
         $item = $this->getItem();
-        $relatedPropertyName = $this->getRelatedProperty();
-        $relatedProperty = $item->getPropertyByName($relatedPropertyName);
         $name = $this->getName();
+        $relatedPropertyName = $this->getRelatedProperty();
+
+        $relatedProperty = $relatedPropertyName
+            ? $item->getPropertyByName($relatedPropertyName) : null;
 
         if ($relatedProperty && $relatedProperty->isManyToMany()) {
             return $this;
@@ -51,7 +53,7 @@ class OrderProperty extends BaseProperty
 
         if ($this->element->$name === null) {
             $order = $this->element->max($name);
-            $this->element->$name = $order !== null ? $order + 1 : 0;
+            $this->element->$name = $order ? $order + 1 : 0;
         }
 
         return $this;

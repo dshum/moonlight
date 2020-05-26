@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Moonlight\Utils;
 
@@ -63,16 +63,18 @@ class RussianText {
 
 	private static $ambiguousDetection = false;
 
-	/**
-	 * Selects russian case for number.
-	 * for example:
-	 * 	1 результат
-	 * 	2 результата
-	 * 	5 результатов
-	 * @param $number integer
-	 * @param $cases words to select from array('результат', 'результата', 'результатов')
-	**/
-	public static function selectCaseForNumber($number, $cases)
+    /**
+     * Selects russian case for number.
+     * for example:
+     *    1 результат
+     *    2 результата
+     *    5 результатов
+     *
+     * @param $number integer
+     * @param array $cases words to select from array('результат', 'результата', 'результатов')
+     * @return mixed
+     */
+	public static function selectCaseForNumber(int $number, array $cases)
 	{
 		if (
 			($number % 10) == 1

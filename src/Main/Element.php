@@ -1,24 +1,24 @@
-<?php 
+<?php
 
 namespace Moonlight\Main;
 
+use App;
 use Illuminate\Database\Eloquent\Model;
-use Moonlight\Main\ElementInterface;
 use Moonlight\Properties\FileProperty;
 use Moonlight\Properties\ImageProperty;
 use Moonlight\Properties\OrderProperty;
 
-final class Element 
+final class Element
 {
 	const ID_SEPARATOR = '.';
 
-	public static function getItem(Model $element)
+	public static function getItem(Model $element): Item
 	{
-		$site = \App::make('site');
+		$site = App::make('site');
 
 		$class = static::getClass($element);
 
-		return $site->getItemByName($class);
+		return $site->getItemByClassName($class);
 	}
 
 	public static function getClass(Model $element)
@@ -32,7 +32,7 @@ final class Element
 			str_replace(
 				'\\',
 				static::ID_SEPARATOR,
-				Element::getClass($element)
+				self::getClass($element)
 			)
 			.static::ID_SEPARATOR
 			.$element->id;
@@ -46,9 +46,9 @@ final class Element
 			$array = explode(static::ID_SEPARATOR, $classId);
 			$id = array_pop($array);
 			$class = implode('\\', $array);
-            
-            $site = \App::make('site');
-            
+
+            $site = App::make('site');
+
             $item = $site->getItemByName($class);
 
 			if ($item) {
@@ -68,8 +68,8 @@ final class Element
 			$id = array_pop($array);
 			$class = implode('\\', $array);
 
-			$site = \App::make('site');
-            
+			$site = App::make('site');
+
             $item = $site->getItemByName($class);
 
 			if ($item) {
@@ -90,8 +90,8 @@ final class Element
 			$id = array_pop($array);
 			$class = implode('\\', $array);
 
-			$site = \App::make('site');
-            
+			$site = App::make('site');
+
             $item = $site->getItemByName($class);
 
 			if ($item) {
@@ -105,21 +105,11 @@ final class Element
 
 	public static function getProperty(Model $element, $name)
 	{
-		$item = Element::getItem($element);
+		$item = self::getItem($element);
 
 		$property = $item->getPropertyByName($name);
 
 		return $property->setElement($element);
-	}
-
-	public static function equalTo($element1, $element2)
-	{
-		return
-			$element1 instanceof Model
-			&& $element2 instanceof Model
-			&& static::getClassId($element1) === static::getClassId($element2)
-			? true 
-			: false;
 	}
 
 	public static function getParent(Model $element)
@@ -152,7 +142,10 @@ final class Element
 		$parent = static::getParent($element);
 
 		while ($count < 100 && $parent instanceof Model) {
-			if (isset($exists[static::getClassId($parent)])) break;
+			if (isset($exists[static::getClassId($parent)])) {
+			    break;
+            }
+
 			$parents[] = $parent;
 			$exists[static::getClassId($parent)] = true;
 			$parent = static::getParent($parent);
@@ -170,7 +163,7 @@ final class Element
 
 	public static function setParent(Model $element, Model $parent)
 	{
-		$item = Element::getItem($element);
+		$item = self::getItem($element);
 
 		$propertyList = $item->getPropertyList();
 
@@ -183,134 +176,5 @@ final class Element
 				$element->$propertyName = $parent->id;
 			}
 		}
-	}
-
-	public static function copy(Model $element)
-	{
-		$item = Element::getItem($element);
-
-		$propertyList = $item->getPropertyList();
-
-		$clone = new $element;
-
-		foreach ($propertyList as $propertyName => $property) {
-			if ($property instanceof OrderProperty) {
-				$property->setElement($clone)->set();
-				continue;
-			}
-
-			if (
-				$property->getHidden()
-				|| $property->getReadonly()
-			) continue;
-
-			if (
-				(
-					$property instanceof FileProperty
-					|| $property instanceof ImageProperty
-				)
-				&& ! $property->getRequired()
-			) continue;
-
-			$clone->$propertyName = $element->$propertyName;
-		}
-
-		$clone->save();
-
-		\Cache::tags(Element::getClass($element))->flush();
-
-		return $clone;
-	}
-
-	public static function delete(Model $element)
-	{
-		$site = \App::make('site');
-
-		$class = Element::getClass($element);
-
-		$itemList = $site->getItemList();
-
-		foreach ($itemList as $item) {
-			$itemName = $item->getName();
-			$propertyList = $item->getPropertyList();
-
-			foreach ($propertyList as $property) {
-				if (
-					$property->isOneToOne()
-					&& $property->getRelatedClass() == $class
-				) {
-					$count = $element->
-						hasMany($itemName, $property->getName())->
-						count();
-
-					if ($count) return false;
-				}
-			}
-		}
-
-		$element->delete();
-
-		\Cache::tags(Element::getClass($element))->flush();
-
-		\Cache::forget("getByClassId({Element::getClassId($element)})");
-
-		\Cache::forget("getWithTrashedByClassId({Element::getClassId($element)})");
-
-		\Cache::forget("getOnlyTrashedByClassId({Element::getClassId($element)})");
-
-		return true;
-	}
-
-	public static function deleteFromTrash(ElementInterface $element)
-	{
-		$item = Element::getItem($element);
-
-		$propertyList = $item->getPropertyList();
-
-		foreach ($propertyList as $propertyName => $property) {
-			$property->setElement($element)->drop();
-		}
-
-		$element->forceDelete();
-
-		\Cache::tags(Element::getClass($element))->flush();
-
-		\Cache::forget("getByClassId({Element::getClassId($element)})");
-
-		\Cache::forget("getWithTrashedByClassId({Element::getClassId($element)})");
-
-		\Cache::forget("getOnlyTrashedByClassId({Element::getClassId($element)})");
-
-		return true;
-	}
-
-	public static function restore(Model $element)
-	{
-		$element->restore();
-
-		\Cache::tags(Element::getClass($element))->flush();
-
-		\Cache::forget("getByClassId({Element::getClassId($element)})");
-
-		\Cache::forget("getWithTrashedByClassId({Element::getClassId($element)})");
-
-		\Cache::forget("getOnlyTrashedByClassId({Element::getClassId($element)})");
-
-		return true;
-	}
-
-	public static function save(Model $element)
-	{
-		$element->save();
-
-		\Cache::tags(Element::getClass($element))->flush();
-
-		\Cache::forget("getByClassId({Element::getClassId($element)})");
-
-		\Cache::forget("getWithTrashedByClassId({Element::getClassId($element)})");
-
-		\Cache::forget("getOnlyTrashedByClassId({Element::getClassId($element)})");
-
-		return true;
 	}
 }

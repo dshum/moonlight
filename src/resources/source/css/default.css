@@ -287,7 +287,7 @@ nav .avatar .round-letter {
     text-align: center;
     line-height: 4rem;
     font-family: Calibri, sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     letter-spacing: -0.1rem;
     background-color: silver;
     color: white;
@@ -447,7 +447,7 @@ nav .dropdown ul > li span {
     transition: all 0.2s linear 0s;
 }
 
-.sidebar .elements ul li span.open[display="show"] .fa {
+.sidebar .elements ul li span.open.rotate .fa {
     transform: rotate(180deg);
 }
 
@@ -546,15 +546,9 @@ nav .dropdown ul > li span {
 .sidebar ul.items > li .total {
     position: relative;
     display: inline-block;
-    top: 1px;
-    margin-left: 1rem;
-    height: 1.3rem;
-    line-height: 1.3rem;
-    padding: 0 0.5rem;
-    background-color: tan;
-    color: black;
-    font-weight: normal;
-    border-radius: 2px;
+    margin-left: 0.75rem;
+    color: darkseagreen;
+    font-size: 0.8rem;
 }
 
 .sidebar ul.menu {
@@ -632,23 +626,14 @@ div.path div.part a.edit .fa {
 
 /* Table header */
 
-.main > .container > div[item] {
-/ / overflow-x: auto;
-}
-
-.main > .container > div[item]::-webkit-scrollbar {
-    width: 20px;
-    background-color: rgba(127, 127, 127, 0.1);
-}
-
-.main > .container > div[item]::-webkit-scrollbar-thumb {
-    background-color: rgba(150, 180, 210, 0.7);
-}
-
 div.item {
     display: table;
-    margin: 2rem 0 0 0;
+    margin-top: 2rem;
     min-width: 40rem;
+}
+
+div.item.hidden {
+    display: none;
 }
 
 ul.header {
@@ -686,12 +671,12 @@ ul.header li.total {
     color: #666;
 }
 
-ul.header li.checked {
+ul.header > li.checked {
     margin-left: 1rem;
     font-size: 0.9rem;
 }
 
-ul.header li.checked > span {
+ul.header > li.checked > span {
     padding: 0.25rem 0.5rem;
     background-color: #375;
     border-radius: 2px;
@@ -734,7 +719,7 @@ ul.header li.column-toggler .fa {
     transition: all 0.2s linear 0s;
 }
 
-ul.header li.column-toggler[display="show"] .fa {
+ul.header li.column-toggler.open .fa {
     transform: rotate(180deg);
 }
 
@@ -759,6 +744,30 @@ ul.header .dropdown .container {
     font-size: 1rem;
 }
 
+ul.header .dropdown .perpage {
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    padding: 0.75rem 1rem 0.75rem 1rem;
+    line-height: 1rem;
+}
+
+ul.header .dropdown .perpage .title {
+    margin-bottom: 0.5rem;
+    white-space: nowrap;
+}
+
+ul.header .dropdown .perpage input {
+    width: 8rem;
+    height: 2rem;
+    line-height: 2rem;
+}
+
+ul.header .dropdown .reload {
+    margin: 0;
+    border-top: 1px solid #ccc;
+    padding: 0.75rem 1rem 0.75rem 1rem;
+}
+
 ul.header .dropdown ul {
     display: block;
     margin: 0;
@@ -769,48 +778,31 @@ ul.header .dropdown ul > li {
     display: block;
     margin: 0;
     height: auto;
-    padding: 0.25rem 2rem 0.25rem 1rem;
+    line-height: 2.2rem;
+    padding: 0 1rem 0 1rem;
     white-space: nowrap;
     color: black;
 }
 
-ul.header .dropdown ul > li[show]:hover {
+ul.header .dropdown ul > li:hover {
     background-color: #eee;
     transition: 0.2s;
 }
 
-ul.header .dropdown ul > li span.eye {
+ul.header .dropdown ul > li > span.eye {
     display: inline-block;
-    margin-top: -4px;
+    margin-top: -2px;
     margin-right: 1rem;
     width: 1.2rem;
     height: 1.2rem;
     vertical-align: middle;
-    background-color: #395;
+    background-color: silver;
     border-radius: 2px;
     transition: 0.2s;
 }
 
-ul.header .dropdown ul > li[show="false"] span.eye {
-    background-color: silver;
-}
-
-ul.header .dropdown ul > li.reload {
-    margin: 0;
-    border-top: 1px solid #ccc;
-    padding: 0.75rem 2rem 1rem 1rem;
-}
-
-ul.header .dropdown ul > li.perpage {
-    margin: 0;
-    border-bottom: 1px solid #ccc;
-    padding: 0.5rem 2rem 0.75rem 1rem;
-}
-
-ul.header .dropdown ul > li.perpage input {
-    width: 8rem;
-    height: 2rem;
-    line-height: 2rem;
+ul.header .dropdown ul > li.checked span.eye {
+    background-color: #395;
 }
 
 div.empty {
@@ -955,13 +947,13 @@ table.elements > thead > tr > th.browse .fa {
     color: inherit;
 }
 
-table.elements > thead > tr > th span[order] {
+table.elements > thead > tr > th span.column-order {
     color: #798;
     text-decoration: underline;
     cursor: pointer;
 }
 
-table.elements > thead > tr > th span[resetorder] {
+table.elements > thead > tr > th span.reset-column-order {
     cursor: pointer;
 }
 
@@ -1019,6 +1011,10 @@ table.elements td.browse .fa {
     top: -4px;
     width: 1rem;
     font-size: 1.6rem;
+    color: #7c9;
+}
+
+table.elements td.browse > a > .fa {
     color: #3a7;
 }
 
@@ -1215,7 +1211,7 @@ ul.pager > li.page input {
     margin: 0.25rem 0 0 0;
 }
 
-.tree > div > div[item] {
+.tree > div > div[data-item] {
     margin-bottom: 1rem;
 }
 
@@ -1232,7 +1228,7 @@ ul.pager > li.page input {
     font-weight: bold;
 }
 
-.tree > div > div[item] > .item {
+.tree > div > div[data-item] > .item {
     margin: 0;
     padding-left: 0;
     font-size: 1.3rem;
@@ -1525,7 +1521,7 @@ ul.pager > li.page input {
     width: 20rem;
 }
 
-.edit textarea[tinymce="true"] {
+.edit textarea.tinymce {
     width: 50rem;
     height: 25rem;
 }
@@ -1795,7 +1791,6 @@ form .loadfile .reset {
     right: 0;
     width: 50rem;
     margin: auto;
-    overflow: hidden;
     padding: 0;
     text-align: center;
 }
@@ -1810,6 +1805,10 @@ form .loadfile .reset {
     border: none;
     border-radius: 2px;
     text-align: left;
+}
+
+.confirm .element-container {
+    margin-left: 0.5rem;
 }
 
 .confirm .favorite-settings {
@@ -1848,22 +1847,30 @@ form .loadfile .reset {
     font-size: 1.2rem;
 }
 
+.confirm .content .favorite-title.hidden {
+    display: none;
+}
+
 .confirm .content .favorite-list {
     margin-bottom: 1rem;
     font-size: 1rem;
 }
 
-.confirm .content .favorite-list > div[rubric] {
+.confirm .content .favorite-list.hidden {
+    display: none;
+}
+
+.confirm .content .favorite-list > div.rubric {
     display: table;
     margin-top: 0.25rem;
     cursor: pointer;
 }
 
-.confirm .content .favorite-list > div[rubric]:hover {
+.confirm .content .favorite-list > div.rubric:hover {
     text-decoration: underline;
 }
 
-.confirm .content .favorite-list > div[rubric][display="hide"] {
+.confirm .content .favorite-list > div.rubric.hidden {
     display: none;
 }
 
@@ -1933,7 +1940,6 @@ form .loadfile .reset {
     right: 0;
     width: 50rem;
     margin: auto;
-    overflow: hidden;
     padding: 0;
     text-align: center;
 }

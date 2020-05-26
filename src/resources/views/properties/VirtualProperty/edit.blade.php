@@ -1,2 +1,2 @@
-<label>{{ $title }}:</label><br>
-<span>{!! $value !!}</span>
+<div><label>{{ $title }}:</label></div>
+<div>{!! $value !!}</div>

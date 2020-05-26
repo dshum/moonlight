@@ -1,1 +1,7 @@
-<td>@if ($value)Да@else<span class="grey">Нет</span>@endif</td>
+<td>
+    @if ($value)
+        <span>Да</span>
+    @else
+        <span class="grey">Нет</span>
+    @endif
+</td>

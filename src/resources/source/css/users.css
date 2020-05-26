@@ -2,8 +2,9 @@ table.users.elements {
     width: auto;
 }
 
+table.users th,
 table.users td {
-    padding: 1rem 1rem;
+    padding: 0.5rem 1rem !important;
 }
 
 table.users td div {
@@ -13,11 +14,14 @@ table.users td div {
 table.users th.remove,
 table.users td.remove {
     text-align: center;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
     cursor: pointer;
 }
 
+table.users th.remove .fa {
+    width: 1rem;
+}
+
 table.users td.remove .fa {
+    width: 1rem;
     color: crimson;
 }

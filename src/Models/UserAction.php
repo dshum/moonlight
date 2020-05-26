@@ -1,45 +1,50 @@
 <?php namespace Moonlight\Models;
 
+use Auth;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
-use Moonlight\Main\UserActionType;
 
-class UserAction extends Model {
+class UserAction extends Model
+{
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'admin_user_actions';
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'user_id',
+        'action_type_id',
+        'comments',
+        'url',
+    ];
 
-	/**
-	 * The database table used by the model.
-	 *
-	 * @var string
-	 */
-	protected $table = 'admin_user_actions';
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
-	public function user()
-	{
-		return $this->belongsTo('Moonlight\Models\User');
-	}
+    public function getActionTypeName()
+    {
+        return UserActionType::getActionTypeName($this->action_type_id);
+    }
 
-	public function getActionTypeName()
-	{
-		return UserActionType::getActionTypeName($this->action_type_id);
-	}
+    public static function log($actionTypeId, $comments, User $user = null)
+    {
+        $loggedUser = $user ?: Auth::guard('moonlight')->user();
 
-	public static function log($actionTypeId, $comments, $user = null)
-	{
-		$loggedUser = $user ?: Auth::guard('moonlight')->user();
+        $method = $_SERVER['REQUEST_METHOD'] ?? null;
+        $uri = $_SERVER['REQUEST_URI'] ?? null;
 
-        $method = isset($_SERVER['REQUEST_METHOD'])
-            ? $_SERVER['REQUEST_METHOD'] : '';
-
-        $uri = isset($_SERVER['REQUEST_URI'])
-            ? $_SERVER['REQUEST_URI'] : '';
-
-        $userAction = new UserAction;
-
-        $userAction->user_id = $loggedUser->id;
-        $userAction->action_type_id = $actionTypeId;
-        $userAction->comments = $comments;
-        $userAction->url = $method.' '.$uri;
-
-        $userAction->save();
-	}
+        self::create([
+            'user_id' => $loggedUser->id,
+            'action_type_id' => $actionTypeId,
+            'comments' => $comments,
+            'url' => $method.' '.$uri,
+        ]);
+    }
 }

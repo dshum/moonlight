@@ -43,14 +43,12 @@ class TinymceProperty extends BaseProperty
 
     public function getEditView()
     {
-        $scope = [
+        return [
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'value' => $this->getValue(),
             'readonly' => $this->getReadonly(),
             'toolbar' => $this->getToolbar(),
         ];
-
-        return $scope;
     }
 }

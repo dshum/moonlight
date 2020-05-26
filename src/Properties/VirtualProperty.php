@@ -2,34 +2,32 @@
 
 namespace Moonlight\Properties;
 
-use Illuminate\Database\Eloquent\Model;
-
 class VirtualProperty extends BaseProperty
 {
-	public static function create($name)
-	{
-		return new self($name);
-	}
+    public static function create($name)
+    {
+        return new self($name);
+    }
 
-	public function isSortable()
-	{
-		return false;
-	}
+    public function isSortable()
+    {
+        return false;
+    }
 
-	public function set()
-	{
-		return $this;
-	}
+    public function set()
+    {
+        return $this;
+    }
 
     public function searchQuery($query)
-	{
-		return $query;
-	}
+    {
+        return $query;
+    }
 
-	public function getSearchView()
-	{
-		return null;
-	}
+    public function getSearchView()
+    {
+        return null;
+    }
 
     public function isVirtual()
     {

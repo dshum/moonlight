@@ -3,230 +3,193 @@
 namespace Moonlight\Properties;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\App;
 use Moonlight\Main\Site;
-use Moonlight\Main\Item;
-use Moonlight\Main\Element;
 
 class OneToOneProperty extends BaseProperty
 {
-	protected $relatedClass = null;
-	protected $parent = false;
+    protected $relatedClass = null;
+    protected $parent = false;
 
-	public function __construct($name) {
-		parent::__construct($name);
+    public function __construct($name)
+    {
+        parent::__construct($name);
 
-		$this->
-		addRule('integer', 'Идентификатор элемента должен быть целым числом');
+        $this->addRule('integer', 'Идентификатор элемента должен быть целым числом');
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public static function create($name)
-	{
-		return new self($name);
-	}
+    public static function create($name)
+    {
+        return new self($name);
+    }
 
-	public function setRelatedClass($relatedClass)
-	{
-		Item::assertClass($relatedClass);
+    public function setRelatedClass($relatedClass)
+    {
+        $this->relatedClass = $relatedClass;
 
-		$this->relatedClass = $relatedClass;
+        return $this;
+    }
 
-		return $this;
-	}
+    public function getRelatedClass()
+    {
+        return $this->relatedClass;
+    }
 
-	public function getRelatedClass()
-	{
-		return $this->relatedClass;
-	}
+    public function setParent($parent = true)
+    {
+        $this->parent = $parent;
 
-	public function setParent($parent = true)
-	{
-		$this->parent = $parent;
+        return $this;
+    }
 
-		return $this;
-	}
+    public function getParent()
+    {
+        return $this->parent;
+    }
 
-	public function getParent()
-	{
-		return $this->parent;
-	}
+    public function setElement(Model $element)
+    {
+        $relatedClass = $this->getRelatedClass();
+        $id = $element->{$this->getName()};
+        $this->value = $relatedClass && $id ? $relatedClass::find($id) : null;
+        $this->element = $element;
 
-	public function setElement(Model $element)
-	{
-		$this->element = $element;
+        return $this;
+    }
 
-		$site = \App::make('site');
+    public function setRelation(Model $relation)
+    {
+        $site = App::make('site');
 
-		$relatedClass = $this->getRelatedClass();
-		$id = $this->element->{$this->getName()};
-
-		if ($relatedClass && $id) {
-			$this->value = $relatedClass::find($id);
-		} else {
-            $this->value = null;
+        if ($this->getRelatedClass() == $site->getClass($relation)) {
+            $this->value = $relation;
         }
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function setRelation(Model $relation)
-	{
-		if ($this->getRelatedClass() == Element::getClass($relation)) {
-			$this->value = $relation;
-		}
-
-		return $this;
-	}
-
-	public function searchQuery($query)
-	{
+    public function searchQuery($query)
+    {
         $request = $this->getRequest();
-		$name = $this->getName();
+        $name = $this->getName();
 
-		$value = (int)$request->input($name);
+        $value = (int) $request->input($name);
 
-		if ($value) {
-			$query->where($name, $value);
-		}
+        if ($value) {
+            $query->where($name, $value);
+        }
 
-		return $query;
-	}
+        return $query;
+    }
 
-	public function getListView()
-	{
-		$site = \App::make('site');
+    public function getListView()
+    {
+        $site = App::make('site');
 
-		$relatedClass = $this->getRelatedClass();
-		$relatedItem = $site->getItemByName($relatedClass);
-		$mainProperty = $relatedItem->getMainProperty();
+        $relatedClass = $this->getRelatedClass();
+        $relatedItem = $site->getItemByClassName($relatedClass);
+        $mainProperty = $relatedItem->getMainProperty();
 
-		$value = $this->value ? [
-            'id' => $this->value->id,
-            'classId' => Element::getClassId($this->value),
+        $element = $this->value ? (object) [
+            'class_id' => $site->getClassId($this->value),
             'name' => $this->value->{$mainProperty},
         ] : null;
 
-		$scope = [
+        return [
             'name' => $this->getName(),
-			'title' => $this->getTitle(),
-			'value' => $value,
-		];
+            'element' => $element,
+        ];
+    }
 
-		return $scope;
-	}
+    public function getEditView()
+    {
+        $site = App::make('site');
 
-	public function getEditView()
-	{
-		$site = \App::make('site');
-
-		$currentItem = $this->getItem();
-		$relatedClass = $this->getRelatedClass();
-		$relatedItem = $site->getItemByName($relatedClass);
-		$mainProperty = $relatedItem->getMainProperty();
-
-        $value = $this->value ? [
-            'id' => $this->value->id,
-            'classId' => Element::getClassId($this->value),
-            'name' => $this->value->{$mainProperty},
-		] : null;
-
-		$binds = $site->getBinds();
-		$itemPlace = null;
-		$rootPlace = null;
-        $elementPlaces = [];
-
-        foreach ($binds as $parent => $items) {
-			foreach ($items as $item) {
-				if ($item != $currentItem->getNameId()) continue;
-
-                if ($parent == Site::ROOT && ! $this->getRequired()) {
-                    $rootPlace = Site::ROOT;
-
-                    continue;
-                }
-
-                $parentItem = $site->getItemByName($parent);
-
-                if ($parentItem && $parentItem->getNameId() == $relatedItem->getNameId()) {
-                    $itemPlace = $parentItem->getName();
-
-                    continue;
-				}
-
-                $parentElement = Element::getByClassId($parent);
-
-                if ($parentElement) {
-					$parentElementItem = Element::getItem($parentElement);
-					$parentElementMainProperty = $parentElementItem->getMainProperty();
-
-					if ($parentElementItem->getNameId() == $relatedItem->getNameId()) {
-						$elementPlaces[] = [
-							'id' => $parentElement->id,
-							'classId' => Element::getClassId($parentElement),
-							'name' => $parentElement->{$parentElementMainProperty},
-						];
-					}
-
-                    continue;
-                }
-            }
-		}
-
-		$countPlaces = sizeof($elementPlaces);
-
-		if ($rootPlace) $countPlaces++;
-
-		$scope = [
-			'name' => $this->getName(),
-			'title' => $this->getTitle(),
-			'value' => $value,
-			'readonly' => $this->getReadonly(),
-			'required' => $this->getRequired(),
-			'relatedClass' => $relatedItem->getNameId(),
-			'itemPlace' => $itemPlace,
-			'rootPlace' => $rootPlace,
-			'elementPlaces' => $elementPlaces,
-			'countPlaces' => $countPlaces,
-		];
-
-		return $scope;
-	}
-
-	public function getSearchView()
-	{
-        $site = \App::make('site');
-
-		$request = $this->getRequest();
-        $name = $this->getName();
-        $id = (int)$request->input($name);
+        $currentItem = $this->getItem();
         $relatedClass = $this->getRelatedClass();
-		$relatedItem = $site->getItemByName($relatedClass);
+        $relatedItem = $site->getItemByClassName($relatedClass);
         $mainProperty = $relatedItem->getMainProperty();
 
-		$element = $id
-            ? $relatedClass::find($id)
-            : null;
+        $value = $this->value ? (object) [
+            'id' => $this->value->id,
+            'class_id' => $site->getClassId($this->value),
+            'name' => $this->value->{$mainProperty},
+        ] : null;
 
-        $value = $element
-            ? [
-                'id' => $element->id,
-                'name' => $element->{$mainProperty}
-            ] : null;
+        $rootPlace = null;
+        $itemPlace = null;
+        $elementPlaces = [];
 
-		$scope = array(
-			'name' => $this->getName(),
-			'title' => $this->getTitle(),
-			'value' => $value,
-			'open' => $element !== null,
-            'relatedClass' => $relatedItem->getNameId(),
-		);
+        if ($currentItem->boundToRoot() && ! $this->getRequired()) {
+            $rootPlace = Site::ROOT;
+        }
 
-		return $scope;
-	}
+        if ($currentItem->boundToItem($relatedItem)) {
+            $itemPlace = $relatedItem->getName();
+        }
 
-	public function isOneToOne()
-	{
-		return true;
-	}
+        $bindingElements = $currentItem->bindingElements($relatedItem);
+
+        foreach ($bindingElements as $bindingElement) {
+            $elementPlaces[] = (object) [
+                'id' => $bindingElement->id,
+                'class_id' => $site->getClassId($bindingElement),
+                'name' => $bindingElement->{$mainProperty},
+            ];
+        }
+
+        $countPlaces = sizeof($elementPlaces);
+
+        if ($rootPlace) {
+            $countPlaces++;
+        }
+
+        return [
+            'name' => $this->getName(),
+            'title' => $this->getTitle(),
+            'value' => $value,
+            'readonly' => $this->getReadonly(),
+            'required' => $this->getRequired(),
+            'relatedItem' => $relatedItem,
+            'itemPlace' => $itemPlace,
+            'rootPlace' => $rootPlace,
+            'elementPlaces' => $elementPlaces,
+            'countPlaces' => $countPlaces,
+        ];
+    }
+
+    public function getSearchView()
+    {
+        $site = App::make('site');
+
+        $request = $this->getRequest();
+        $name = $this->getName();
+        $relatedClass = $this->getRelatedClass();
+        $relatedItem = $site->getItemByClassName($relatedClass);
+        $mainProperty = $relatedItem->getMainProperty();
+
+        $id = (int) $request->input($name);
+        $element = $id ? $relatedClass::find($id) : null;
+
+        $value = $element ? (object) [
+            'id' => $element->id,
+            'class_id' => $site->getClassId($element),
+            'name' => $element->{$mainProperty},
+        ] : null;
+
+        return [
+            'name' => $this->getName(),
+            'title' => $this->getTitle(),
+            'value' => $value,
+            'open' => $element !== null,
+            'relatedItem' => $relatedItem,
+        ];
+    }
+
+    public function isOneToOne()
+    {
+        return true;
+    }
 }

@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Storage;
 
 class FileProperty extends BaseProperty
 {
-    protected $folderName = null;
     protected $hash = null;
-    protected $folderPath = null;
-    protected $folderWebPath = null;
     protected $assetsName = 'assets';
     protected $driver = null;
     protected $driverFolderName = 'documents';
@@ -64,7 +61,9 @@ class FileProperty extends BaseProperty
 
     public function filesize()
     {
-        if (! $this->exists()) return 0;
+        if (! $this->exists()) {
+            return 0;
+        }
 
         if ($this->driver) {
             $filename = $this->getDriverFilename();
@@ -171,23 +170,17 @@ class FileProperty extends BaseProperty
                 }
 
                 $folderPath =
-                    public_path()
-                    .DIRECTORY_SEPARATOR
-                    .$this->getAssetsName()
-                    .DIRECTORY_SEPARATOR
-                    .$this->getFolderName()
-                    .DIRECTORY_SEPARATOR;
+                    public_path().DIRECTORY_SEPARATOR
+                    .$this->getAssetsName().DIRECTORY_SEPARATOR
+                    .$this->getFolderName().DIRECTORY_SEPARATOR;
 
                 if (! file_exists($folderPath)) {
                     mkdir($folderPath, 0755);
                 }
 
-                $folderHash =
-                    method_exists($this->element, 'getFolderHash')
-                        ? trim(
-                        $this->element->getFolderHash(),
-                        DIRECTORY_SEPARATOR
-                    ) : '';
+                $folderHash = method_exists($this->element, 'getFolderHash')
+                    ? trim($this->element->getFolderHash(), DIRECTORY_SEPARATOR)
+                    : '';
 
                 $destination = $folderHash
                     ? $folderPath.DIRECTORY_SEPARATOR.$folderHash
@@ -237,10 +230,7 @@ class FileProperty extends BaseProperty
             $filename = $this->getDriverFilename();
             Storage::disk($this->driver)->delete($filename);
         } elseif ($this->exists()) {
-            try {
-                unlink($this->abspath());
-            } catch (\Exception $e) {
-            }
+            unlink($this->abspath());
         }
     }
 
@@ -252,13 +242,7 @@ class FileProperty extends BaseProperty
             return Storage::disk($this->driver)->url($filename);
         }
 
-        return asset(
-            $this->getAssetsName()
-            .'/'
-            .$this->getFolderName()
-            .'/'
-            .$this->getValue()
-        );
+        return asset($this->getAssetsName().'/'.$this->getFolderName().'/'.$this->getValue());
     }
 
     public function filename()
@@ -293,12 +277,12 @@ class FileProperty extends BaseProperty
         if ($exists) {
             $value = $this->getValue();
             $path = $this->path();
-            $filesize = $this->filesize_kb(null, 1);
+            $filesize = $this->filesize_kb(1);
             $filename = $this->filename();
         } else {
             $value = null;
             $path = $this->path();
-            $filesize = $this->filesize_kb(null, 1);
+            $filesize = $this->filesize_kb(1);
             $filename = $this->filename();
         }
 

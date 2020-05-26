@@ -1,5 +1,5 @@
 <td>
-@if ($exists)
-<img src="{{ $src }}" />
-@endif
+    @if ($exists)
+        <img src="{{ $src }}" alt=""/>
+    @endif
 </td>

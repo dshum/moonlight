@@ -1,8 +1,8 @@
-jQuery.expr[':'].contains = function(a, i, m) {
+jQuery.expr[':'].contains = function (a, i, m) {
     return jQuery(a).text().toUpperCase().indexOf(m[3].toUpperCase()) >= 0;
 };
 
-$(function() {
+$(function () {
     $('#filter').keyup(function () {
         var str = $(this).val();
 
@@ -22,59 +22,31 @@ $(function() {
             $('ul.items > li').show();
         }
     });
-    
-    $('.button.enabled.restore').click(function() {
-        $.confirm(null, '#restore');
+
+    $('.button.enabled.restore').click(function () {
+        $.confirm(null, '.confirm[data-confirm-type="restore"]');
     });
 
-    $('.button.enabled.delete').click(function() {
-        $.confirm(null, '#delete');
+    $('.button.enabled.delete').click(function () {
+        $.confirm(null, '.confirm[data-confirm-type="delete"]');
     });
 
-    $('.confirm .restore').click(function() {
-        var url = $(this).attr('url');
+    $('.confirm .restore, .confirm .remove').click(function () {
+        var confirmContainer = $(this).parents('.confirm');
+        var url = confirmContainer.data('url');
 
-        if (! url) return false;
-
-        $.confirmClose('#restore');
+        $.confirmClose(confirmContainer);
         $.blockUI();
 
-        $.post(
-            url,
-            {},
-            function(data) {
-                $.unblockUI(function() {
-                    if (data.error) {
-                        $.alert(data.error);
-                    } else if (data.restored && data.url) {
-                        location.href = data.url;
-                    }
-                });
-            }
-        );
-    });
-
-    $('.confirm .remove').click(function() {
-        var url = $(this).attr('url');
-
-        if (! url) return false;
-
-        $.confirmClose('#delete');
-        $.blockUI();
-
-        $.post(
-            url,
-            {},
-            function(data) {
-                $.unblockUI(function() {
-                    if (data.error) {
-                        $.alert(data.error);
-                    } else if (data.deleted && data.url) {
-                        location.href = data.url;
-                    }
-                });
-            }
-        );
+        $.post(url, {}, function (response) {
+            $.unblockUI(function () {
+                if (response.error) {
+                    $.alert(response.error);
+                } else if (response.url) {
+                    location.href = response.url;
+                }
+            });
+        });
     });
 
     $('div.item').fadeIn(200);

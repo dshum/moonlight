@@ -1,5 +1,4 @@
 $(function () {
-    var itemTotal = 0;
     var itemCount = 0;
     var empty = true;
     var checked = {};
@@ -10,7 +9,7 @@ $(function () {
                 var $el = $(this);
                 var sortable = $el.data('sortable');
 
-                if (!sortable && options instanceof Object) {
+                if (! sortable && options instanceof Object) {
                     sortable = new Sortable(this, options);
                     $el.data('sortable', sortable);
                 }
@@ -23,10 +22,14 @@ $(function () {
     }
 
     var init = function (item) {
-        $('.main div[item="' + item + '"] input.one').each(function () {
+        var itemContainer = $('div.item[data-item="' + item + '"]');
+        var classId = itemContainer.data('class-id');
+        var url = itemContainer.data('url');
+
+        $('div.item[data-item="' + item + '"] input.one').each(function () {
             var parent = $(this).parents('div.row');
-            var relatedItem = $(this).attr('item');
-            var name = $(this).attr('property');
+            var relatedItem = $(this).data('item');
+            var propertyName = $(this).data('property');
             var width = $(this).outerWidth() - 2;
 
             $(this).autocomplete({
@@ -38,15 +41,15 @@ $(function () {
                     return suggestion.value + ' <small>(' + suggestion.id + ')</small>';
                 },
                 onSelect: function (suggestion) {
-                    parent.find('input:hidden[name="' + name + '"]').val(suggestion.id);
-                    parent.find('span[container][name="' + name + '"]').html(suggestion.value);
+                    parent.find('input:hidden[name="' + propertyName + '"]').val(suggestion.id);
+                    parent.find('span.element-container[data-name="' + propertyName + '"]').html(suggestion.value);
                 },
                 width: width,
                 minChars: 0
             });
         });
 
-        $('.main div[item="' + item + '"] table.elements tbody').each(function () {
+        $('div.item[data-item="' + item + '"] table.elements tbody').each(function () {
             var tbody = $(this);
 
             tbody.sortable({
@@ -55,12 +58,10 @@ $(function () {
                 dragClass: 'dragging',
                 onEnd: function (event) {
                     if (event.newIndex === event.oldIndex) return false;
-
                     var order = [];
 
                     $(event.to).find('tr').each(function () {
-                        var id = $(this).attr('elementId');
-
+                        var id = $(this).data('element-id');
                         order.push(id);
                     });
 
@@ -68,8 +69,9 @@ $(function () {
 
                     $.post('/moonlight/elements/order', {
                         item: item,
+                        class_id: classId,
                         elements: order
-                    }, function (data) {
+                    }, function (response) {
                         $.unblockUI();
                     });
                 }
@@ -77,61 +79,63 @@ $(function () {
         });
     };
 
-    var loadElements = function (item, classId) {
-        $.getJSON('/moonlight/elements/list', {
+    var loadElements = function (item) {
+        var itemContainer = $('div.item[data-item="' + item + '"]');
+        var classId = itemContainer.data('class-id');
+        var url = itemContainer.data('url');
+
+        $.getJSON(url, {
             item: item,
-            classId: classId
+            class_id: classId
         }, function (data) {
             if (data.html && data.html.length) {
-                $('.main div[item="' + item + '"]').hide().html(data.html).fadeIn(200);
-
+                itemContainer.html(data.html).removeClass('hidden');
                 init(item);
-
                 empty = false;
-
                 $(document).trigger('item-loaded', [item, classId]);
             }
 
             itemCount++;
 
-            if (itemCount == itemTotal) {
+            if (itemCount == items.length) {
                 if (empty) $('div.empty').show();
             } else {
-                loadElements(items[itemCount].item, items[itemCount].classId);
+                loadElements(items[itemCount]);
             }
         }).fail(function () {
             $.alertDefaultError();
         });
     };
 
-    var getElements = function (item, classId, addition) {
-        var params = {
+    var getElements = function (item, params) {
+        var itemContainer = $('div.item[data-item="' + item + '"]');
+        var classId = itemContainer.data('class-id');
+        var url = itemContainer.data('url');
+        var data = {
             item: item,
-            classId: classId
+            class_id: classId
         };
 
-        if (addition) {
-            for (var index in addition) {
-                params[index] = addition[index];
+        if (params) {
+            for (var index in params) {
+                data[index] = params[index];
             }
         }
 
         $.blockUI();
 
-        $.getJSON('/moonlight/elements/list', params, function (data) {
+        $.getJSON(url, data, function (response) {
             $.unblockUI();
 
-            if (data.html && data.html.length) {
-                $('.main div[item="' + item + '"]').html(data.html);
-
+            if (response.html && response.html.length) {
+                itemContainer.html(response.html);
                 init(item);
-
                 $(document).trigger('item-loaded', [item, classId]);
             } else {
-                $('.main div[item="' + item + '"]').fadeOut(200, function () {
+                $('div.item[data-item="' + item + '"]').fadeOut(200, function () {
                     itemCount--;
 
-                    if (!itemCount) {
+                    if (! itemCount) {
                         $('div.empty').show();
                     }
                 });
@@ -144,82 +148,77 @@ $(function () {
 
     var items = [];
 
-    $('.main div[item]').each(function () {
-        var item = $(this).attr('item');
-        var classId = $(this).attr('classId');
+    $('div.item[data-item]').each(function () {
+        var item = $(this).data('item');
 
-        items.push({item: item, classId: classId});
-
-        itemTotal++;
+        items.push(item);
     });
 
-    if (itemTotal) {
-        loadElements(items[0].item, items[0].classId);
+    if (items.length > 0) {
+        loadElements(items[0]);
     }
 
-    $('body').on('click', '.main div[item] ul.header > li.h2', function () {
+    $('body').on('click', 'div.item[data-item] ul.header > li.h2', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var elementsContainer = itemContainer.find('div.list-container');
+        var item = itemContainer.data('item');
+        var classId = itemContainer.data('class-id');
+        var url = itemContainer.data('url');
         var h2 = $(this);
-        var display = h2.attr('display');
-        var div = h2.parents('div[item]');
-        var container = div.find('div[list]');
-        var item = div.attr('item');
-        var classId = div.attr('classId');
+        var display = h2.data('display');
 
         if (display == 'show') {
-            h2.attr('display', 'hide');
-            container.hide();
+            h2.data('display', 'hide');
+            elementsContainer.hide();
 
             $.post('/moonlight/elements/close', {
                 item: item,
-                classId: classId
+                class_id: classId
             });
         } else if (display == 'hide') {
-            h2.attr('display', 'show');
-            container.show();
+            h2.data('display', 'show');
+            elementsContainer.show();
 
             $.post('/moonlight/elements/open', {
                 item: item,
-                classId: classId
+                class_id: classId
             });
         } else {
             $.blockUI();
 
-            $.getJSON('/moonlight/elements/list', {
+            $.getJSON(url, {
                 item: item,
-                classId: classId,
+                class_id: classId,
                 open: true
             }, function (data) {
                 $.unblockUI();
 
                 if (data.html) {
-                    $('.main div[item="' + item + '"]').html(data.html);
-
+                    $('div.item[data-item="' + item + '"]').html(data.html);
                     init(item);
-
                     $(document).trigger('item-loaded', [item, classId]);
                 }
             });
         }
     });
 
-    $('body').on('click', 'table.elements th span[resetorder]', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
-        var classId = itemContainer.attr('classId');
+    $('body').on('click', 'table.elements th span[data-reset-order="true"]', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var url = itemContainer.data('url');
 
-        getElements(item, classId, {
-            resetorder: true
+        getElements(item, {
+            reset_order: true
         });
     });
 
-    $('body').on('click', 'table.elements th span[order][direction]', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
-        var classId = itemContainer.attr('classId');
-        var order = $(this).attr('order');
-        var direction = $(this).attr('direction');
+    $('body').on('click', 'table.elements th span[data-order][data-direction]', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var order = $(this).data('order');
+        var direction = $(this).data('direction');
 
-        getElements(item, classId, {
+        getElements(item, {
             order: order,
             direction: direction
         });
@@ -228,13 +227,13 @@ $(function () {
     $('body').on('click', 'table.elements td.editable', function () {
         var td = $(this);
         var tr = td.parent();
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
-        var mode = td.attr('mode');
-        var elementId = tr.attr('elementId');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var mode = td.data('mode');
+        var elementId = tr.data('element-id');
 
         if (mode == 'edit') {
-            td.attr('mode', 'view');
+            td.data('mode', 'view');
 
             td.find('.view-container').show();
             td.find('.edit-container').hide();
@@ -242,7 +241,7 @@ $(function () {
             td.find('.edit-container').find('input,select,textarea')
                 .attr('disabled', 'disabled');
         } else {
-            td.attr('mode', 'edit');
+            td.data('mode', 'edit');
 
             td.find('.view-container').hide();
             td.find('.edit-container').show();
@@ -252,7 +251,7 @@ $(function () {
                 .focus();
         }
 
-        var count = itemContainer.find('td.editable[mode="edit"]').length;
+        var count = itemContainer.find('td.editable[data-mode="edit"]').length;
 
         if (count) {
             itemContainer.find('.button.save:not(.disabled)').addClass('enabled');
@@ -292,12 +291,12 @@ $(function () {
     });
 
     $('body').on('submit', 'form[name="save"]', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
-        var classId = itemContainer.attr('classId');
-        var count = itemContainer.find('td.editable[mode="edit"]').length;
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var classId = itemContainer.data('clas-id');
+        var count = itemContainer.find('td.editable[data-mode="edit"]').length;
 
-        if (!count) return false;
+        if (! count) return false;
 
         itemContainer.find('td.editable.invalid').removeClass('invalid');
 
@@ -331,13 +330,13 @@ $(function () {
                     }
                 }
 
-                var count = itemContainer.find('td.editable[mode="edit"]').length;
+                var count = itemContainer.find('td.editable[data-mode="edit"]').length;
 
                 if (!count) {
                     itemContainer.find('.button.save:not(.disabled)').removeClass('enabled');
                 }
 
-                $(document).trigger('item-saved', [item, classId]);
+                $(document).trigger('item-saved', [item]);
             }
         }).fail(function (response) {
             $.unblockUI();
@@ -348,7 +347,7 @@ $(function () {
     });
 
     $('body').on('click', '.button.save.enabled', function () {
-        var itemContainer = $(this).parents('div[item]');
+        var itemContainer = $(this).parents('div.item[data-item]');
 
         itemContainer.find('form[name="save"]').submit();
 
@@ -368,10 +367,10 @@ $(function () {
     });
 
     $('body').on('click', 'th.check', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var tr = $(this).parent();
         var table = tr.parents('table');
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
 
         if (typeof checked[item] === 'undefined') {
             checked[item] = [];
@@ -389,7 +388,7 @@ $(function () {
             tr.addClass('checked');
 
             table.find('tbody tr').each(function () {
-                var elementId = $(this).attr('elementId');
+                var elementId = $(this).data('element-id');
                 var index = checked[item].indexOf(elementId);
 
                 if (index === -1) {
@@ -418,10 +417,10 @@ $(function () {
     });
 
     $('body').on('click', 'td.check', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var tr = $(this).parent();
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
-        var elementId = tr.attr('elementId');
+        var elementId = tr.data('element-id');
 
         if (typeof checked[item] === 'undefined') {
             checked[item] = [];
@@ -460,9 +459,9 @@ $(function () {
         }
     });
 
-    $('body').on('click', '.addition.unset[property]', function () {
+    $('body').on('click', '.addition.unset[data-property]', function () {
         var parent = $(this).parents('div.row');
-        var name = $(this).attr('property');
+        var name = $(this).data('property');
 
         parent.find('input:hidden[name="' + name + '"]').val('');
         parent.find('input:text[name="' + name + '_autocomplete"]').val('');
@@ -470,130 +469,114 @@ $(function () {
     });
 
     $('body').on('click', '.button.copy.enabled', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
 
-        $.confirm(null, '.confirm[id="' + item + '_copy"]');
+        $.confirm(null, 'div.item[data-item="' + item + '"] .confirm[ data-confirm-type="copy"]');
     });
 
     $('body').on('click', '.button.move.enabled', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
 
-        $.confirm(null, '.confirm[id="' + item + '_move"]');
+        $.confirm(null, 'div.item[data-item="' + item + '"] .confirm[ data-confirm-type="move"]');
     });
 
     $('body').on('click', '.button.bind.enabled', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
 
-        $.confirm(null, '.confirm[id="' + item + '_bind"]');
+        $.confirm(null, 'div.item[data-item="' + item + '"] .confirm[ data-confirm-type="bind"]');
     });
 
     $('body').on('click', '.button.unbind.enabled', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
 
-        $.confirm(null, '.confirm[id="' + item + '_unbind"]');
+        $.confirm(null, 'div.item[data-item="' + item + '"] .confirm[ data-confirm-type="unbind"]');
     });
 
     $('body').on('click', '.button.favorite.enabled', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
 
-        itemContainer.find('div[name="add"], .favorite-list.add').hide();
-        itemContainer.find('div[name="remove"], .favorite-list.remove').hide();
-        itemContainer.find('.favorite-list.add div[rubric]').hide();
-        itemContainer.find('.favorite-list.remove div[rubric]').hide();
+        itemContainer.find('.favorite-title.add, .favorite-list.add').addClass('hidden');
+        itemContainer.find('.favorite-list.add div.rubric').addClass('hidden');
+        itemContainer.find('.favorite-title.remove, .favorite-list.remove').addClass('hidden');
+        itemContainer.find('.favorite-list.remove div.rubric').addClass('hidden');
 
-        for (var i1 in checked[item]) {
-            var id = checked[item][i1];
-            var tr = itemContainer.find('table.elements tr[elementId="' + id + '"]');
-            var rubrics = tr.attr('rubrics');
-            var rubricIds = rubrics.split(',');
+        for (var id of checked[item]) {
+            var tr = itemContainer.find('table.elements tr[data-element-id="' + id + '"]');
+            var addedRubrics = tr.data('rubrics').toString().split(',');
 
-            itemContainer.find('.favorite-list.add div[rubric]').each(function () {
-                var rubricId = $(this).attr('rubric');
-                var index = rubricIds.indexOf(rubricId);
+            itemContainer.find('.favorite-list.add div.rubric').each(function () {
+                var rubricId = $(this).data('rubric').toString();
+                var index = addedRubrics.indexOf(rubricId);
 
                 if (index === -1) {
-                    $(this).show();
-                    itemContainer.find('div[name="add"], .favorite-list.add').show();
+                    $(this).removeClass('hidden');
+                    itemContainer.find('.favorite-title.add, .favorite-list.add').removeClass('hidden');
                 }
             });
 
-            for (var i2 in rubricIds) {
-                var rubricId = rubricIds[i2];
-
-                itemContainer.find('.favorite-list.remove div[rubric="' + rubricId + '"]').show();
-
+            for (var rubricId of addedRubrics) {
                 if (rubricId) {
-                    itemContainer.find('div[name="remove"], .favorite-list.remove').show();
+                    itemContainer.find('.favorite-list.remove div.rubric[data-rubric="' + rubricId + '"]').removeClass('hidden');
+                    itemContainer.find('.favorite-title.remove, .favorite-list.remove').removeClass('hidden');
                 }
             }
         }
 
-        $.confirm(null, '.confirm[id="' + item + '_favorite"]');
+        $.confirm(null, 'div.item[data-item="' + item + '"] .confirm[data-confirm-type="favorite"]');
     });
 
     $('body').on('click', '.button.delete.enabled', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var item = itemContainer.attr('item');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
 
-        $.confirm(null, '.confirm[id="' + item + '_delete"]');
+        $.confirm(null, 'div.item[data-item="' + item + '"] .confirm[data-confirm-type="delete"]');
     });
 
     $('body').on('click', '.confirm .btn.copy', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var parent = $(this).parents('.confirm');
-        var item = itemContainer.attr('item');
-
+        var confirmContainer = $(this).parents('.confirm');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var url = confirmContainer.data('url');
         var name, value;
 
-        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
-            name = $(this).attr('property');
+        confirmContainer.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
+            name = $(this).data('property');
             value = $(this).val();
         });
-
-        if (!name) return false;
 
         $.confirmClose();
         $.blockUI();
 
-        $.post(
-            '/moonlight/elements/copy',
-            {
-                item: item,
-                checked: checked[item],
-                name: name,
-                value: value
-            },
-            function (data) {
-                $.unblockUI(function () {
-                    if (data.error) {
-                        $.alert(data.error);
-                    } else if (data.copied) {
-                        if (!value) {
-                            location.reload();
-                        } else if (data.url) {
-                            location.href = data.url;
-                        }
-                    }
-                });
-            }
-        );
+        $.post(url, {
+            item: item,
+            checked: checked[item],
+            name: name,
+            value: value
+        }, function (response) {
+            $.unblockUI(function () {
+                if (response.error) {
+                    $.alert(response.error);
+                } else if (response.copied && response.url) {
+                    location.href = response.url;
+                }
+            });
+        });
     });
 
     $('body').on('click', '.confirm .btn.move', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var parent = $(this).parents('.confirm');
-        var item = itemContainer.attr('item');
-        var classId = itemContainer.attr('classId');
-
+        var confirmContainer = $(this).parents('.confirm');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var url = confirmContainer.data('url');
         var one = null;
 
-        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
-            var name = $(this).attr('property');
+        confirmContainer.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
+            var name = $(this).data('property');
             var value = $(this).val();
 
             one = {
@@ -602,43 +585,36 @@ $(function () {
             };
         });
 
-        if (!one) return false;
+        if (! one) return false;
 
         $.confirmClose();
         $.blockUI();
 
-        $.post(
-            '/moonlight/elements/move',
-            {
-                item: item,
-                classId: classId,
-                checked: checked[item],
-                name: one.name,
-                value: one.value
-            },
-            function (data) {
-                $.unblockUI(function () {
-                    if (data.error) {
-                        $.alert(data.error);
-                    } else if (data.moved && data.url) {
-                        location.href = data.url;
-                    }
-                });
-            }
-        );
+        $.post(url, {
+            item: item,
+            checked: checked[item],
+            name: one.name,
+            value: one.value
+        }, function (response) {
+            $.unblockUI(function () {
+                if (response.error) {
+                    $.alert(response.error);
+                } else if (response.moved && response.url) {
+                    location.href = response.url;
+                }
+            });
+        });
     });
 
     $('body').on('click', '.confirm .btn.bind', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var parent = $(this).parents('.confirm');
-        var item = itemContainer.attr('item');
-        var classId = itemContainer.attr('classId');
+        var confirmContainer = $(this).parents('.confirm');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var url = confirmContainer.data('url');
+        var ones = {}, count = 0;
 
-        var ones = {};
-        var count = 0;
-
-        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
-            var name = $(this).attr('property');
+        confirmContainer.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
+            var name = $(this).data('property');
             var value = $(this).val();
 
             if (value) {
@@ -647,41 +623,35 @@ $(function () {
             }
         });
 
-        if (!count) return false;
+        if (! count) return false;
 
         $.confirmClose();
         $.blockUI();
 
-        $.post(
-            '/moonlight/elements/bind',
-            {
-                item: item,
-                checked: checked[item],
-                ones: ones
-            },
-            function (data) {
-                if (data.error) {
-                    $.unblockUI(function () {
-                        $.alert(data.error);
-                    });
-                } else if (data.attached) {
-                    getElements(item, classId);
-                }
+        $.post(url, {
+            item: item,
+            checked: checked[item],
+            ones: ones
+        }, function (response) {
+            if (response.error) {
+                $.unblockUI(function () {
+                    $.alert(response.error);
+                });
+            } else if (response.attached) {
+                getElements(item);
             }
-        );
+        });
     });
 
     $('body').on('click', '.confirm .btn.unbind', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var parent = $(this).parents('.confirm');
-        var item = itemContainer.attr('item');
-        var classId = itemContainer.attr('classId');
+        var confirmContainer = $(this).parents('.confirm');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var url = confirmContainer.data('url');
+        var ones = {}, count = 0;
 
-        var ones = {};
-        var count = 0;
-
-        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
-            var name = $(this).attr('property');
+        confirmContainer.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
+            var name = $(this).data('property');
             var value = $(this).val();
 
             if (value) {
@@ -690,40 +660,32 @@ $(function () {
             }
         });
 
-        if (!count) return false;
+        if (! count) return false;
 
         $.confirmClose();
         $.blockUI();
 
-        $.post(
-            '/moonlight/elements/unbind',
-            {
-                item: item,
-                checked: checked[item],
-                ones: ones
-            },
-            function (data) {
-                if (data.error) {
-                    $.unblockUI(function () {
-                        $.alert(data.error);
-                    });
-                } else if (data.detached) {
-                    getElements(item, classId);
-                }
+        $.post(url, {
+            item: item,
+            checked: checked[item],
+            ones: ones
+        }, function (response) {
+            if (response.error) {
+                $.unblockUI(function () {
+                    $.alert(response.error);
+                });
+            } else if (response.detached) {
+                getElements(item);
             }
-        );
+        });
     });
 
-    $('body').on('click', '.confirm .favorite-list.add div[rubric]', function () {
-        var parent = $(this).parents('.confirm');
-        var itemContainer = $(this).parents('div[item]');
-        var classId = itemContainer.attr('classId');
-        var item = itemContainer.attr('item');
-        var url = parent.attr('url');
-        var addRubric = $(this).attr('rubric');
-
-        if (!url) return false;
-        if (!addRubric) return false;
+    $('body').on('click', '.confirm .favorite-list.add div.rubric', function () {
+        var confirmContainer = $(this).parents('.confirm');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var url = confirmContainer.data('url');
+        var addRubric = $(this).data('rubric');
 
         $.confirmClose();
         $.blockUI();
@@ -732,12 +694,12 @@ $(function () {
             item: item,
             checked: checked[item],
             add_favorite_rubric: addRubric
-        }, function (data) {
+        }, function (response) {
             $.unblockUI(function () {
-                if (data.error) {
-                    $.alert(data.error);
-                } else if (data.saved) {
-                    getElements(item, classId);
+                if (response.error) {
+                    $.alert(response.error);
+                } else if (response.saved) {
+                    getElements(item);
                 }
             });
         }).fail(function () {
@@ -746,16 +708,12 @@ $(function () {
         });
     });
 
-    $('body').on('click', '.confirm .favorite-list.remove div[rubric]', function () {
-        var parent = $(this).parents('.confirm');
-        var itemContainer = $(this).parents('div[item]');
-        var classId = itemContainer.attr('classId');
-        var item = itemContainer.attr('item');
-        var url = parent.attr('url');
-        var removedRubric = $(this).attr('rubric');
-
-        if (!url) return false;
-        if (!removedRubric) return false;
+    $('body').on('click', '.confirm .favorite-list.remove div.rubric', function () {
+        var confirmContainer = $(this).parents('.confirm');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var url = confirmContainer.data('url');
+        var removedRubric = $(this).data('rubric');
 
         $.confirmClose();
         $.blockUI();
@@ -764,12 +722,12 @@ $(function () {
             item: item,
             checked: checked[item],
             remove_favorite_rubric: removedRubric
-        }, function (data) {
+        }, function (response) {
             $.unblockUI(function () {
-                if (data.error) {
-                    $.alert(data.error);
-                } else if (data.saved) {
-                    getElements(item, classId);
+                if (response.error) {
+                    $.alert(response.error);
+                } else if (response.saved) {
+                    getElements(item);
                 }
             });
         }).fail(function () {
@@ -779,7 +737,7 @@ $(function () {
     });
 
     $('body').on('keypress', '.confirm .favorite-new input[type="text"]', function (event) {
-        if (!event) event = window.event;
+        if (! event) event = window.event;
 
         if (event.keyCode) {
             var code = event.keyCode;
@@ -788,22 +746,18 @@ $(function () {
         }
 
         if (code == 13) {
-            var parent = $(this).parents('.confirm');
-
-            parent.find('.btn.favorite').click();
+            $(this).parents('.confirm').find('.btn.favorite').click();
         }
     });
 
     $('body').on('click', '.confirm .btn.favorite', function () {
-        var parent = $(this).parents('.confirm');
-        var itemContainer = $(this).parents('div[item]');
-        var classId = itemContainer.attr('classId');
-        var item = itemContainer.attr('item');
-        var url = parent.attr('url');
-        var newRubric = parent.find('.favorite-new input[type="text"]').val();
+        var confirmContainer = $(this).parents('.confirm');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var url = confirmContainer.data('url');
+        var newRubric = confirmContainer.find('.favorite-new input[type="text"]').val();
 
-        if (!url) return false;
-        if (!newRubric) return false;
+        if (! newRubric) return false;
 
         $.confirmClose();
         $.blockUI();
@@ -812,12 +766,12 @@ $(function () {
             item: item,
             checked: checked[item],
             new_favorite_rubric: newRubric
-        }, function (data) {
+        }, function (response) {
             $.unblockUI(function () {
-                if (data.error) {
-                    $.alert(data.error);
-                } else if (data.saved) {
-                    getElements(item, classId);
+                if (response.error) {
+                    $.alert(response.error);
+                } else if (response.saved) {
+                    getElements(item);
                 }
             });
         }).fail(function () {
@@ -827,95 +781,93 @@ $(function () {
     });
 
     $('body').on('click', '.confirm .btn.remove', function () {
-        var itemContainer = $(this).parents('div[item]');
-        var classId = itemContainer.attr('classId');
-        var item = itemContainer.attr('item');
+        var confirmContainer = $(this).parents('.confirm');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var url = confirmContainer.data('url');
 
         $.confirmClose();
         $.blockUI();
 
-        $.post(
-            '/moonlight/elements/delete',
-            {
-                item: item,
-                checked: checked[item]
-            },
-            function (data) {
-                if (data.error) {
-                    $.unblockUI(function () {
-                        $.alert(data.error);
-                    });
-                } else if (data.deleted) {
-                    getElements(item, classId);
+        $.post(url, {
+            item: item,
+            checked: checked[item]
+        }, function (response) {
+            $.unblockUI(function () {
+                if (response.error) {
+                    $.alert(response.error);
+                } else if (response.deleted) {
+                    getElements(item);
                 }
-            }
-        );
+            });
+        });
     });
 
-    $('body').on('click', 'ul.pager > li[prev].active', function () {
+    $('body').on('click', 'ul.pager > li[data-link="prev"].active', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var pager = $(this).parent();
-        var classId = pager.attr('classId');
-        var item = pager.attr('item');
-        var page = parseInt(pager.attr('page')) - 1;
+        var page = parseInt(pager.data('page')) - 1;
 
         if (page < 1) page = 1;
 
-        getElements(item, classId, {page: page});
+        getElements(item, {page: page});
     });
 
-    $('body').on('click', 'ul.pager > li[first].active', function () {
-        var pager = $(this).parent();
-        var classId = pager.attr('classId');
-        var item = pager.attr('item');
+    $('body').on('click', 'ul.pager > li[data-link="first"].active', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
 
-        getElements(item, classId, {page: 1});
+        getElements(item, {page: 1});
     });
 
     $('body').on('keydown', 'ul.pager > li.page > input', function (event) {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var pager = $(this).parents('ul.pager');
-        var classId = pager.attr('classId');
-        var item = pager.attr('item');
         var page = parseInt($(this).val());
-        var last = parseInt(pager.attr('last'));
+        var last = parseInt(pager.data('last'));
         var code = event.keyCode || event.which;
 
         if (code === 13) {
             if (isNaN(page) || page < 1) page = 1;
             if (page > last) page = last;
 
-            getElements(item, classId, {page: page});
+            getElements(item, {page: page});
         }
     });
 
-    $('body').on('click', 'ul.pager > li[last].active', function () {
+    $('body').on('click', 'ul.pager > li[data-link="last"].active', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var pager = $(this).parent();
-        var classId = pager.attr('classId');
-        var item = pager.attr('item');
-        var last = pager.attr('last');
+        var last = pager.data('last');
 
-        getElements(item, classId, {page: last});
+        getElements(item, {page: last});
     });
 
-    $('body').on('click', 'ul.pager > li[next].active', function () {
+    $('body').on('click', 'ul.pager > li[data-link="next"].active', function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var pager = $(this).parent();
-        var classId = pager.attr('classId');
-        var item = pager.attr('item');
-        var page = parseInt(pager.attr('page')) + 1;
-        var last = parseInt(pager.attr('last'));
+        var page = parseInt(pager.data('page')) + 1;
+        var last = parseInt(pager.data('last'));
 
         if (page > last) page = last;
 
-        getElements(item, classId, {page: page});
+        getElements(item, {page: page});
     });
 
     $('.sidebar .elements .h2 span').click(function () {
         var block = $(this).parents('.elements');
-        var rubric = block.attr('rubric');
-        var display = block.attr('display');
+        var rubric = block.data('rubric');
+        var display = block.data('display');
         var ul = block.find('ul').first();
 
+        console.log(display);
+
         if (display == 'show') {
-            block.attr('display', 'hide');
+            block.data('display', 'hide');
             ul.hide();
 
             $.post('/moonlight/rubrics/close', {
@@ -923,7 +875,7 @@ $(function () {
             });
 
         } else if (display == 'hide') {
-            block.attr('display', 'show');
+            block.data('display', 'show');
             ul.show();
 
             $.post('/moonlight/rubrics/open', {
@@ -939,7 +891,7 @@ $(function () {
 
                 if (data.html) {
                     block.append(data.html);
-                    block.attr('display', 'show');
+                    block.data('display', 'show');
                 }
             });
         }
@@ -948,15 +900,13 @@ $(function () {
     $('body').on('click', '.sidebar .elements span.open', function () {
         var span = $(this);
         var li = span.parents('li').first();
-        var rubric = span.attr('rubric');
-        var bind = span.attr('bind');
-        var classId = span.attr('classId');
-        var display = span.attr('display');
+        var rubric = span.data('rubric');
+        var classId = span.data('class-id');
+        var display = span.data('display');
 
         if (display == 'show') {
-            $('.sidebar .elements ul[node="' + classId + '"]').slideUp(200);
-
-            span.attr('display', 'hide');
+            $('.sidebar .elements ul[data-node="' + classId + '"]').slideUp(200);
+            span.data('display', 'hide').removeClass('rotate');
 
             $.post('/moonlight/rubrics/node/close', {
                 rubric: rubric,
@@ -964,9 +914,8 @@ $(function () {
             });
 
         } else if (display == 'hide') {
-            $('.sidebar .elements ul[node="' + classId + '"]').slideDown(200);
-
-            span.attr('display', 'show');
+            $('.sidebar .elements ul[data-node="' + classId + '"]').slideDown(200);
+            span.data('display', 'show').addClass('rotate');
 
             $.post('/moonlight/rubrics/node/open', {
                 rubric: rubric,
@@ -977,15 +926,13 @@ $(function () {
 
             $.getJSON('/moonlight/rubrics/node/get', {
                 rubric: rubric,
-                bind: bind,
-                classId: classId
-            }, function (data) {
+                class_id: classId
+            }, function (response) {
                 $.unblockUI();
 
-                if (data.html) {
-                    $(data.html).hide().appendTo(li).slideDown(200);
-
-                    span.attr('display', 'show');
+                if (response.html) {
+                    $(response.html).hide().appendTo(li).slideDown(200);
+                    span.data('display', 'show').addClass('rotate');
                 }
             });
         }
@@ -1002,10 +949,10 @@ $(function () {
         var left = a.offset().left;
         var top = a.offset().top - sidebar.offset().top + a.height() + 2;
 
-        menu.find('li.title span').html(a.text());
-        menu.find('li.title small').html(a.attr('item'));
-        menu.find('li.edit a').attr('href', a.attr('href') + '/edit');
-        menu.find('li.browse a').attr('href', a.attr('href'));
+        menu.find('li.title > span').text(a.text());
+        menu.find('li.title > small').text(a.data('item-title'));
+        menu.find('li.edit > a').attr('href', a.data('edit-url'));
+        menu.find('li.browse > a').attr('href', a.attr('href'));
 
         if (top + menu.height() > $(window).height()) {
             if (top - menu.height() - a.height() - 4 < 0) {
@@ -1026,16 +973,16 @@ $(function () {
     });
 
     $('body').on('click', '.sort-toggler', function () {
-        var itemContainer = $(this).parents('div[item]');
+        var itemContainer = $(this).parents('div.item[data-item]');
         var th = itemContainer.find('th.browse');
-        var sort = th.attr('sort');
+        var sort = th.data('sort');
 
-        if (sort == 'true') {
-            th.attr('sort', 'false');
+        if (sort) {
+            th.data('sort', false);
             itemContainer.find('td.browse a').show();
             itemContainer.find('td.browse .drag').hide();
         } else {
-            th.attr('sort', 'true');
+            th.data('sort', true);
             itemContainer.find('td.browse a').hide();
             itemContainer.find('td.browse .drag').show();
         }
@@ -1044,13 +991,13 @@ $(function () {
     $('body').on('click', 'li.column-toggler', function () {
         var li = $(this);
         var dropdown = li.find('.dropdown');
-        var display = li.attr('display');
+        var display = li.data('display');
 
         if (display == 'show') {
-            li.attr('display', 'hide');
+            li.data('display', 'hide').removeClass('open');
             dropdown.fadeOut(200);
         } else {
-            li.attr('display', 'show');
+            li.data('display', 'show').addClass('open');
             dropdown.fadeIn(200);
         }
     });
@@ -1059,16 +1006,20 @@ $(function () {
         e.stopPropagation();
     });
 
-    $('body').on('click', 'li.column-toggler .dropdown ul > li[show]', function (e) {
+    $('body').on('click', 'li.column-toggler .dropdown ul > li', function (e) {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var li = $(this);
-        var name = li.attr('name');
-        var show = li.attr('show');
-        var itemContainer = li.parents('div[item]');
-        var item = itemContainer.attr('item');
+        var name = li.data('name');
+        var show = li.data('show');
 
-        show = show == 'true' ? 'false' : 'true';
-
-        li.attr('show', show);
+        if (show == true) {
+            li.data('show', false).removeClass('checked');
+            show = false;
+        } else {
+            li.data('show', true).addClass('checked');
+            show = true;
+        }
 
         $.post('/moonlight/column', {
             item: item,
@@ -1078,11 +1029,11 @@ $(function () {
     });
 
     $('body').on('keyup change', 'li.column-toggler .dropdown ul > li.perpage input', $.debounce(function () {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var classId = itemContainer.attr('classId');
         var input = $(this);
         var perpage = input.val();
-        var itemContainer = input.parents('div[item]');
-        var classId = itemContainer.attr('classId');
-        var item = itemContainer.attr('item');
 
         $.post('/moonlight/perpage', {
             item: item,
@@ -1092,11 +1043,11 @@ $(function () {
     }, 500));
 
     $('body').on('keypress', 'li.column-toggler .dropdown ul > li.perpage input', function (event) {
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
+        var classId = itemContainer.data('class-id');
         var input = $(this);
         var perpage = input.val();
-        var itemContainer = input.parents('div[item]');
-        var classId = itemContainer.attr('classId');
-        var item = itemContainer.attr('item');
 
         if (! event) event = window.event;
 
@@ -1118,16 +1069,15 @@ $(function () {
     });
 
     $('body').on('click', 'li.column-toggler .dropdown .btn', function (e) {
-        var itemContainer = $(this).parents('div[item]');
+        var itemContainer = $(this).parents('div.item[data-item]');
+        var item = itemContainer.data('item');
         var li = $(this).parents('li.column-toggler');
         var dropdown = li.find('.dropdown');
-        var classId = itemContainer.attr('classId');
-        var item = itemContainer.attr('item');
 
-        li.attr('display', 'hide');
+        li.data('display', 'hide');
 
         dropdown.fadeOut(200, function () {
-            getElements(item, classId);
+            getElements(item);
         });
     });
 });

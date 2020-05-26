@@ -22,7 +22,7 @@
     margin-bottom: 2rem;
 }
 
-.sort span[sort] {
+.sort span[data-sort] {
     border-bottom: 1px dashed blue;
     cursor: pointer;
 }

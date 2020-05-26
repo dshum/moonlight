@@ -1,5 +1,5 @@
-<td class="name editable" mode="view">
-    <div  class="view-container">
+<td class="name editable" data-mode="view">
+    <div class="view-container">
         <a href="{{ route('moonlight.element.edit', $classId) }}"><i class="fa fa-pencil"></i><span>{{ $value }}</span></a>
     </div>
     <div class="edit-container">

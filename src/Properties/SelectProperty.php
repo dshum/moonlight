@@ -2,8 +2,6 @@
 
 namespace Moonlight\Properties;
 
-use Moonlight\Main\Element;
-
 class SelectProperty extends BaseProperty
 {
     protected $list = [];
@@ -50,40 +48,34 @@ class SelectProperty extends BaseProperty
 
     public function getListView()
     {
-        $scope = [
+        return [
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'value' => $this->getValue(),
             'list' => $this->getList(),
         ];
-
-        return $scope;
     }
 
     public function getEditView()
     {
-        $scope = [
+        return [
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'value' => $this->getValue(),
             'list' => $this->getList(),
             'readonly' => $this->getReadonly(),
         ];
-
-        return $scope;
     }
 
     public function getEditableView()
     {
-        $scope = array(
+        return [
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'value' => $this->getValue(),
             'list' => $this->getList(),
             'element' => $this->getElement(),
-        );
-
-        return $scope;
+        ];
     }
 
     public function getSearchView()
@@ -96,13 +88,11 @@ class SelectProperty extends BaseProperty
             $value = null;
         }
 
-        $scope = [
+        return [
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'value' => $value,
             'list' => $this->getList(),
         ];
-
-        return $scope;
     }
 }

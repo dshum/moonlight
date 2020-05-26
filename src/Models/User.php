@@ -1,7 +1,8 @@
 <?php namespace Moonlight\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Cache;
 use Moonlight\Main\Item;
 
 class User extends Authenticatable
@@ -12,23 +13,21 @@ class User extends Authenticatable
      * @var string
      */
     protected $table = 'admin_users';
-
     /**
-     * The Eloquent group model.
+     * The attributes that are mass assignable.
      *
-     * @var string
+     * @var array
      */
-    protected static $groupModel = 'Moonlight\Models\Group';
-
+    protected $fillable = [
+        'login',
+        'password',
+        'first_name',
+        'last_name',
+        'email',
+        'banned',
+    ];
     /**
-     * The user groups pivot table name.
-     *
-     * @var string
-     */
-    protected static $userGroupsPivot = 'admin_users_groups_pivot';
-
-    /**
-     * The assets folder name.
+     * Assets folder.
      *
      * @var string
      */
@@ -38,130 +37,114 @@ class User extends Authenticatable
     {
         parent::boot();
 
-        if (method_exists(cache()->getStore(), 'tags')) {
-            static::created(function($element) {
-                cache()->tags('admin_users')->flush();
+        if (method_exists(Cache::getStore(), 'tags')) {
+            static::created(function () {
+                Cache::tags('admin_users')->flush();
             });
 
-            static::saved(function($element) {
-                cache()->tags('admin_groups')->flush();
-                cache()->tags('admin_users')->flush();
+            static::saved(function () {
+                Cache::tags('admin_groups')->flush();
+                Cache::tags('admin_users')->flush();
             });
 
-            static::deleting(function($element) {
-                $element->removeGroups();
+            static::deleting(function (User $user) {
+                $user->groups()->detach();
             });
 
-            static::deleted(function($element) {
-                cache()->tags('admin_groups')->flush();
-                cache()->tags('admin_users')->flush();
+            static::deleted(function () {
+                Cache::tags('admin_groups')->flush();
+                Cache::tags('admin_users')->flush();
             });
         }
     }
 
+    /**
+     * @return array
+     */
     public function getDates()
     {
         return ['created_at', 'updated_at', 'last_login'];
     }
 
+    /**
+     * @return bool
+     */
     public function isSuperUser()
     {
-        return $this->superuser ? true : false;
+        return $this->super_user ? true : false;
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
     public function groups()
     {
-        return $this->belongsToMany(static::$groupModel, static::$userGroupsPivot);
+        return $this->belongsToMany(Group::class, 'admin_users_groups_pivot');
     }
 
-    public function addGroup(Group $group)
-    {
-        if (! $this->inGroup($group)) {
-            $this->groups()->attach($group);
-        }
-    }
-
-    public function removeGroup(Group $group)
-    {
-        if ($this->inGroup($group)) {
-            $this->groups()->detach($group);
-        }
-
-        return true;
-    }
-
-    public function removeGroups()
-    {
-        $this->groups()->detach();
-
-        return true;
-    }
-
+    /**
+     * @param \Moonlight\Models\Group $group
+     * @return mixed
+     */
     public function inGroup(Group $group)
     {
-        foreach ($this->getGroups() as $_group) {
-            if ($_group->id == $group->id) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->groups->contains($group->id);
     }
 
-    public function getGroups()
-    {
-        if (method_exists(cache()->getStore(), 'tags')) {
-            $user = $this;
-
-            return cache()->tags('admin_groups')->remember("admin_user_{$user->id}_groups", 1440, function() use ($user) {
-                return $user->groups()->get();
-            });
-        }
-
-        return $this->groups()->get();
-    }
-
+    /**
+     * @return mixed|null
+     */
     public function getUnserializedParameters()
     {
         try {
             return unserialize($this->parameters);
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
 
         return null;
     }
 
+    /**
+     * @param $name
+     * @return mixed|null
+     */
     public function getParameter($name)
     {
         $unserializedParameters = $this->getUnserializedParameters();
 
-        return
-            isset($unserializedParameters[$name])
-                ? $unserializedParameters[$name]
-                : null;
+        return $unserializedParameters[$name] ?? null;
     }
 
+    /**
+     * @param $name
+     * @param $value
+     * @return $this
+     */
     public function setParameter($name, $value)
     {
         try {
             $unserializedParameters = $this->getUnserializedParameters();
-
             $unserializedParameters[$name] = $value;
-
             $this->parameters = serialize($unserializedParameters);
 
             $this->save();
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
 
         return $this;
     }
 
+    /**
+     * @param $name
+     * @return bool
+     */
     public function hasAccess($name)
     {
-        if ($this->isSuperUser()) return true;
+        if ($this->isSuperUser()) {
+            return true;
+        }
 
-        $groups = $this->getGroups();
-
-        foreach ($groups as $group) {
+        foreach ($this->groups as $group) {
             if ($group->hasAccess($name)) {
                 return true;
             }
@@ -170,15 +153,20 @@ class User extends Authenticatable
         return false;
     }
 
+    /**
+     * @param \Moonlight\Main\Item $item
+     * @return bool
+     */
     public function hasViewDefaultAccess(Item $item)
     {
-        if ($this->isSuperUser()) return true;
+        if ($this->isSuperUser()) {
+            return true;
+        }
 
-        $groups = $this->getGroups();
-
-        foreach ($groups as $group) {
+        foreach ($this->groups as $group) {
             $access = $group->getItemAccess($item);
-            if (in_array($access, array('view', 'update', 'delete'))) {
+
+            if (in_array($access, ['view', 'update', 'delete'])) {
                 return true;
             }
         }
@@ -186,15 +174,20 @@ class User extends Authenticatable
         return false;
     }
 
+    /**
+     * @param \Moonlight\Main\Item $item
+     * @return bool
+     */
     public function hasUpdateDefaultAccess(Item $item)
     {
-        if ($this->isSuperUser()) return true;
+        if ($this->isSuperUser()) {
+            return true;
+        }
 
-        $groups = $this->getGroups();
-
-        foreach ($groups as $group) {
+        foreach ($this->groups as $group) {
             $access = $group->getItemAccess($item);
-            if (in_array($access, array('update', 'delete'))) {
+
+            if (in_array($access, ['update', 'delete'])) {
                 return true;
             }
         }
@@ -202,15 +195,20 @@ class User extends Authenticatable
         return false;
     }
 
+    /**
+     * @param \Moonlight\Main\Item $item
+     * @return bool
+     */
     public function hasDeleteDefaultAccess(Item $item)
     {
-        if ($this->isSuperUser()) return true;
+        if ($this->isSuperUser()) {
+            return true;
+        }
 
-        $groups = $this->getGroups();
-
-        foreach ($groups as $group) {
+        foreach ($this->groups as $group) {
             $access = $group->getItemAccess($item);
-            if (in_array($access, array('delete'))) {
+
+            if (in_array($access, ['delete'])) {
                 return true;
             }
         }
@@ -218,15 +216,20 @@ class User extends Authenticatable
         return false;
     }
 
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return bool
+     */
     public function hasViewAccess(Model $element)
     {
-        if ($this->isSuperUser()) return true;
+        if ($this->isSuperUser()) {
+            return true;
+        }
 
-        $groups = $this->getGroups();
-
-        foreach ($groups as $group) {
+        foreach ($this->groups as $group) {
             $access = $group->getElementAccess($element);
-            if (in_array($access, array('view', 'update', 'delete'))) {
+
+            if (in_array($access, ['view', 'update', 'delete'])) {
                 return true;
             }
         }
@@ -234,15 +237,20 @@ class User extends Authenticatable
         return false;
     }
 
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return bool
+     */
     public function hasUpdateAccess(Model $element)
     {
-        if ($this->isSuperUser()) return true;
+        if ($this->isSuperUser()) {
+            return true;
+        }
 
-        $groups = $this->getGroups();
-
-        foreach ($groups as $group) {
+        foreach ($this->groups as $group) {
             $access = $group->getElementAccess($element);
-            if (in_array($access, array('update', 'delete'))) {
+
+            if (in_array($access, ['update', 'delete'])) {
                 return true;
             }
         }
@@ -250,15 +258,20 @@ class User extends Authenticatable
         return false;
     }
 
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return bool
+     */
     public function hasDeleteAccess(Model $element)
     {
-        if ($this->isSuperUser()) return true;
+        if ($this->isSuperUser()) {
+            return true;
+        }
 
-        $groups = $this->getGroups();
-
-        foreach ($groups as $group) {
+        foreach ($this->groups as $group) {
             $access = $group->getElementAccess($element);
-            if (in_array($access, array('delete'))) {
+
+            if (in_array($access, ['delete'])) {
                 return true;
             }
         }
@@ -266,16 +279,25 @@ class User extends Authenticatable
         return false;
     }
 
+    /**
+     * @return string
+     */
     public function getAssetsName()
     {
         return $this->assetsName;
     }
 
+    /**
+     * @return string
+     */
     public function getAssets()
     {
         return $this->getAssetsName();
     }
 
+    /**
+     * @return string
+     */
     public function getAssetsPath()
     {
         return
@@ -285,11 +307,17 @@ class User extends Authenticatable
             .DIRECTORY_SEPARATOR;
     }
 
+    /**
+     * @return string
+     */
     public function getFolderName()
     {
         return $this->getTable();
     }
 
+    /**
+     * @return string
+     */
     public function getFolder()
     {
         return
@@ -298,6 +326,9 @@ class User extends Authenticatable
             .$this->getFolderName();
     }
 
+    /**
+     * @return string
+     */
     public function getFolderPath()
     {
         return
@@ -307,16 +338,25 @@ class User extends Authenticatable
             .DIRECTORY_SEPARATOR;
     }
 
+    /**
+     * @return mixed
+     */
     public function getPhoto()
     {
         return $this->photo;
     }
 
+    /**
+     * @return bool
+     */
     public function photoExists()
     {
         return $this->getPhoto() && file_exists($this->getPhotoAbsPath());
     }
 
+    /**
+     * @return string|null
+     */
     public function getPhotoAbsPath()
     {
         return $this->getPhoto()
@@ -324,6 +364,9 @@ class User extends Authenticatable
             : null;
     }
 
+    /**
+     * @return string|null
+     */
     public function getPhotoSrc()
     {
         return
@@ -333,6 +376,9 @@ class User extends Authenticatable
                 : null;
     }
 
+    /**
+     * @return bool|false|string|string[]|null
+     */
     public function getInitialsAttribute()
     {
         return mb_strtoupper(
@@ -342,10 +388,16 @@ class User extends Authenticatable
         );
     }
 
+    /**
+     * @return false|string
+     */
     public function getHexColorAttribute()
     {
-        $code = base_convert(crc32($this->first_name.' '.$this->last_name), 10, 14);
-        $code = '#'.substr($code, 0, 6);
+        $c = ['4', '6', '8', 'A', 'C'];
+
+        $code = base_convert(crc32("{$this->first_name} {$this->last_name}"), 10, 5);
+        $code = substr($code, -3, 3);
+        $code = '#'.$c[$code[0]].$c[$code[1]].$c[$code[2]];
 
         return $code;
     }

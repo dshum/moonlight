@@ -2,29 +2,233 @@
 
 namespace Moonlight\Main;
 
+use Illuminate\Database\Eloquent\Model;
+use Moonlight\Models\Rubric;
+
+/**
+ * Class Site
+ *
+ * @package Moonlight\Main
+ */
 class Site
 {
+    /**
+     * Browse root identificator
+     */
     const ROOT = 'Root';
-    const TRASH = 'Trash';
-    const SEARCH = 'Search';
-
+    /**
+     * Element classId separator
+     */
+    const CLASS_ID_SEPARATOR = '.';
+    /**
+     * @var
+     */
+    protected $namespace;
+    /**
+     * @var array
+     */
     protected $items = [];
-    protected $binds = [];
+    /**
+     * @var array
+     */
+    protected $classMap = [];
+    /**
+     * @var array
+     */
+    protected $rootBonds = [];
+    /**
+     * @var array
+     */
+    protected $itemBonds = [];
+    /**
+     * @var array
+     */
+    protected $elementBonds = [];
+    /**
+     * @var array
+     */
     protected $rubrics = [];
-    protected $bindsTree = [];
+    /**
+     * @var null
+     */
+    protected $homeComponent = null;
+    /**
+     * @var array
+     */
+    protected $browseComponents = [];
+    /**
+     * @var array
+     */
+    protected $browseElementComponents = [];
+    /**
+     * @var array
+     */
+    protected $itemComponents = [];
+    /**
+     * @var array
+     */
+    protected $filterComponents = [];
+    /**
+     * @var array
+     */
+    protected $editComponents = [];
 
-    protected $homePlugin = null;
-    protected $itemPlugins = [];
-    protected $browsePlugins = [];
-    protected $browseFilters = [];
-    protected $searchPlugins = [];
-    protected $editPlugins = [];
+    /**
+     * @param string $component
+     * @return $this
+     */
+    public function setHomeComponent(string $component)
+    {
+        $this->homeComponent = $component;
 
-    protected $initMicroTime = null;
+        return $this;
+    }
 
-    use StyleTrait;
-    use ScriptTrait;
+    /**
+     * @return null
+     */
+    public function getHomeComponent()
+    {
+        return $this->homeComponent;
+    }
 
+    /**
+     * @param string $class
+     * @param string $component
+     * @return $this
+     */
+    public function addBrowseComponent(string $class, string $component)
+    {
+        $this->browseComponents[$class] = $component;
+
+        return $this;
+    }
+
+    /**
+     * @param array $components
+     * @return $this
+     */
+    public function setBrowseComponents(array $components)
+    {
+        foreach ($components as $class => $component) {
+            $this->browseComponents[$class] = $component;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param string $className
+     * @param int $id
+     * @param string $component
+     * @return $this
+     */
+    public function addBrowseElementComponent(string $className, int $id, string $component)
+    {
+        $this->browseElementComponents[$className][$id] = $component;
+
+        return $this;
+    }
+
+    /**
+     * @param array $components
+     * @return $this
+     */
+    public function setBrowseElementComponents(array $components)
+    {
+        foreach ($components as $class => $component_group) {
+            foreach ($component_group as $id => $component) {
+                $this->browseElementComponents[$class][$id] = $component;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return mixed|null
+     */
+    public function getBrowseComponent(Model $element)
+    {
+        $className = $this->getClass($element);
+
+        return $this->browseElementComponents[$className][$element->id]
+            ?? $this->browseComponents[$className] ?? null;
+    }
+
+    /**
+     * @param string$className
+     * @param string $component
+     * @return $this
+     */
+    public function addItemComponent(string $className, string $component)
+    {
+        $this->itemComponents[$className] = $component;
+
+        return $this;
+    }
+
+    /**
+     * @param array $components
+     * @return $this
+     */
+    public function setItemComponents(array $components)
+    {
+        foreach ($components as $className => $component) {
+            $this->itemComponents[$className] = $component;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param \Moonlight\Main\Item $item
+     * @return mixed|null
+     */
+    public function getItemComponent(Item $item)
+    {
+        return $this->itemComponents[$item->getClassName()] ?? null;
+    }
+
+    /**
+     * @param string $className
+     * @param string $component
+     * @return $this
+     */
+    public function addFilterComponent(string $className, string $component)
+    {
+        $this->filterComponents[$className] = $component;
+
+        return $this;
+    }
+
+    /**
+     * @param array $components
+     * @return $this
+     */
+    public function setFilterComponents(array $components)
+    {
+        foreach ($components as $className => $component) {
+            $this->filterComponents[$className] = $component;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param \Moonlight\Main\Item $item
+     * @return mixed|null
+     */
+    public function getFilterComponent(Item $item)
+    {
+        return $this->filterComponents[$item->getClassName()] ?? null;
+    }
+
+    /**
+     * @param \Moonlight\Models\Rubric $rubric
+     * @return $this
+     */
     public function addRubric(Rubric $rubric)
     {
         $name = $rubric->getName();
@@ -34,228 +238,361 @@ class Site
         return $this;
     }
 
+    /**
+     * @return \Illuminate\Support\Collection
+     */
     public function getRubricList()
     {
         return collect($this->rubrics);
     }
 
-    public function getRubricByName($name)
+    /**
+     * @param string $name
+     * @return mixed|null
+     */
+    public function getRubricByName(string $name)
     {
-        return
-            isset($this->rubrics[$name])
-                ? $this->rubrics[$name]
-                : null;
+        return $this->rubrics[$name] ?? null;
     }
 
+    /**
+     * @param \Moonlight\Main\Item $item
+     * @return $this
+     */
     public function addItem(Item $item)
     {
-        $name = $item->getName();
-
-        $this->items[$name] = $item;
+        $this->items[$item->getName()] = $item;
+        $this->classMap[$item->getClassName()] = $item->getName();
 
         return $this;
     }
 
+    /**
+     * @return \Illuminate\Support\Collection
+     */
     public function getItemList()
     {
         return collect($this->items);
     }
 
-    public function getItemByName($name)
+    /**
+     * @param string|null $itemName
+     * @return \Moonlight\Main\Item|null
+     */
+    public function getItemByName(string $itemName = null): ?Item
     {
-        $name = str_replace(Element::ID_SEPARATOR, '\\', $name);
+        return $this->items[$itemName] ?? null;
+    }
 
+    /**
+     * @param string|null $className
+     * @return \Moonlight\Main\Item|null
+     */
+    public function getItemByClassName(string $className = null): ?Item
+    {
+        $name = $this->classMap[$className] ?? null;
+
+        return $this->items[$name] ?? null;
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return \Moonlight\Main\Item|null
+     */
+    public function getItemByElement(Model $element): ?Item
+    {
+        $class = $this->getClass($element);
+
+        return $this->getItemByClassName($class);
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return string
+     */
+    public function getClass(Model $element)
+    {
+        return get_class($element);
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return string
+     */
+    public function getClassId(Model $element)
+    {
         return
-            isset($this->items[$name])
-                ? $this->items[$name]
-                : null;
+            str_replace('\\', static::CLASS_ID_SEPARATOR, $this->getClass($element))
+            .static::CLASS_ID_SEPARATOR
+            .$element->getAttribute('id');
     }
 
-    public function bind($parent, $binds)
+    public function getByClassId($classId)
     {
-        if (is_array($binds)) {
-            foreach ($binds as $bind) {
-                $this->binds[$parent][$bind] = $bind;
+        if (strpos($classId, static::CLASS_ID_SEPARATOR)) {
+            $array = explode(static::CLASS_ID_SEPARATOR, $classId);
+            $id = (int) array_pop($array);
+            $itemName = (string) implode('.', $array);
+
+            $item = $this->getItemByName($itemName);
+
+            if ($item) {
+                return $item->getClass()->find($id);
+            };
+        }
+
+        return null;
+    }
+
+    public function getByClassIdWithTrashed($classId)
+    {
+        if (strpos($classId, static::CLASS_ID_SEPARATOR)) {
+            $array = explode(static::CLASS_ID_SEPARATOR, $classId);
+            $id = (int) array_pop($array);
+            $itemName = (string) implode('.', $array);
+
+            $item = $this->getItemByName($itemName);
+
+            if ($item) {
+                return $item->getClass()->withTrashed()->find($id);
+            };
+        }
+
+        return null;
+    }
+
+    public function getByClassIdOnlyTrashed(string $classId)
+    {
+        if (strpos($classId, static::CLASS_ID_SEPARATOR)) {
+            $array = explode(static::CLASS_ID_SEPARATOR, $classId);
+            $id = (int) array_pop($array);
+            $itemName = (string) implode('.', $array);
+
+            $item = $this->getItemByName($itemName);
+
+            if ($item) {
+                return $item->getClass()->onlyTrashed()->find($id);
+            };
+        }
+
+        return null;
+    }
+
+    public function getProperty(Model $element, string $propertyName)
+    {
+        $item = $this->getItemByElement($element);
+        $property = $item->getPropertyByName($propertyName);
+
+        return $property->setElement($element);
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Relations\BelongsTo|object|null
+     */
+    public function getParent(Model $element)
+    {
+        $item = $this->getItemByElement($element);
+        $propertyList = $item->getPropertyList();
+
+        foreach ($propertyList as $propertyName => $property) {
+            if (
+                $property->isOneToOne()
+                && $property->getRelatedClass()
+                && $property->getParent()
+                && $element->$propertyName
+            ) {
+                return $element->belongsTo($property->getRelatedClass(), $propertyName)->first();
             }
-        } elseif (is_string($binds)) {
-            $this->binds[$parent][$binds] = $binds;
-        }
-
-        return $this;
-    }
-
-    public function getBinds()
-    {
-        return $this->binds;
-    }
-
-    public function addHomePlugin($plugin)
-    {
-        $this->homePlugin = $plugin;
-
-        return $this;
-    }
-
-    public function getHomePlugin()
-    {
-        if ($this->homePlugin) {
-            return $this->homePlugin;
         }
 
         return null;
     }
 
-    public function addItemPlugin($class, $plugin)
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return array
+     */
+    public function getParentList(Model $element)
     {
-        $this->itemPlugins[$class] = $plugin;
+        $parents = [];
+        $exists = [];
+        $max = 100;
+        $count = 0;
+
+        $parent = $this->getParent($element);
+
+        while ($count < $max && $parent instanceof Model) {
+            $classId = $this->getClassId($parent);
+
+            if (isset($exists[$classId])) {
+                break;
+            }
+
+            $parents[] = $parent;
+            $exists[$classId] = true;
+            $parent = $this->getParent($parent);
+            $count++;
+        }
+
+        krsort($parents);
+
+        return $parents;
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @param \Illuminate\Database\Eloquent\Model $parent
+     */
+    public function setParent(Model $element, Model $parent)
+    {
+        $item = $this->getItemByElement($element);
+        $propertyList = $item->getPropertyList();
+
+        foreach ($propertyList as $propertyName => $property) {
+            if (
+                $property->isOneToOne()
+                && $property->getParent()
+                && $property->getRelatedClass() == static::getClass($parent)
+            ) {
+                $element->$propertyName = $parent->id;
+            }
+        }
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return string
+     */
+    public function getBrowseUrl(Model $element)
+    {
+        return route('moonlight.browse.element', $this->getClassId($element));
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return string
+     */
+    public function getEditUrl(Model $element)
+    {
+        return route('moonlight.element.edit', $this->getClassId($element));
+    }
+
+    /**
+     * @param $bonds
+     * @return $this
+     */
+    public function bindToRoot($bonds)
+    {
+        if (is_array($bonds)) {
+            foreach ($bonds as $bond) {
+                $this->rootBonds[$bond] = $bond;
+            }
+        } elseif (is_string($bonds)) {
+            $this->rootBonds[$bonds] = $bonds;
+        }
 
         return $this;
     }
 
-    public function getItemPlugins()
+    /**
+     * @param string $class
+     * @param $bonds
+     * @return $this
+     */
+    public function bindToItem(string $class, $bonds)
     {
-        return $this->itemPlugins;
-    }
-
-    public function getItemPlugin($class)
-    {
-        if (isset($this->itemPlugins[$class])) {
-            return $this->itemPlugins[$class];
+        if (is_array($bonds)) {
+            foreach ($bonds as $bond) {
+                $this->itemBonds[$class][$bond] = $bond;
+            }
+        } elseif (is_string($bonds)) {
+            $this->itemBonds[$class][$bonds] = $bonds;
         }
-
-        return null;
-    }
-
-    public function addBrowsePlugin($classId, $plugin)
-    {
-        $this->browsePlugins[$classId] = $plugin;
 
         return $this;
     }
 
-    public function getBrowsePlugins()
+    /**
+     * @param string $class
+     * @param int $id
+     * @param $bindings
+     * @return $this
+     */
+    public function bindToElement(string $class, int $id, $bindings)
     {
-        return $this->browsePlugins;
-    }
-
-    public function getBrowsePlugin($classId)
-    {
-        if (isset($this->browsePlugins[$classId])) {
-            return $this->browsePlugins[$classId];
+        if (is_array($bindings)) {
+            foreach ($bindings as $binding) {
+                $this->elementBonds[$class][$id][$binding] = $binding;
+            }
+        } elseif (is_string($bindings)) {
+            $this->elementBonds[$class][$id][$bindings] = $bindings;
         }
-
-        if (strpos($classId, Element::ID_SEPARATOR)) {
-            $parts = explode(Element::ID_SEPARATOR, $classId);
-            $id = array_pop($parts);
-            $class = implode(Element::ID_SEPARATOR, $parts);
-        } else {
-            $class = $classId;
-        }
-
-        if (isset($this->browsePlugins[$class])) {
-            return $this->browsePlugins[$class];
-        }
-
-        return null;
-    }
-
-    public function addSearchPlugin($class, $plugin)
-    {
-        $this->searchPlugins[$class] = $plugin;
 
         return $this;
     }
 
-    public function getSearchPlugins()
+    /**
+     * @param string $class
+     * @param array $bindings
+     * @return $this
+     */
+    public function bindToElements(string $class, array $bindings)
     {
-        return $this->searchPlugins;
-    }
-
-    public function getSearchPlugin($class)
-    {
-        if (isset($this->searchPlugins[$class])) {
-            return $this->searchPlugins[$class];
+        foreach ($bindings as $id => $binding) {
+            $this->elementBonds[$class][$id][$binding] = $binding;
         }
-
-        return null;
-    }
-
-    public function addEditPlugin($classId, $plugin)
-    {
-        $this->editPlugins[$classId] = $plugin;
 
         return $this;
     }
 
-    public function getEditPlugins()
+    /**
+     * @return array
+     */
+    public function getRootBindings()
     {
-        return $this->editPlugins;
+        return $this->rootBonds;
     }
 
-    public function getEditPlugin($classId)
+    /**
+     * @param \Moonlight\Main\Item $item
+     * @return array|mixed
+     */
+    public function getItemBindingsByItem(Item $item)
     {
-        if (isset($this->editPlugins[$classId])) {
-            return $this->editPlugins[$classId];
-        }
+        $class = $item->getClassName();
 
-        if (strpos($classId, Element::ID_SEPARATOR)) {
-            $parts = explode(Element::ID_SEPARATOR, $classId);
-            $id = array_pop($parts);
-            $class = implode(Element::ID_SEPARATOR, $parts);
-        } else {
-            $class = $classId;
-        }
-
-        if (isset($this->editPlugins[$class])) {
-            return $this->editPlugins[$class];
-        }
-
-        return null;
+        return $this->itemBonds[$class] ?? [];
     }
 
-    public function addBrowseFilter($class, $plugin)
+    /**
+     * @param \Moonlight\Main\Item $item
+     * @return array|mixed
+     */
+    public function getElementBindingsByItem(Item $item)
     {
-        $this->browseFilters[$class] = $plugin;
+        $class = $item->getClassName();
 
-        return $this;
+        return $this->elementBonds[$class] ?? [];
     }
 
-    public function getBrowseFilters()
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $element
+     * @return array|mixed
+     */
+    public function getBindings(Model $element)
     {
-        return $this->browseFilters;
+        $class = $this->getClass($element);
+        $id = $element->id;
+
+        return $this->elementBonds[$class][$id] ?? $this->itemBonds[$class] ?? [];
     }
 
-    public function getBrowseFilter($class)
-    {
-        if (isset($this->browseFilters[$class])) {
-            return $this->browseFilters[$class];
-        }
-
-        return null;
-    }
-
+    /**
+     * @return null
+     */
     public function end()
     {
-        return $this;
-    }
-
-    public function initMicroTime()
-    {
-        $this->initMicroTime = explode(' ', microtime());
-    }
-
-    public function getMicroTime()
-    {
-        list($usec1, $sec1) = explode(' ', microtime());
-        list($usec0, $sec0) = $this->initMicroTime;
-
-        $time = (float)$sec1 + (float)$usec1 - (float)$sec0 - (float)$usec0;
-
-        return round($time, 6);
-    }
-
-    public function getMemoryUsage()
-    {
-        return round(memory_get_peak_usage() / 1024 / 1024, 2);
+        return null;
     }
 }

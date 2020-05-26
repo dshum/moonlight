@@ -2,87 +2,77 @@
 
 namespace Moonlight\Controllers;
 
-use Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Moonlight\Main\UserActionType;
+use Moonlight\Mail\Register;
+use Moonlight\Models\UserActionType;
 use Moonlight\Models\Group;
 use Moonlight\Models\User;
 use Moonlight\Models\UserAction;
-use Moonlight\Mail\Register;
 
 class UserController extends Controller
 {
     /**
      * Delete user.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function delete(Request $request, $id)
+    public function delete(Request $request, int $id)
     {
-        $scope = [];
-        
         $loggedUser = Auth::guard('moonlight')->user();
-        
-		$user = User::find($id);
-        
+
+        $user = User::find($id);
+
         if (! $loggedUser->hasAccess('admin')) {
-            $scope['error'] = 'У вас нет прав на управление пользователями.';
+            $error = 'У вас нет прав на управление пользователями.';
         } elseif (! $user) {
-            $scope['error'] = 'Пользователь не найден.';
+            $error = 'Пользователь не найден.';
         } elseif ($user->id == $loggedUser->id) {
-            $scope['error'] = 'Нельзя удалить самого себя.';
+            $error = 'Нельзя удалить свою учетную запись.';
         } elseif ($user->isSuperUser()) {
-            $scope['error'] = 'Нельзя удалить суперпользователя.';
+            $error = 'Нельзя удалить учетную запись суперпользователя.';
         } else {
-            $scope['error'] = null;
+            $error = null;
         }
-        
-        if ($scope['error']) {
-            return response()->json($scope);
+
+        if ($error) {
+            return response()->json(['error' => $error]);
         }
 
         if ($user->photoExists()) {
-            try {
-                unlink($user->getPhotoAbsPath());
-            } catch (\Exception $e) {}
+            unlink($user->getPhotoAbsPath());
         }
-        
+
+        $user->groups()->detach();
         $user->delete();
 
         UserAction::log(
-			UserActionType::ACTION_TYPE_DROP_USER_ID,
-			'ID '.$user->id.' ('.$user->login.')'
-		);
-        
-        $scope['user'] = $user->id;
-        
-        return response()->json($scope);
+            UserActionType::ACTION_TYPE_DROP_USER_ID,
+            'User.'.$user->id.', '.$user->login
+        );
+
+        return response()->json(['user' => $user->id]);
     }
-    
+
     /**
      * Add user.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function add(Request $request)
     {
-        $scope = [];
-        
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         if (! $loggedUser->hasAccess('admin')) {
-            $scope['error'] = 'У вас нет прав на управление пользователями.';
-        } else {
-            $scope['error'] = null;
+            return response()->json(['error' => 'У вас нет прав на управление пользователями.']);
         }
-        
-        if ($scope['error']) {
-            return response()->json($scope);
-        }
-        
+
         $validator = Validator::make($request->all(), [
             'login' => 'required|max:25',
             'first_name' => 'required|max:255',
@@ -100,110 +90,86 @@ class UserController extends Controller
             'email.email' => 'Некорректный адрес электронной почты',
             'groups.array' => 'Некорректные группы',
         ]);
-        
+
         if ($validator->fails()) {
+            $errors = [];
             $messages = $validator->errors();
-            
+
             foreach ([
-                'login',
-                'first_name',
-                'last_name',
-                'email',
-            ] as $field) {
+                         'login',
+                         'first_name',
+                         'last_name',
+                         'email',
+                     ] as $field) {
                 if ($messages->has($field)) {
-                    $scope['errors'][$field] = $messages->first($field);
+                    $errors[$field] = $messages->first($field);
                 }
             }
+
+            return response()->json(['errors' => $errors]);
         }
-        
-        if (isset($scope['errors'])) {
-            return response()->json($scope);
-        }   
-        
-        $user = new User;
 
-        $user->login = $request->input('login');
-        $user->first_name = $request->input('first_name');
-        $user->last_name = $request->input('last_name');
-        $user->email = $request->input('email');
-        
-        $banned = $request->has('banned') ? true : false;
-        $user->banned = $banned;
-
-        /*
-         * Set password
-         */
-        
         $password = Str::random(8);
-        $user->password = password_hash($password, PASSWORD_DEFAULT);
-        
-        $user->save();
-        
-        /*
-         * Set groups
-         */
-        
+
+        $user = User::create([
+            'login' => $request->input('login'),
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'email' => $request->input('email'),
+            'banned' => $request->has('banned'),
+            'password' => password_hash($password, PASSWORD_DEFAULT),
+        ]);
+
+        // Set groups
         $groups = $request->input('groups');
 
-        if ($groups) {
-            foreach ($groups as $id) {
-                $group = Group::find($id); 
-                
-                if ($group) {
-                    $user->addGroup($group);
-                }
-            }
-        }
-        
+        $user->groups()->attach($groups);
+
         UserAction::log(
-			UserActionType::ACTION_TYPE_ADD_USER_ID,
-			'ID '.$user->id.' ('.$user->login.')'
+            UserActionType::ACTION_TYPE_ADD_USER_ID,
+            'User.'.$user->id.', '.$user->login
         );
 
-        $mailScope = [
+        Mail::send(new Register([
             'login' => $user->login,
             'password' => $password,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
             'email' => $user->email,
-        ];
-        
-        Mail::send(new Register($mailScope));
-        
-        $scope['added'] = $user->id;
-        
-        return response()->json($scope);
+        ]));
+
+        return response()->json(['added' => $user->id]);
     }
-    
+
     /**
      * Save user.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function save(Request $request, $id)
+    public function save(Request $request, int $id)
     {
-        $scope = [];
-        
         $loggedUser = Auth::guard('moonlight')->user();
-        
-		$user = User::find($id);
-        
+
+        $user = User::find($id);
+
         if (! $loggedUser->hasAccess('admin')) {
-            $scope['error'] = 'У вас нет прав на управление пользователями.';
+            $error = 'У вас нет прав на управление пользователями.';
         } elseif (! $user) {
-            $scope['error'] = 'Пользователь не найден.';
+            $error = 'Пользователь не найден.';
         } elseif ($user->id == $loggedUser->id) {
-            $scope['error'] = 'Нельзя редактировать самого себя.';
+            $error = 'Нельзя редактировать самого себя.';
         } elseif ($user->isSuperUser()) {
-            $scope['error'] = 'Нельзя редактировать суперпользователя.';
+            $error = 'Нельзя редактировать суперпользователя.';
         } else {
-            $scope['error'] = null;
+            $error = null;
         }
-        
-        if ($scope['error']) {
-            return response()->json($scope);
+
+        if ($error) {
+            return response()->json(['error' => $error]);
         }
-        
+
         $validator = Validator::make($request->all(), [
             'login' => 'required|max:25',
             'first_name' => 'required|max:255',
@@ -221,156 +187,113 @@ class UserController extends Controller
             'email.email' => 'Некорректный адрес электронной почты',
             'groups.array' => 'Некорректные группы',
         ]);
-        
+
         if ($validator->fails()) {
+            $errors = [];
             $messages = $validator->errors();
-            
+
             foreach ([
-                'login',
-                'first_name',
-                'last_name',
-                'email',
-            ] as $field) {
+                         'login',
+                         'first_name',
+                         'last_name',
+                         'email',
+                     ] as $field) {
                 if ($messages->has($field)) {
-                    $scope['errors'][$field] = $messages->first($field);
+                    $errors[$field] = $messages->first($field);
                 }
             }
-        }
-        
-        if (isset($scope['errors'])) {
-            return response()->json($scope);
+
+            return response()->json(['errors' => $errors]);
         }
 
-        $user->login = $request->input('login');
-        $user->first_name = $request->input('first_name');
-        $user->last_name = $request->input('last_name');
-        $user->email = $request->input('email');
+        $user->update([
+            'login' => $request->input('login'),
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'email' => $request->input('email'),
+            'banned' => $request->has('banned'),
+        ]);
 
-        $banned = $request->has('banned') ? true : false;
-        $user->banned = $banned;
-        
-        /*
-         * Set groups
-         */
-        
+        // Set groups
         $groups = $request->input('groups');
-        
-        $userGroups = $user->getGroups();
-        
-        foreach ($userGroups as $group) {
-			if ( ! $groups || ! in_array($group->id, $groups)) {
-				$user->removeGroup($group);
-			}
-		}
 
-        if ($groups) {
-            foreach ($groups as $id) {
-                $group = Group::find($id); 
-                
-                if ($group) {
-                    $user->addGroup($group);
-                }
-            }
-        }
-        
-        $user->save();
-        
+        $user->groups()->sync($groups);
+
         UserAction::log(
-			UserActionType::ACTION_TYPE_SAVE_USER_ID,
-			'ID '.$user->id.' ('.$user->login.')'
-		);
-        
-        $scope['saved'] = $user->id;
-        
-        return response()->json($scope);
+            UserActionType::ACTION_TYPE_SAVE_USER_ID,
+            'User.'.$user->id.', '.$user->login
+        );
+
+        return response()->json(['saved' => $user->id]);
     }
-    
+
     /**
      * Create user.
-     * 
-     * @return View
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function create(Request $request)
     {
-        $scope = [];
-        
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         if (! $loggedUser->hasAccess('admin')) {
             return redirect()->route('moonlight.home');
         }
-        
+
         $groups = Group::orderBy('name', 'asc')->get();
-        
-        $scope['user'] = null;
-        $scope['groups'] = $groups;
-        $scope['userGroups'] = [];
-        
-        return view('moonlight::user', $scope);
+
+        return view('moonlight::users.edit', [
+            'user' => null,
+            'groups' => $groups,
+        ]);
     }
-    
+
     /**
      * Edit user.
-     * 
-     * @return View
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function edit(Request $request, $id)
+    public function edit(Request $request, int $id)
     {
-        $scope = [];
-        
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         if (! $loggedUser->hasAccess('admin')) {
             return redirect()->route('moonlight.home');
         }
-        
+
         $user = User::find($id);
-        
+
         if (! $user) {
             return redirect()->route('moonlight.users');
         }
-        
+
         $groups = Group::orderBy('name', 'asc')->get();
 
-        $userGroups = [];
-        
-        foreach ($user->getGroups() as $group) {
-            $userGroups[$group->id] = $group->id;
-        }
-        
-        $scope['user'] = $user;
-        $scope['groups'] = $groups;
-        $scope['userGroups'] = $userGroups;
-        
-        return view('moonlight::user', $scope);
+        return view('moonlight::users.edit', [
+            'user' => $user,
+            'groups' => $groups,
+        ]);
     }
 
     /**
      * User list.
-     * 
-     * @return View
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function users(Request $request)
     {
-        $scope = [];
-        
         $loggedUser = Auth::guard('moonlight')->user();
-        
+
         if (! $loggedUser->hasAccess('admin')) {
             return redirect()->route('moonlight.home');
         }
-        
-        $groups = Group::orderBy('name', 'asc')->get();
-        $users = User::orderBy('login', 'asc')->get();
-        
-        foreach ($users as $user) {
-            $userGroups[$user->id] = $user->getGroups();
-        }
-        
-        $scope['groups'] = $groups;
-        $scope['users'] = $users;
-        $scope['userGroups'] = $userGroups;
-        
-        return view('moonlight::users', $scope);
+
+        $users = User::orderBy('login', 'asc')->with('groups')->get();
+
+        return view('moonlight::users.index', ['users' => $users]);
     }
 }

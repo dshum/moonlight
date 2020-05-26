@@ -6,16 +6,18 @@ $(function () {
     });
 
     $.onCtrlS = function (event) {
-        if (!event) event = window.event;
+        if (! event) event = window.event;
+
+        var code;
 
         if (event.keyCode) {
-            var code = event.keyCode;
+            code = event.keyCode;
         } else if (event.which) {
-            var code = event.which;
+            code = event.which;
         }
 
         if (code == 83 && event.ctrlKey == true) {
-            $('form[save="true"]').submit();
+            $('form[data-save="true"]').submit();
             return false;
         }
 
@@ -50,7 +52,7 @@ $(function () {
     };
 
     $.confirm = function (content, selector, handle) {
-        var container = selector ? $(selector) : $('.confirm');
+        let container = selector ? $(selector) : $('.confirm');
 
         if (content) {
             container.find('.content').html(content);
@@ -60,21 +62,23 @@ $(function () {
     };
 
     $.confirmClose = function (selector, handle) {
-        var container = selector ? $(selector) : $('.confirm');
+        let container = (typeof selector === 'object')
+            ? selector
+            : (selector ? $(selector) : $('.confirm'));
 
         container.fadeOut('fast', handle);
     };
 
     $.debounce = function (func, wait, immediate) {
-        var timeout;
+        let timeout;
 
         return function () {
-            var context = this, args = arguments;
-            var later = function () {
+            let context = this, args = arguments;
+            let later = function () {
                 timeout = null;
-                if (!immediate) func.apply(context, args);
+                if (! immediate) func.apply(context, args);
             };
-            var callNow = immediate && !timeout;
+            let callNow = immediate && ! timeout;
 
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
@@ -127,9 +131,9 @@ $(function () {
     });
 
     $('.sidebar-toggler').click(function () {
-        if (!$('.sidebar').length) return false;
+        if (! $('.sidebar').length) return false;
 
-        var display = $(this).attr('display');
+        let display = $(this).attr('display');
 
         if (display == 'show') {
             $(this).attr('display', 'hide');

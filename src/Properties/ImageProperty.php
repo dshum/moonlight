@@ -3,18 +3,14 @@
 namespace Moonlight\Properties;
 
 use Illuminate\Http\File;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Moonlight\Utils\Image;
-use Exception;
 
 class ImageProperty extends BaseProperty
 {
-    const GETIMAGE_EXPIRE = 86400;
-
-    protected $folderName = null;
+    const GET_IMAGE_EXPIRE = 86400;
     protected $hash = null;
-    protected $folderPath = null;
-    protected $folderWebPath = null;
     protected $assetsName = 'assets';
     protected $resize = null;
     protected $resizes = [];
@@ -85,8 +81,7 @@ class ImageProperty extends BaseProperty
 
     public function getDriverFilename($name = null)
     {
-        return trim($this->driverFolderName, '/')
-            .'/'.$this->getResizeValue();
+        return trim($this->driverFolderName, '/').'/'.$this->getResizeValue();
     }
 
     public function getResizeValue($name = null)
@@ -98,7 +93,7 @@ class ImageProperty extends BaseProperty
 
     public function setResize($width, $height, $quality = 100)
     {
-        $this->resize = array($width, $height, $quality);
+        $this->resize = [$width, $height, $quality];
 
         return $this;
     }
@@ -110,7 +105,7 @@ class ImageProperty extends BaseProperty
 
     public function addResize($name, $width, $height, $quality)
     {
-        $this->resizes[$name] = array($width, $height, $quality);
+        $this->resizes[$name] = [$width, $height, $quality];
 
         return $this;
     }
@@ -127,42 +122,44 @@ class ImageProperty extends BaseProperty
 
     public function width($name = null)
     {
-        $key = "{$this->item->getNameId()}_{$this->getName()}_{$name}_imagesize";
+        $key = "{$this->item->getName()}_{$this->getName()}_{$name}_imagesize";
 
-        if (cache()->has($key)) {
-            return cache()->get($key)[0] ?? 0;
+        if (Cache::has($key)) {
+            return Cache::get($key)[0] ?? 0;
         }
 
         if (! $this->exists($name)) {
-            cache()->put($key, null, self::GETIMAGE_EXPIRE);
+            Cache::put($key, null, self::GET_IMAGE_EXPIRE);
+
             return 0;
         }
 
         $path = $this->driver ? $this->src($name) : $this->abspath($name);
         $imagesize = getimagesize($path);
 
-        cache()->put($key, $imagesize, self::GETIMAGE_EXPIRE);
+        Cache::put($key, $imagesize, self::GET_IMAGE_EXPIRE);
 
         return $imagesize[0];
     }
 
     public function height($name = null)
     {
-        $key = "{$this->item->getNameId()}_{$this->getName()}_{$name}_imagesize";
+        $key = "{$this->item->getName()}_{$this->getName()}_{$name}_imagesize";
 
-        if (cache()->has($key)) {
-            return cache()->get($key)[1] ?? 0;
+        if (Cache::has($key)) {
+            return Cache::get($key)[1] ?? 0;
         }
 
         if (! $this->exists($name)) {
-            cache()->put($key, null, self::GETIMAGE_EXPIRE);
+            Cache::put($key, null, self::GET_IMAGE_EXPIRE);
+
             return 0;
         }
 
         $path = $this->driver ? $this->src($name) : $this->abspath($name);
         $imagesize = getimagesize($path);
 
-        cache()->put($key, $imagesize, self::GETIMAGE_EXPIRE);
+        Cache::put($key, $imagesize, self::GET_IMAGE_EXPIRE);
 
         return $imagesize[1];
     }
@@ -171,22 +168,18 @@ class ImageProperty extends BaseProperty
     {
         if ($this->driver) {
             $filename = $this->getDriverFilename($name);
+
             return Storage::disk($this->driver)->url($filename);
         }
 
-        return asset(
-            $this->getAssetsName()
-            .'/'
-            .$this->getFolderName()
-            .'/'
-            .$this->getResizeValue($name)
-        );
+        return asset($this->getAssetsName().'/'.$this->getFolderName().'/'.$this->getResizeValue($name));
     }
 
     public function abspath($name = null)
     {
         if ($this->driver) {
             $filename = $this->getDriverFilename($name);
+
             return $this->getValue() && Storage::disk($this->driver)->url($filename);
         }
 
@@ -208,10 +201,13 @@ class ImageProperty extends BaseProperty
 
     public function filesize($name = null)
     {
-        if (! $this->exists($name)) return 0;
+        if (! $this->exists($name)) {
+            return 0;
+        }
 
         if ($this->driver) {
             $filename = $this->getDriverFilename($name);
+
             return Storage::disk($this->driver)->size($filename);
         }
 
@@ -232,6 +228,7 @@ class ImageProperty extends BaseProperty
     {
         if ($this->driver) {
             $filename = $this->getDriverFilename($name);
+
             return $this->getValue() && Storage::disk($this->driver)->exists($filename);
         }
 
@@ -268,7 +265,6 @@ class ImageProperty extends BaseProperty
                 $this->drop();
 
                 $path = $file->getRealPath();
-                $original = $file->getClientOriginalName();
                 $extension = $file->getClientOriginalExtension();
 
                 if (! $extension) {
@@ -276,23 +272,17 @@ class ImageProperty extends BaseProperty
                 }
 
                 $folderPath =
-                    public_path()
-                    .DIRECTORY_SEPARATOR
-                    .$this->getAssetsName()
-                    .DIRECTORY_SEPARATOR
-                    .$this->getFolderName()
-                    .DIRECTORY_SEPARATOR;
+                    public_path().DIRECTORY_SEPARATOR
+                    .$this->getAssetsName().DIRECTORY_SEPARATOR
+                    .$this->getFolderName().DIRECTORY_SEPARATOR;
 
                 if (! file_exists($folderPath)) {
                     mkdir($folderPath, 0755);
                 }
 
-                $folderHash =
-                    method_exists($this->element, 'getFolderHash')
-                        ? trim(
-                        $this->element->getFolderHash(),
-                        DIRECTORY_SEPARATOR
-                    ) : '';
+                $folderHash = method_exists($this->element, 'getFolderHash')
+                    ? trim($this->element->getFolderHash(), DIRECTORY_SEPARATOR)
+                    : '';
 
                 $destination = $folderHash
                     ? $folderPath.DIRECTORY_SEPARATOR.$folderHash
@@ -305,7 +295,7 @@ class ImageProperty extends BaseProperty
                 $hash = substr(md5(rand()), 0, 8);
 
                 foreach ($this->resizes as $resizeName => $resize) {
-                    list($width, $height, $quality) = $resize;
+                    [$width, $height, $quality] = $resize;
 
                     $resizeFilename = sprintf('%s_%s_%s.%s',
                         $name,
@@ -323,7 +313,7 @@ class ImageProperty extends BaseProperty
                     );
 
                     if ($this->driver) {
-                        list($width, $height, $type, $attr) = getimagesize(
+                        [$width, $height, $type, $attr] = getimagesize(
                             $destination.DIRECTORY_SEPARATOR.$resizeFilename
                         );
 
@@ -349,14 +339,12 @@ class ImageProperty extends BaseProperty
                     $extension
                 );
 
-                $value = $folderHash
-                    ? $folderHash.'/'.$filename
-                    : $filename;
+                $value = $folderHash ? $folderHash.'/'.$filename : $filename;
 
                 $this->setValue($value);
 
                 if (is_array($this->resize)) {
-                    list($width, $height, $quality) = $this->resize;
+                    [$width, $height, $quality] = $this->resize;
 
                     Image::resizeAndCopy(
                         $path,
@@ -367,7 +355,7 @@ class ImageProperty extends BaseProperty
                     );
 
                     if ($this->driver) {
-                        list($width, $height, $type, $attr) = getimagesize(
+                        [$width, $height, $type, $attr] = getimagesize(
                             $destination.DIRECTORY_SEPARATOR.$filename
                         );
 
@@ -389,7 +377,7 @@ class ImageProperty extends BaseProperty
                     unlink($path);
                 } else {
                     if ($this->driver) {
-                        list($width, $height, $type, $attr) = getimagesize($path);
+                        [$width, $height, $type, $attr] = getimagesize($path);
 
                         Storage::disk($this->driver)->putFileAs(
                             $this->driverFolderName,
@@ -416,7 +404,6 @@ class ImageProperty extends BaseProperty
             && $request->input($name.'_drop')
         ) {
             $this->drop();
-
             $this->element->$name = null;
         }
 
@@ -425,7 +412,7 @@ class ImageProperty extends BaseProperty
 
     public function drop()
     {
-        $key = "{$this->item->getNameId()}_{$this->getName()}_imagesize";
+        $key = "{$this->item->getName()}_{$this->getName()}_imagesize";
 
         if ($this->driver) {
             $filename = $this->getDriverFilename();
@@ -434,10 +421,10 @@ class ImageProperty extends BaseProperty
             unlink($this->abspath());
         }
 
-        cache()->forget($key);
+        Cache::forget($key);
 
         foreach ($this->resizes as $name => $resize) {
-            $key = "{$this->item->getNameId()}_{$this->getName()}_{$name}_imagesize";
+            $key = "{$this->item->getName()}_{$this->getName()}_{$name}_imagesize";
 
             if ($this->driver) {
                 $filename = $this->getDriverFilename($name);
@@ -446,7 +433,7 @@ class ImageProperty extends BaseProperty
                 unlink($this->abspath($name));
             }
 
-            cache()->forget($key);
+            Cache::forget($key);
         }
     }
 
@@ -477,6 +464,7 @@ class ImageProperty extends BaseProperty
             $height = $this->height();
             $filesize = $this->filesize_kb(null, 1);
             $filename = $this->filename();
+
             foreach ($this->resizes as $resizeName => $resize) {
                 $resizes[] = [
                     'name' => $resizeName,

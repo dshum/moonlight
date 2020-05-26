@@ -2,24 +2,24 @@
 
 namespace Moonlight\Properties;
 
+use Illuminate\Support\Facades\App;
 use Moonlight\Main\Item;
-use Moonlight\Main\Element;
 
 class MainProperty extends BaseProperty
 {
-	public static function create($name)
-	{
-		return new self($name);
+    public static function create($name)
+    {
+        return new self($name);
     }
 
     public function setItem(Item $item)
-	{
-		$item->setMainProperty($this->name);
+    {
+        $item->setMainProperty($this->name);
 
-		parent::setItem($item);
+        parent::setItem($item);
 
-		return $this;
-	}
+        return $this;
+    }
 
     public function getShow()
     {
@@ -27,7 +27,7 @@ class MainProperty extends BaseProperty
     }
 
     public function set()
-	{
+    {
         $name = $this->getName();
         $item = $this->getItem();
         $value = $this->buildInput();
@@ -40,15 +40,15 @@ class MainProperty extends BaseProperty
                 : $item->getTitle();
         }
 
-		return $this;
+        return $this;
     }
 
     public function searchQuery($query)
-	{
+    {
         $request = $this->getRequest();
-		$name = $this->getName();
+        $name = $this->getName();
 
-        $id = (int)$request->input($name);
+        $id = (int) $request->input($name);
         $text = $request->input($name.'_autocomplete');
 
         if ($id) {
@@ -57,53 +57,42 @@ class MainProperty extends BaseProperty
             $query->where($name, 'ilike', "%$text%");
         }
 
-		return $query;
-	}
+        return $query;
+    }
 
     public function getListView()
-	{
-		$element = $this->getElement();
-		$classId = $element ? Element::getClassId($element) : null;
+    {
+        $site = App::make('site');
+        $element = $this->getElement();
 
-		$scope = [
-            'name' => $this->getName(),
-			'title' => $this->getTitle(),
-			'value' => $this->getValue(),
-			'classId' => $classId,
-			'trashed' => $this->isTrashed(),
-		];
-
-		return $scope;
+        return [
+            'value' => $this->getValue(),
+            'class_id' => $site->getClassId($element),
+            'trashed' => $this->isTrashed(),
+        ];
     }
 
     public function getSearchView()
-	{
-        $site = \App::make('site');
-
-		$request = $this->getRequest();
+    {
+        $request = $this->getRequest();
         $name = $this->getName();
         $class = $this->getItemClass();
         $item = $this->getItem();
-        $mainProperty = $item->getMainProperty();
 
-        $id = (int)$request->input($name);
+        $id = (int) $request->input($name);
         $text = $request->input($name.'_autocomplete');
 
-        $element = $id
-            ? $class::find($id)
-            : null;
+        $element = $id ? $class::find($id) : null;
 
-        $scope = array(
+        return [
             'name' => $this->getName(),
             'title' => $this->getTitle(),
             'id' => $id,
             'text' => $text,
             'open' => $element !== null,
-            'relatedClass' => $item->getNameId(),
-        );
-
-		return $scope;
-	}
+            'relatedItem' => $item,
+        ];
+    }
 
     public function isMain()
     {

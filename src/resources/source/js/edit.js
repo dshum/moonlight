@@ -1,90 +1,90 @@
-$(function() {
+$(function () {
     var element = {};
 
-    var init = function() {
-        $('input.datetime[property]').each(function() {
+    var init = function () {
+        $('input.datetime[data-property]').each(function () {
             var dateInput = $(this);
-            var name = dateInput.attr('property');
-            var timeInput = $('input.time[property="' + name +'"]');
-            var datepicker = $('.datepicker[property="' + name + '"]');
-            var popup = $('.timepicker-popup[property="' + name +'"]');
+            var name = dateInput.data('property');
+            var timeInput = $('input.time[data-property="' + name + '"]');
+            var datepicker = $('.datepicker[data-property="' + name + '"]');
+            var popup = $('.timepicker-popup[data-property="' + name + '"]');
 
             dateInput.calendar({
-                triggerElement: '.datepicker[property="' + name + '"]',
+                triggerElement: '.datepicker[data-property="' + name + '"]',
                 dateFormat: '%Y-%m-%d',
-                selectHandler: function() {
+                selectHandler: function () {
                     datepicker.html(this.date.print('%d.%m.%Y'));
                     dateInput.val(this.date.print(this.dateFormat));
 
                     if (! timeInput.val()) {
                         timeInput.val('00:00:00');
 
-                        popup.find('table.hours td[value="00"]').addClass('active');
-                        popup.find('table.minutes td[value="00"]').addClass('active');
-                        popup.find('table.seconds td[value="00"]').addClass('active');
+                        popup.find('table.hours td[data-value="00"]').addClass('active');
+                        popup.find('table.minutes td[data-value="00"]').addClass('active');
+                        popup.find('table.seconds td[data-value="00"]').addClass('active');
 
-                        datepicker.after(', <span class="timepicker" property="' + name + '">' + timeInput.val() + '</span>');
+                        datepicker.after(', <span class="timepicker" data-property="' + name + '">' + timeInput.val() + '</span>');
                     }
                 }
             });
         });
 
-        $('input.date[property]').each(function() {
+        $('input.date[data-property]').each(function () {
             var dateInput = $(this);
-            var name = dateInput.attr('property');
-            var datepicker = $('.datepicker[property="' + name + '"]');
+            var name = dateInput.data('property');
+            var datepicker = $('.datepicker[data-property="' + name + '"]');
 
             dateInput.calendar({
-                triggerElement: '.datepicker[property="' + name + '"]',
+                triggerElement: '.datepicker[data-property="' + name + '"]',
                 dateFormat: '%Y-%m-%d',
-                selectHandler: function() {
+                selectHandler: function () {
                     datepicker.html(this.date.print('%d.%m.%Y'));
                     dateInput.val(this.date.print(this.dateFormat));
                 }
             });
         });
 
-        $('input.one').each(function() {
-            var parent = $(this).parents('div.row');
-            var item = $(this).attr('item');
-            var name = $(this).attr('property');
+        $('input.one').each(function () {
+            var parent = $(this).parents('div.field.row');
+            var relatedItem = $(this).data('item');
+            var name = $(this).data('property');
             var width = $(this).outerWidth() - 2;
 
             $(this).autocomplete({
                 serviceUrl: '/moonlight/elements/autocomplete',
                 params: {
-                    item: item
+                    item: relatedItem
                 },
-                formatResult: function(suggestion, currentValue) {
+                formatResult: function (suggestion, currentValue) {
                     return suggestion.value + ' <small>(' + suggestion.id + ')</small>';
                 },
                 onSelect: function (suggestion) {
                     parent.find('input:hidden[name="' + name + '"]').val(suggestion.id);
-                    parent.find('span[container][name="' + name + '"]').html(suggestion.value);
+                    parent.find('span.element-container[data-name="' + name + '"]').html(suggestion.value);
                 },
                 width: width,
                 minChars: 0
             });
         });
 
-        $('input.many').each(function() {
+        $('input.many').each(function () {
             var input = $(this);
-            var parent = $(this).parents('div.row');
-            var item = $(this).attr('item');
-            var name = $(this).attr('property');
+            var parent = $(this).parents('div.field.row');
+            var relatedItem = $(this).data('item');
+            var name = $(this).data('property');
             var width = $(this).outerWidth() - 2;
 
             $(this).autocomplete({
                 serviceUrl: '/moonlight/elements/autocomplete',
                 params: {
-                    item: item
+                    item: relatedItem
                 },
-                formatResult: function(suggestion, currentValue) {
+                formatResult: function (suggestion, currentValue) {
                     return suggestion.value + ' <small>(' + suggestion.id + ')</small>';
                 },
                 onSelect: function (suggestion) {
                     element = suggestion;
-                    parent.find('span[container][name="' + name + '"]').html(suggestion.value);
+                    parent.find('span.element-container[name="' + name + '"]').html(suggestion.value);
                 },
                 width: width,
                 minChars: 0
@@ -92,13 +92,13 @@ $(function() {
         });
     };
 
-    $('body').on('click', '.timepicker[property]', function(event) {
+    $('body').on('click', '.timepicker[data-property]', function (event) {
         event.stopPropagation();
 
         var timepicker = $(this);
-        var name = timepicker.attr('property');
-        var popup = $('.timepicker-popup[property="' + name +'"]');
-        var timeInput = $('input.time[property="' + name +'"]');
+        var name = timepicker.data('property');
+        var popup = $('.timepicker-popup[data-property="' + name + '"]');
+        var timeInput = $('input.time[data-property="' + name + '"]');
         var main = $('.main');
         var left = timepicker.offset().left - main.offset().left;
         var top = timepicker.offset().top - main.offset().top;
@@ -109,26 +109,26 @@ $(function() {
         }).fadeToggle(200);
     });
 
-    $('body').on('click', '.timepicker-popup', function(event) {
+    $('body').on('click', '.timepicker-popup', function (event) {
         event.stopPropagation();
     });
 
-    $('body').on('click', '.timepicker-popup .title.minutes', function(event) {
+    $('body').on('click', '.timepicker-popup .title.minutes', function (event) {
         $('.timepicker-popup table.minutes td.add').toggleClass('hide');
     });
 
-    $('body').on('click', '.timepicker-popup .title.seconds', function(event) {
+    $('body').on('click', '.timepicker-popup .title.seconds', function (event) {
         $('.timepicker-popup table.seconds td.add').toggleClass('hide');
     });
 
-    $('body').on('click', '.timepicker-popup table.hours td, .timepicker-popup table.minutes td, .timepicker-popup table.seconds td', function(event) {
+    $('body').on('click', '.timepicker-popup table.hours td, .timepicker-popup table.minutes td, .timepicker-popup table.seconds td', function (event) {
         var td = $(this);
         var table = td.parents('table');
         var popup = td.parents('.timepicker-popup');
-        var name = popup.attr('property');
+        var name = popup.data('property');
         var value = td.text();
-        var timeInput = $('input.time[property="' + name + '"]');
-        var timepicker = $('.timepicker[property="' + name + '"]');
+        var timeInput = $('input.time[data-property="' + name + '"]');
+        var timepicker = $('.timepicker[data-property="' + name + '"]');
 
         table.find('td.active').removeClass('active');
         td.addClass('active');
@@ -142,19 +142,19 @@ $(function() {
         timeInput.val(time);
     });
 
-    $('body').on('click', '.addition.unset[property]', function(event) {
-        var parent = $(this).parents('div.row');
-        var name = $(this).attr('property');
+    $('body').on('click', '.addition.unset[data-property]', function (event) {
+        var parent = $(this).parents('div.field.row');
+        var name = $(this).data('property');
 
         parent.find('input:hidden[name="' + name + '"]').val('');
         parent.find('input:text[name="' + name + '_autocomplete"]').val('');
-        parent.find('span[container][name="' + name + '"]').html('Не определено');
+        parent.find('span.element-container[data-name="' + name + '"]').html('Не определено');
     });
 
-    $('body').on('click', '.addition.add[property]', function(event) {
-        var parent = $(this).parents('div.row');
-        var name = $(this).attr('property');
-        var elements = $('.many.elements[name="' + name + '"]');
+    $('body').on('click', '.addition.add[data-property]', function (event) {
+        var parent = $(this).parents('div.field.row');
+        var name = $(this).data('property');
+        var elements = $('.many.elements[data-name="' + name + '"]');
 
         if (element.id) {
             var checkbox = $('input:checkbox[name="' + name + '[]"][id="' + element.classId + '"]');
@@ -169,39 +169,39 @@ $(function() {
         }
 
         parent.find('input:text[name="' + name + '_autocomplete"]').val('');
-        parent.find('span[container][name="' + name + '"]').html('');
+        parent.find('span.element-container[data-name="' + name + '"]').html('');
     });
 
-    $('body').on('change', '.loadfile :file', function(e) {
+    $('body').on('change', '.loadfile :file', function (e) {
         var name = $(this).attr('name');
         var path = e.target.files[0] ? e.target.files[0].name : 'Выберите файл';
 
-        $('.file[name="' + name + '"]').html(path);
+        $('.file[data-name="' + name + '"]').html(path);
         $('[name="' + name + '_drop"]').prop('checked', false);
     });
 
-    $('body').on('click', '.loadfile .file[name]', function() {
-        var name = $(this).attr('name');
+    $('body').on('click', '.loadfile .file[data-name]', function () {
+        var name = $(this).data('name');
         var fileInput = $(':file[name="' + name + '"]');
 
         fileInput.click();
     });
 
-    $('body').on('click', '.loadfile .reset', function() {
-        var name = $(this).attr('name');
+    $('body').on('click', '.loadfile .reset', function () {
+        var name = $(this).data('name');
 
-        $('[name="' + name + 'drop"]').prop('checked', false);
-        $('.file[name="' + name + '"]').html('Выберите файл');
+        $('input[name="' + name + 'drop"]').prop('checked', false);
         $(':file[name="' + name + '"]').val('');
+        $('.file[data-name="' + name + '"]').html('Выберите файл');
     });
 
-    $('textarea[tinymce="true"]').each(function () {
-        var name = $(this).attr('name');
-        var toolbar = $(this).attr('toolbar')
+    $('textarea[data-tinymce="true"]').each(function () {
+        var name = $(this).data('name');
+        var toolbar = $(this).data('toolbar')
             || 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | subscript superscript code';
 
         tinymce.init({
-            selector: 'textarea[tinymce="true"][name="' + name + '"]',
+            selector: 'textarea[data-tinymce="true"][data-name="' + name + '"]',
             themes: 'modern',
             skin: 'custom',
             language: 'ru',
@@ -215,15 +215,15 @@ $(function() {
             forced_root_block: false,
             entity_encoding: 'raw',
             invalid_elements: 'script,style',
-            setup: function(editor) {
-                editor.on('keypress keydown', function(event) {
+            setup: function (editor) {
+                editor.on('keypress keydown', function (event) {
                     return $.onCtrlS(event);
                 });
             }
         });
     });
 
-    $('textarea[codemirror="true"]').each(function() {
+    $('textarea[data-codemirror="true"]').each(function () {
         let editor = CodeMirror.fromTextArea(this, {
             lineNumbers: true,
             mode: "htmlmixed",
@@ -233,25 +233,25 @@ $(function() {
             autoRefresh: true,
             extraKeys: {
                 "Ctrl-Space": "autocomplete",
-                "Ctrl-S": function(cm) {
+                "Ctrl-S": function (cm) {
                     editor.save();
                 },
-                "F11": function(cm) {
-                    cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                "F11": function (cm) {
+                    cm.setOption("fullScreen", ! cm.getOption("fullScreen"));
                 },
-                "Esc": function(cm) {
+                "Esc": function (cm) {
                     if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
                 }
             }
         });
     });
 
-    $('form').submit(function() {
+    $('form').submit(function () {
         var form = $(this);
 
         form.find('span.error').fadeOut(200);
 
-        $('textarea[tinymce="true"]').each(function() {
+        $('textarea[data-tinymce="true"]').each(function () {
             var name = $(this).attr('name');
 
             $(this).val(tinymce.get(name).getContent());
@@ -272,7 +272,7 @@ $(function() {
                 $.alert(response.error);
             } else if (response.errors) {
                 for (var field in response.errors) {
-                    form.find('span.error[name="' + field + '"]')
+                    form.find('span.error[data-name="' + field + '"]')
                         .html(response.errors[field])
                         .fadeIn(200);
                 }
@@ -280,7 +280,7 @@ $(function() {
                 location.href = response.url;
             } else if (response.views) {
                 for (var field in response.views) {
-                    $('div.row[name="' + field + '"]')
+                    $('div.field.row[data-name="' + field + '"]')
                         .html(response.views[field]);
                 }
 
@@ -294,76 +294,64 @@ $(function() {
         return false;
     });
 
-    $('.button.save.enabled').click(function(e) {
-        $('form[save="true"]').submit();
+    $('.button.save.enabled').click(function (e) {
+        $('form[data-save="true"]').submit();
     });
 
-    $('.button.copy.enabled').click(function() {
-        $.confirm(null, '#copy');
+    $('.button.copy.enabled').click(function () {
+        $.confirm(null, '.confirm[data-confirm-type="copy"]');
     });
 
-    $('.button.move.enabled').click(function() {
-        $.confirm(null, '#move');
+    $('.button.move.enabled').click(function () {
+        $.confirm(null, '.confirm[data-confirm-type="move"]');
     });
 
-    $('.button.favorite.enabled').click(function() {
-        $.confirm(null, '#favorite');
+    $('.button.favorite.enabled').click(function () {
+        $.confirm(null, '.confirm[data-confirm-type="favorite"]');
     });
 
-    $('.button.delete.enabled').click(function() {
-        $.confirm(null, '#delete');
+    $('.button.delete.enabled').click(function () {
+        $.confirm(null, '.confirm[data-confirm-type="delete"]');
     });
 
-    $('.confirm .btn.copy').click(function() {
-        var parent = $(this).parents('.confirm');
-        var url = $(this).attr('url');
-
-        if (! url) return false;
+    $('.confirm .btn.copy').click(function () {
+        var confirmContainer = $(this).parents('.confirm');
+        var url = confirmContainer.data('url');
+        var one = null;
 
         $.confirmClose();
         $.blockUI();
 
-        var one = null;
-
-        parent.find('input[type="radio"]:checked:not(disabled), input[type="hidden"]').each(function() {
-            var name = $(this).attr('property');
-            var value = $(this).val();
-
+        confirmContainer.find('input[type="radio"]:checked:not(disabled), input[type="hidden"]').each(function () {
             one = {
-                name: name,
-                value: value
+                name: $(this).data('property'),
+                value: $(this).val()
             };
         });
 
-        $.post(url, one, function(data) {
-            $.unblockUI(function() {
+        $.post(url, one, function (data) {
+            $.unblockUI(function () {
                 if (data.error) {
                     $.alert(data.error);
                 } else if (data.copied && data.url) {
                     location.href = data.url;
                 }
             });
-        }).fail(function() {
+        }).fail(function () {
             $.unblockUI();
             $.alertDefaultError();
         });
     });
 
-    $('.confirm .btn.move').click(function() {
-        var parent = $(this).parents('.confirm');
-        var url = $(this).attr('url');
-
-        if (! url) return false;
-
+    $('.confirm .btn.move').click(function () {
+        var confirmContainer = $(this).parents('.confirm');
+        var url = confirmContainer.data('url');
         var one = null;
 
-        parent.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function() {
-            var name = $(this).attr('property');
-            var value = $(this).val();
-
+        confirmContainer.find('input[type="radio"]:checked:not(:disabled), input[type="hidden"]').each(function () {
             one = {
-                name: name,
-                value: value
+                name: $(this).data('property'),
+                value: $(this).val()
             };
         });
 
@@ -372,8 +360,8 @@ $(function() {
         $.confirmClose();
         $.blockUI();
 
-        $.post(url, one, function(data) {
-            $.unblockUI(function() {
+        $.post(url, one, function (data) {
+            $.unblockUI(function () {
                 if (data.error) {
                     $.alert(data.error);
                 } else if (data.moved) {
@@ -381,106 +369,105 @@ $(function() {
                     location.reload();
                 }
             });
-        }).fail(function() {
+        }).fail(function () {
             $.unblockUI();
             $.alertDefaultError();
         });
     });
 
-    $('body').on('click', '.confirm .favorite-list.add div[rubric]', function() {
-        var parent = $(this).parents('.confirm');
-        var url = parent.attr('url');
-        var addRubric = $(this).attr('rubric');
-
-        if (! url) return false;
-        if (! addRubric) return false;
+    $('body').on('click', '.confirm .favorite-list.add div[data-rubric]', function () {
+        var confirmContainer = $(this).parents('.confirm');
+        var url = confirmContainer.data('url');
+        var addRubric = $(this).data('rubric');
 
         $.confirmClose();
         $.blockUI();
 
         $.post(url, {
             add_favorite_rubric: addRubric
-        }, function(data) {
-            $.unblockUI(function() {
-                if (data.error) {
-                    $.alert(data.error);
-                } else if (data.added) {
-                    parent.find('.favorite-list.add div[rubric="' + data.added + '"]').attr('display', 'hide');
-                    parent.find('.favorite-list.remove div[rubric="' + data.added + '"]').attr('display', 'show');
+        }, function (response) {
+            $.unblockUI(function () {
+                if (response.error) {
+                    $.alert(response.error);
+                } else if (response.added) {
+                    confirmContainer.find('.favorite-list.add div[data-rubric="' + response.added + '"]').addClass('hidden');
+                    confirmContainer.find('.favorite-list.remove div[data-rubric="' + response.added + '"]').removeClass('hidden');
+                    confirmContainer.find('.favorite-title.remove, .favorite-list.remove').removeClass('hidden');
 
-                    if (parent.find('.favorite-list.add div[rubric][display="show"]').length) {
-                        parent.find('div[name="add"], .favorite-list.add').show();
+                    var count = confirmContainer.find('.favorite-list.add div.rubric').filter(function () {
+                        return $(this).hasClass('hidden') === false;
+                    }).length;
+
+                    if (count > 0) {
+                        confirmContainer.find('.favorite-title.add, .favorite-list.add').removeClass('hidden');
                     } else {
-                        parent.find('div[name="add"], .favorite-list.add').hide();
+                        confirmContainer.find('.favorite-title.add, .favorite-list.add').addClass('hidden');
                     }
-
-                    parent.find('div[name="remove"], .favorite-list.remove').show();
                 }
             });
-        }).fail(function() {
+        }).fail(function () {
             $.unblockUI();
             $.alertDefaultError();
         });
     });
 
-    $('body').on('click', '.confirm .favorite-list.remove div[rubric]', function() {
-        var parent = $(this).parents('.confirm');
-        var url = parent.attr('url');
-        var removedRubric = $(this).attr('rubric');
-
-        if (! url) return false;
-        if (! removedRubric) return false;
+    $('body').on('click', '.confirm .favorite-list.remove div[data-rubric]', function () {
+        var confirmContainer = $(this).parents('.confirm');
+        var url = confirmContainer.data('url');
+        var removedRubric = $(this).data('rubric');
 
         $.confirmClose();
         $.blockUI();
 
         $.post(url, {
             remove_favorite_rubric: removedRubric
-        }, function(data) {
-            $.unblockUI(function() {
-                if (data.error) {
-                    $.alert(data.error);
-                } else if (data.removed) {
-                    parent.find('.favorite-list.add div[rubric="' + data.removed + '"]').attr('display', 'show');
-                    parent.find('.favorite-list.remove div[rubric="' + data.removed + '"]').attr('display', 'hide');
+        }, function (response) {
+            $.unblockUI(function () {
+                if (response.error) {
+                    $.alert(response.error);
+                } else if (response.removed) {
+                    confirmContainer.find('.favorite-list.add div[data-rubric="' + response.removed + '"]').removeClass('hidden');
+                    confirmContainer.find('.favorite-list.remove div[data-rubric="' + response.removed + '"]').addClass('hidden');
+                    confirmContainer.find('.favorite-title.add, .favorite-list.add').removeClass('hidden');
 
-                    parent.find('div[name="add"], .favorite-list.add').show();
+                    var count = confirmContainer.find('.favorite-list.remove div.rubric').filter(function () {
+                        return $(this).hasClass('hidden') === false;
+                    }).length;
 
-                    if (parent.find('.favorite-list.remove div[rubric][display="show"]').length) {
-                        parent.find('div[name="remove"], .favorite-list.remove').show();
+                    if (count > 0) {
+                        confirmContainer.find('.favorite-title.remove, .favorite-list.remove').removeClass('hidden');
                     } else {
-                        parent.find('div[name="remove"], .favorite-list.remove').hide();
+                        confirmContainer.find('.favorite-title.remove, .favorite-list.remove').addClass('hidden');
                     }
                 }
             });
-        }).fail(function() {
+        }).fail(function () {
             $.unblockUI();
             $.alertDefaultError();
         });
     });
 
-    $('.confirm .favorite-new input[type="text"]').on('keypress', function(event) {
+    $('.confirm .favorite-new input[type="text"]').on('keypress', function (event) {
         if (! event) event = window.event;
 
+        var code;
+
         if (event.keyCode) {
-            var code = event.keyCode;
+            code = event.keyCode;
         } else if (event.which) {
-            var code = event.which;
+            code = event.which;
         }
 
         if (code == 13) {
-            var parent = $(this).parents('.confirm');
-
-            parent.find('.btn.favorite').click();
+            $(this).parents('.confirm').find('.btn.favorite').click();
         }
     });
 
-    $('.confirm .btn.favorite').click(function() {
-        var parent = $(this).parents('.confirm');
-        var url = parent.attr('url');
-        var newRubric = parent.find('.favorite-new input[type="text"]').val();
+    $('.confirm .btn.favorite').click(function () {
+        var confirmContainer = $(this).parents('.confirm');
+        var url = confirmContainer.data('url');
+        var newRubric = confirmContainer.find('.favorite-new input[type="text"]').val();
 
-        if (! url) return false;
         if (! newRubric) return false;
 
         $.confirmClose();
@@ -488,62 +475,65 @@ $(function() {
 
         $.post(url, {
             new_favorite_rubric: newRubric
-        }, function(data) {
-            $.unblockUI(function() {
-                if (data.error) {
-                    $.alert(data.error);
-                } else if (data.new) {
-                    parent.find('.favorite-list.remove').append(
-                        '<div rubric="' + data.new.id + '">' + data.new.name + '</div>'
+        }, function (response) {
+            $.unblockUI(function () {
+                if (response.error) {
+                    $.alert(response.error);
+                } else if (response.new) {
+                    confirmContainer.find('.favorite-list.add').append(
+                        '<div data-rubric="' + response.new.id + '" class="rubric hidden">' + response.new.name + '</div>'
+                    );
+                    confirmContainer.find('.favorite-list.remove').append(
+                        '<div data-rubric="' + response.new.id + '" class="rubric">' + response.new.name + '</div>'
                     );
 
-                    parent.find('.favorite-new input[type="text"]').val('');
-
-                    parent.find('div[name="remove"], .favorite-list.remove').show();
+                    confirmContainer.find('.favorite-new input[type="text"]').val('');
+                    confirmContainer.find('.favorite-title.remove, .favorite-list.remove').removeClass('hidden');
                 } else if (data.added) {
-                    parent.find('.favorite-list.add div[rubric="' + data.added + '"]').attr('display', 'hide');
-                    parent.find('.favorite-list.remove div[rubric="' + data.added + '"]').attr('display', 'show');
+                    confirmContainer.find('.favorite-list.add div[data-rubric="' + response.added + '"]').addClass('hidden');
+                    confirmContainer.find('.favorite-list.remove div[data-rubric="' + response.added + '"]').removeClass('hidden');
+                    confirmContainer.find('.favorite-title.remove, .favorite-list.remove').removeClass('hidden');
+                    confirmContainer.find('.favorite-new input[type="text"]').val('');
 
-                    parent.find('.favorite-new input[type="text"]').val('');
+                    var count = confirmContainer.find('.favorite-list.add div.rubric').filter(function () {
+                        return $(this).hasClass('hidden') === false;
+                    }).length;
 
-                    if (parent.find('.favorite-list.add div[rubric][display="show"]').length) {
-                        parent.find('div[name="add"], .favorite-list.add').show();
+                    if (count > 0) {
+                        confirmContainer.find('.favorite-title.add, .favorite-list.add').removeClass('hidden');
                     } else {
-                        parent.find('div[name="add"], .favorite-list.add').hide();
+                        confirmContainer.find('.favorite-title.add, .favorite-list.add').addClass('hidden');
                     }
-
-                    parent.find('div[name="remove"], .favorite-list.remove').show();
                 }
             });
-        }).fail(function() {
+        }).fail(function () {
             $.unblockUI();
             $.alertDefaultError();
         });
     });
 
-    $('.confirm .btn.remove').click(function() {
-        var url = $(this).attr('url');
-
-        if (! url) return false;
+    $('.confirm .btn.remove').click(function () {
+        var confirmContainer = $(this).parents('.confirm');
+        var url = confirmContainer.data('url');
 
         $.confirmClose();
         $.blockUI();
 
-        $.post(url, {}, function(data) {
-            $.unblockUI(function() {
+        $.post(url, {}, function (data) {
+            $.unblockUI(function () {
                 if (data.error) {
                     $.alert(data.error);
                 } else if (data.deleted && data.url) {
                     location.href = data.url;
                 }
             });
-        }).fail(function() {
+        }).fail(function () {
             $.unblockUI();
             $.alertDefaultError();
         });
     });
 
-    $('.sidebar .elements .h2 span').click(function() {
+    $('.sidebar .elements .h2 span').click(function () {
         var block = $(this).parents('.elements');
         var rubric = block.attr('rubric');
         var display = block.attr('display');
@@ -569,7 +559,7 @@ $(function() {
 
             $.getJSON('/moonlight/rubrics/get', {
                 rubric: rubric
-            }, function(data) {
+            }, function (data) {
                 $.unblockUI();
 
                 if (data.html) {
@@ -580,7 +570,7 @@ $(function() {
         }
     });
 
-    $('body').on('click', '.sidebar .elements span.open', function() {
+    $('body').on('click', '.sidebar .elements span.open', function () {
         var span = $(this);
         var li = span.parents('li').first();
         var rubric = span.attr('rubric');
@@ -614,7 +604,7 @@ $(function() {
                 rubric: rubric,
                 bind: bind,
                 classId: classId
-            }, function(data) {
+            }, function (data) {
                 $.unblockUI();
 
                 if (data.html) {
@@ -626,7 +616,7 @@ $(function() {
         }
     });
 
-    $('body').on('contextmenu', '.sidebar .elements a', function(event) {
+    $('body').on('contextmenu', '.sidebar .elements a', function (event) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -656,7 +646,7 @@ $(function() {
         }).fadeIn(200);
     });
 
-    $('body').on('click', '.sidebar .contextmenu', function(event) {
+    $('body').on('click', '.sidebar .contextmenu', function (event) {
         event.stopPropagation();
     });
 

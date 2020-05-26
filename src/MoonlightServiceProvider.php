@@ -2,14 +2,24 @@
 
 namespace Moonlight;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\DB;
+use App;
+use Config;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Moonlight\Main\Site;
+use Moonlight\Models\User;
+use Route;
 
 class MoonlightServiceProvider extends ServiceProvider
 {
+    /**
+     * This namespace is applied to your controller routes.
+     *
+     * In addition, it is set as the URL generator's root namespace.
+     *
+     * @var string
+     */
+    protected $namespace = 'Moonlight\Controllers';
+
     /**
      * Bootstrap the application services.
      *
@@ -17,22 +27,53 @@ class MoonlightServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $site = \App::make('site');
+        if (file_exists(__DIR__.'/helpers.php')) {
+            include __DIR__.'/helpers.php';
+        }
 
-        $site->initMicroTime();
-
-        if (file_exists($path = __DIR__.'/helpers.php')) {
-			include $path;
-		}
-        
         $this->loadViewsFrom(__DIR__.'/resources/views', 'moonlight');
-        
+
         $this->publishes([
             __DIR__.'/database/migrations' => $this->app->databasePath().'/migrations',
             __DIR__.'/database/seeds' => $this->app->databasePath().'/seeds',
             __DIR__.'/resources/assets' => public_path('packages/moonlight'),
         ], 'moonlight');
 
+        if (file_exists($path = app_path('Http/site.php'))) {
+            include $path;
+        }
+
+        $this->setGuard();
+
+        parent::boot();
+    }
+
+    /**
+     * Register the application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        App::singleton('site', function ($app): Site {
+            return new Site;
+        });
+    }
+
+    /**
+     * Define the routes for the application.
+     *
+     * @return void
+     */
+    public function map()
+    {
+        Route::prefix('/moonlight')
+            ->namespace($this->namespace)
+            ->group(__DIR__.'/routes.php');
+    }
+
+    protected function setGuard()
+    {
         $authGuards = Config::get('auth.guards');
         $authProviders = Config::get('auth.providers');
 
@@ -43,28 +84,10 @@ class MoonlightServiceProvider extends ServiceProvider
 
         $authProviders['moonlight'] = [
             'driver' => 'eloquent',
-            'model' => \Moonlight\Models\User::class,
+            'model' => User::class,
         ];
 
         Config::set('auth.guards', $authGuards);
         Config::set('auth.providers', $authProviders);
-
-        if (file_exists($path = app_path().'/Http/site.php')) {
-			include $path;
-		}
-        
-        include __DIR__.'/routes.php';
-    }
-
-    /**
-     * Register the application services.
-     *
-     * @return void
-     */
-    public function register()
-    {
-        \App::singleton('site', function($app) {
-			return new Site;
-		}); 
     }
 }

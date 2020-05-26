@@ -2,7 +2,7 @@
 
 namespace Moonlight\Utils;
 
-use Exception;
+use Throwable;
 use Illuminate\Support\Facades\Mail;
 use Moonlight\Mail\Error;
 use Carbon\Carbon;
@@ -12,10 +12,10 @@ class ErrorMessage {
 	const TIME_DELAY = 60;
 
     /**
-     * @param \Exception $e
+     * @param \Throwable $e
      * @return bool|void
      */
-	public static function send(Exception $e)
+	public static function send(Throwable $e)
 	{
 		if (
 			! config('mail.from.address')

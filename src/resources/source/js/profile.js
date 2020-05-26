@@ -1,28 +1,28 @@
-$(function() {
-    $('body').on('change', ':file', function(e) {
+$(function () {
+    $('body').on('change', ':file', function (e) {
         var name = $(this).attr('name');
         var path = e.target.files[0] ? e.target.files[0].name : 'Выберите файл';
 
-        $('.file[name="' + name + '"]').html(path);
-        $('[name="drop"]').prop('checked', false);
+        $('.file[data-name="' + name + '"]').html(path);
+        $('input[name="drop"]').prop('checked', false);
     });
 
-    $('body').on('click', '.file[name]', function() {
-        var name = $(this).attr('name');
+    $('body').on('click', '.file[data-name]', function () {
+        var name = $(this).data('name');
         var fileInput = $(':file[name="' + name + '"]');
 
         fileInput.click();
     });
 
-    $('body').on('click', '.reset', function() {
-        var name = $(this).attr('name');
+    $('body').on('click', '.reset', function () {
+        var name = $(this).data('name');
 
-        $('[name="drop"]').prop('checked', false);
-        $('.file[name="' + name + '"]').html('Выберите файл');
-        $(':file[name="' + name + '"]').val('');
+        $('input[name="drop"]').prop('checked', false);
+        $('.file[data-name="' + name + '"]').html('Выберите файл');
+        $('input:file[name="' + name + '"]').val('');
     });
 
-    $('form').submit(function() {
+    $('form[data-save="true"]').submit(function () {
         $('span.error').fadeOut(200);
         $.blockUI();
 
@@ -39,7 +39,7 @@ $(function() {
                 $.alert(response.error);
             } else if (response.errors) {
                 for (var field in response.errors) {
-                    $('span.error[name="' + field + '"]')
+                    $('span.error[data-name="' + field + '"]')
                         .html(response.errors[field])
                         .fadeIn(200);
                 }

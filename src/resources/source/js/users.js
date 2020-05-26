@@ -1,34 +1,30 @@
-$(function() {
-    $('tr[user] > td.remove:not(.disabled)').click(function() {
-        var url = $(this).attr('url');
-        var name = $(this).attr('name');
+$(function () {
+    $('tr[data-user] > td.remove:not(.disabled)').click(function () {
+        var url = $(this).data('url');
+        var name = $(this).data('name');
         var html = 'Удалить пользователя &laquo;' + name + '&raquo;?';
 
-        $('.confirm .remove').attr('url', url);
-        
+        $('.confirm .remove').data('url', url);
+
         $.confirm(html);
     });
 
-    $('.confirm .remove').click(function() {
-        var url = $(this).attr('url');
+    $('.confirm .remove').click(function () {
+        var url = $(this).data('url');
 
         if (! url) return false;
 
         $.confirmClose();
         $.blockUI();
 
-        $.post(
-            url,
-            {},
-            function(data) {
-                $.unblockUI();
+        $.post(url, {}, function (response) {
+            $.unblockUI();
 
-                if (data.error) {
-                    $.alert(data.error);
-                } else if (data.user) {
-                    $('tr[user="' + data.user + '"]').remove();
-                }
+            if (response.error) {
+                $.alert(response.error);
+            } else if (response.user) {
+                $('tr[data-user="' + response.user + '"]').remove();
             }
-        );
+        });
     });
 });

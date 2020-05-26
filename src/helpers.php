@@ -1,32 +1,39 @@
 <?php
 
 use Illuminate\Database\Eloquent\Model;
-use Moonlight\Main\Element;
+use Illuminate\Support\Facades\App;
+use Moonlight\Main\Item;
 
 if (! function_exists('class_id')) {
     function class_id(Model $element)
     {
-        return Element::getClassId($element);
+        return App::make('site')->getClassId($element);
+    }
+}
+
+if (! function_exists('get_item')) {
+    function item_id(Model $element)
+    {
+        return App::make('site')->getItemByElement($element);
     }
 }
 
 if (! function_exists('item_id')) {
-    function item_id(Model $element)
+    function item_name(Model $element)
     {
-        $item = Element::getItem($element);
-        
-        return $item->getNameId();
+        $item = App::make('site')->getItemByElement($element);
+
+        return $item instanceof Item ? $item->getName() : null;
     }
 }
 
 if (! function_exists('property')) {
     function property(Model $element, $propertyName)
     {
-        $item = Element::getItem($element);
-        $property = $item->getPropertyByName($propertyName);
+        $item = App::make('site')->getItemByElement($element);
 
-        $property->setElement($element);
-
-        return $property;
+        return $item instanceof Item
+            ? $item->getPropertyByName($propertyName)->setElement($element)
+            : null;
     }
 }

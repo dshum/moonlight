@@ -1,5 +1,5 @@
 $(function() {
-    $('form').submit(function() {
+    $('form[data-save="true"]').submit(function() {
         $('div.error').fadeOut(200);
         $('div.ok').fadeOut(200);
         $.blockUI();
@@ -15,8 +15,8 @@ $(function() {
 
             if (response.error) {
                 $('div.error').html(response.error).fadeIn(200);
-            } else if (response.ok) {
-                $('div.ok').html(response.ok).fadeIn(200);
+            } else if (response.message) {
+                $('div.ok').html(response.message).fadeIn(200);
             }
         }).fail(function (response) {
             $.unblockUI();

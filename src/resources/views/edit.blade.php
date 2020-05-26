@@ -2,12 +2,12 @@
 
 @section('title', $element->$mainProperty)
 
-@section('css')
-    <link rel="stylesheet" href="/packages/moonlight/js/codemirror/lib/codemirror.css">
-    <link rel="stylesheet" href="/packages/moonlight/js/codemirror/addon/display/fullscreen.css">
-    <link rel="stylesheet" href="/packages/moonlight/js/codemirror/addon/hint/show-hint.css">
-    <link rel="stylesheet" href="/packages/moonlight/js/codemirror/theme/eclipse.css">
-    <link rel="stylesheet" href="/packages/moonlight/css/edit.min.css">
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('packages/moonlight/js/codemirror/lib/codemirror.css') }}">
+    <link rel="stylesheet" href="{{ asset('packages/moonlight/js/codemirror/addon/display/fullscreen.css') }}">
+    <link rel="stylesheet" href="{{ asset('packages/moonlight/js/codemirror/addon/hint/show-hint.css') }}">
+    <link rel="stylesheet" href="{{ asset('packages/moonlight/js/codemirror/theme/eclipse.css') }}">
+    <link rel="stylesheet" href="{{ asset('packages/moonlight/css/edit.min.css') }}">
     <style>
         .CodeMirror {
             height: 30rem;
@@ -15,22 +15,22 @@
             border-radius: 2px;
         }
     </style>
-@endsection
+@endpush
 
-@section('js')
-    <script src="/packages/moonlight/js/tinymce/js/tinymce/tinymce.min.js"></script>
-    <script src="/packages/moonlight/js/codemirror/lib/codemirror.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/display/autorefresh.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/display/fullscreen.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/hint/show-hint.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/hint/xml-hint.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/hint/html-hint.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/hint/css-hint.js"></script>
-    <script src="/packages/moonlight/js/codemirror/mode/xml/xml.js"></script>
-    <script src="/packages/moonlight/js/codemirror/mode/htmlmixed/htmlmixed.js"></script>
-    <script src="/packages/moonlight/js/codemirror/mode/css/css.js"></script>
-    <script src="/packages/moonlight/js/edit.min.js"></script>
-@endsection
+@push('scripts')
+    <script src="{{ asset('packages/moonlight/js/tinymce/js/tinymce/tinymce.min.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/lib/codemirror.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/display/autorefresh.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/display/fullscreen.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/hint/show-hint.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/hint/xml-hint.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/hint/html-hint.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/hint/css-hint.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/mode/xml/xml.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/mode/htmlmixed/htmlmixed.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/mode/css/css.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/edit.min.js') }}"></script>
+@endpush
 
 @section('body')
     <div class="main">
@@ -40,7 +40,7 @@
                 <div class="divider">/</div>
                 @foreach ($parents as $parent)
                     <div class="part">
-                        <a href="{{ route('moonlight.browse.element', $parent['classId']) }}">{{ $parent['name'] }}</a>
+                        <a href="{{ route('moonlight.browse.element', $parent->class_id) }}">{{ $parent->name }}</a>
                     </div>
                     <div class="divider">/</div>
                 @endforeach
@@ -53,17 +53,7 @@
                     <a href="{{ $element->getHref() }}" target="_blank"><i class="fa fa-external-link"></i>Смотреть на сайте</a>
                 </div>
             @endif
-            @if ($itemPluginView)
-                <div class="item-plugin">
-                    {!! $itemPluginView !!}
-                </div>
-            @endif
-            @if ($editPluginView)
-                <div class="edit-plugin">
-                    {!! $editPluginView !!}
-                </div>
-            @endif
-            <div class="item active">
+            <div class="item active" data-item="{{ $currentItem->getName() }}">
                 <ul class="header">
                     <li class="h2">
                         <span>Редактирование элемента типа &laquo;{{ $currentItem->getTitle() }}&raquo;</span>
@@ -84,10 +74,10 @@
                     <div class="button favorite enabled"><i class="fa fa-bookmark-o"></i>Избранное</div>
                     <div class="button delete enabled"><i class="fa fa-trash-o"></i>Удалить</div>
                 </div>
-                <form save="true" action="{{ route('moonlight.element.save', $classId) }}" method="POST">
+                <form data-save="true" action="{{ route('moonlight.element.save', $classId) }}" method="POST">
                     <div class="edit">
                         @foreach ($views as $name => $view)
-                            <div class="row" name="{{ $name }}">
+                            <div class="field row" data-name="{{ $name }}">
                                 {!! $view !!}
                             </div>
                         @endforeach
@@ -99,90 +89,10 @@
             </div>
         </div>
     </div>
-    @if ($copyPropertyView)
-        <div class="confirm" id="copy">
-            <div class="wrapper">
-                <div class="container">
-                    <div class="content">
-                        <div>Куда копируем?</div>
-                        <div class="edit">
-                            <div class="row">
-                                {!! $copyPropertyView !!}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bottom">
-                        <input type="button" value="Скопировать" class="btn copy" url="{{ route('moonlight.element.copy', $classId) }}">
-                        <input type="button" value="Отмена" class="btn cancel">
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-    @if ($movePropertyView)
-        <div class="confirm" id="move">
-            <div class="wrapper">
-                <div class="container">
-                    <div class="content">
-                        <div>Куда переносим?</div>
-                        <div class="edit">
-                            <div class="row">
-                                {!! $movePropertyView !!}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bottom">
-                        <input type="button" value="Перенести" class="btn move" url="{{ route('moonlight.element.move', $classId) }}">
-                        <input type="button" value="Отмена" class="btn cancel">
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-    <div class="confirm" id="favorite" url="{{ route('moonlight.element.favorite', $classId) }}">
-        <div class="wrapper">
-            <div class="container">
-                @if (sizeof($favoriteRubrics))
-                    <div class="favorite-settings" title="Настроить избранное">
-                        <a href="{{ route('moonlight.favorites.edit') }}"><i class="fa fa-cog"></i></a></div>
-                @endif
-                <div class="content">
-                    <div name="add" class="{{ sizeof($elementFavoriteRubrics) < sizeof($favoriteRubrics) ? '' : 'dnone' }}">Добавить в рубрику:</div>
-                    <div class="favorite-list add {{ sizeof($elementFavoriteRubrics) < sizeof($favoriteRubrics) ? '' : 'dnone' }}">
-                        @foreach ($favoriteRubrics as $favoriteRubric)
-                            <div rubric="{{ $favoriteRubric->id }}" display="{{ isset($elementFavoriteRubrics[$favoriteRubric->id]) ? 'hide' : 'show' }}">{{ $favoriteRubric->name }}</div>
-                        @endforeach
-                    </div>
-                    <div name="remove" class="{{ sizeof($elementFavoriteRubrics) ? '' : 'dnone' }}">Убрать из рубрики:</div>
-                    <div class="favorite-list remove {{ sizeof($elementFavoriteRubrics) ? '' : 'dnone' }}">
-                        @foreach ($favoriteRubrics as $favoriteRubric)
-                            <div rubric="{{ $favoriteRubric->id }}" display="{{ isset($elementFavoriteRubrics[$favoriteRubric->id]) ? 'show' : 'hide' }}">{{ $favoriteRubric->name }}</div>
-                        @endforeach
-                    </div>
-                    <div class="favorite-new">
-                        <input type="text" name="favorite_rubric_new" value="" placeholder="Новая рубрика">
-                    </div>
-                </div>
-                <div class="bottom">
-                    <input type="button" value="Добавить" class="btn favorite">
-                    <input type="button" value="Отмена" class="btn cancel">
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="confirm" id="delete">
-        <div class="wrapper">
-            <div class="container">
-                <div class="content">
-                    Удалить элемент &laquo;{{ $element->$mainProperty }}&raquo;?
-                </div>
-                <div class="bottom">
-                    <input type="button" value="Удалить" class="btn remove" url="{{ route('moonlight.element.delete', $classId) }}">
-                    <input type="button" value="Отмена" class="btn cancel">
-                </div>
-            </div>
-        </div>
-    </div>
+    @includeWhen($copyPropertyView, 'moonlight::components.edit.confirm.copy')
+    @includeWhen($movePropertyView, 'moonlight::components.edit.confirm.move')
+    @include('moonlight::components.edit.confirm.favorite')
+    @include('moonlight::components.edit.confirm.delete')
 @endsection
 
 @section('sidebar')

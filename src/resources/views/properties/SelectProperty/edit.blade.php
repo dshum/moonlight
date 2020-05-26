@@ -1,6 +1,6 @@
-<label>{{ $title }}:</label><span name="{{ $name }}" class="error"></span><br>
+<div><label>{{ $title }}:</label><span data-name="{{ $name }}" class="error"></span></div>
 @if ($readonly)
-    <select name="{{ $name }}" value="{{ $value }}" disabled="disabled">
+    <select name="{{ $name }}" data-value="{{ $value }}" disabled="disabled">
         @foreach ($list as $key => $title)
             @if ($key == $value)
                 <option value="{{ $key }}" selected>{{ $title }}</option>
@@ -10,7 +10,7 @@
         @endforeach
     </select>
 @else
-    <select name="{{ $name }}" value="{{ $value }}">
+    <select name="{{ $name }}" data-value="{{ $value }}">
         @foreach ($list as $key => $title)
             @if ($key == $value)
                 <option value="{{ $key }}" selected>{{ $title }}</option>

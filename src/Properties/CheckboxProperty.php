@@ -4,71 +4,59 @@ namespace Moonlight\Properties;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CheckboxProperty extends BaseProperty {
+class CheckboxProperty extends BaseProperty
+{
+    public static function create($name)
+    {
+        return new self($name);
+    }
 
-	public static function create($name)
-	{
-		return new self($name);
-	}
+    public function setElement(Model $element)
+    {
+        $this->element = $element;
+        $this->value = (bool) $element->{$this->getName()};
 
-	public function setElement(Model $element)
-	{
-		$this->element = $element;
+        return $this;
+    }
 
-		$value = $element->{$this->getName()};
+    public function getEditable()
+    {
+        return $this->editable;
+    }
 
-		$this->value = $value ? true : false;
-
-		return $this;
-	}
-
-	public function getEditable()
-	{
-		return $this->editable;
-	}
-
-	public function searchQuery($query)
-	{
+    public function searchQuery($query)
+    {
         $request = $this->getRequest();
         $name = $this->getName();
 
-		$value = $request->input($name);
+        $value = $request->input($name);
 
-		if ($value === 'true') {
-			$query->where($name, 1);
-		} elseif ($value === 'false') {
-			$query->where($name, 0);
-		}
-
-		return $query;
-	}
-
-	public function set()
-	{
-        if ($this->getHidden() || $this->getReadonly()) {
-            return $this;
+        if ($value === 'true') {
+            $query->where($name, 1);
+        } elseif ($value === 'false') {
+            $query->where($name, 0);
         }
 
-		$request = $this->getRequest();
+        return $query;
+    }
+
+    public function set()
+    {
+        $request = $this->getRequest();
         $name = $this->getName();
 
-		$value = $request->has($name) && $request->input($name)
-			? true : false;
+        $this->element->$name = $request->has($name) && $request->input($name);
 
-		$this->element->$name = $value;
+        return $this;
+    }
 
-		return $this;
-	}
-
-	public function getEditableView()
-	{
-		$scope = array(
-			'name' => $this->getName(),
-			'title' => $this->getTitle(),
-			'value' => $this->getValue(),
-			'element' => $this->getElement(),
-		);
-
-		return $scope;
-	}
+    public function getEditableView()
+    {
+        return [
+            'name' => $this->getName(),
+            'title' => $this->getTitle(),
+            'value' => $this->getValue(),
+            'element' => $this->getElement(),
+        ];
+    }
 }

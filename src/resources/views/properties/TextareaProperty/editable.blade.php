@@ -1,5 +1,5 @@
-<td class="editable" mode="view" name="{{ $name }}">
-    <div  class="view-container">
+<td class="editable" data-mode="view" data-name="{{ $name }}">
+    <div class="view-container">
         {{ $value }}
     </div>
     <div class="edit-container">

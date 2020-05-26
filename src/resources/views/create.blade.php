@@ -2,12 +2,12 @@
 
 @section('title', 'Новый элемент')
 
-@section('css')
-    <link rel="stylesheet" href="/packages/moonlight/js/codemirror/lib/codemirror.css">
-    <link rel="stylesheet" href="/packages/moonlight/js/codemirror/addon/display/fullscreen.css">
-    <link rel="stylesheet" href="/packages/moonlight/js/codemirror/addon/hint/show-hint.css">
-    <link rel="stylesheet" href="/packages/moonlight/js/codemirror/theme/eclipse.css">
-    <link rel="stylesheet" href="/packages/moonlight/css/edit.min.css">
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('packages/moonlight/js/codemirror/lib/codemirror.css') }}">
+    <link rel="stylesheet" href="{{ asset('packages/moonlight/js/codemirror/addon/display/fullscreen.css') }}">
+    <link rel="stylesheet" href="{{ asset('packages/moonlight/js/codemirror/addon/hint/show-hint.css') }}">
+    <link rel="stylesheet" href="{{ asset('packages/moonlight/js/codemirror/theme/eclipse.css') }}">
+    <link rel="stylesheet" href="{{ asset('packages/moonlight/css/edit.min.css') }}">
     <style>
         .CodeMirror {
             height: 30rem;
@@ -15,22 +15,22 @@
             border-radius: 2px;
         }
     </style>
-@endsection
+@endpush
 
-@section('js')
-    <script src="/packages/moonlight/js/tinymce/js/tinymce/tinymce.min.js"></script>
-    <script src="/packages/moonlight/js/codemirror/lib/codemirror.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/display/autorefresh.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/display/fullscreen.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/hint/show-hint.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/hint/xml-hint.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/hint/html-hint.js"></script>
-    <script src="/packages/moonlight/js/codemirror/addon/hint/css-hint.js"></script>
-    <script src="/packages/moonlight/js/codemirror/mode/xml/xml.js"></script>
-    <script src="/packages/moonlight/js/codemirror/mode/htmlmixed/htmlmixed.js"></script>
-    <script src="/packages/moonlight/js/codemirror/mode/css/css.js"></script>
-    <script src="/packages/moonlight/js/edit.min.js"></script>
-@endsection
+@push('scripts')
+    <script src="{{ asset('packages/moonlight/js/tinymce/js/tinymce/tinymce.min.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/lib/codemirror.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/display/autorefresh.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/display/fullscreen.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/hint/show-hint.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/hint/xml-hint.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/hint/html-hint.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/addon/hint/css-hint.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/mode/xml/xml.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/mode/htmlmixed/htmlmixed.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/codemirror/mode/css/css.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/edit.min.js') }}"></script>
+@endpush
 
 @section('body')
     <div class="main">
@@ -40,30 +40,20 @@
                 <div class="divider">/</div>
                 @foreach ($parents as $parent)
                     <div class="part">
-                        <a href="{{ route('moonlight.browse.element', $parent['classId']) }}">{{ $parent['name'] }}</a>
+                        <a href="{{ route('moonlight.browse.element', $parent->class_id) }}">{{ $parent->name }}</a>
                     </div>
                     <div class="divider">/</div>
                 @endforeach
                 <div class="part"><span>Новый элемент</span></div>
             </div>
-            @if ($itemPluginView)
-                <div class="item-plugin">
-                    {!! $itemPluginView !!}
-                </div>
-            @endif
-            @if ($editPluginView)
-                <div class="edit-plugin">
-                    {!! $editPluginView !!}
-                </div>
-            @endif
             <div class="item active">
                 <ul class="header">
                     <li class="h2"><span>Создание элемента типа &laquo;{{ $currentItem->getTitle() }}&raquo;</span></li>
                 </ul>
-                <form save="true" action="{{ route('moonlight.element.add', $currentItem->getNameId()) }}" method="POST">
+                <form data-save="true" action="{{ route('moonlight.element.add', $currentItem->getName()) }}" method="POST">
                     <div class="edit">
                         @foreach ($views as $name => $view)
-                            <div class="row" name="{{ $name }}">
+                            <div class="field row" data-name="{{ $name }}">
                                 {!! $view !!}
                             </div>
                         @endforeach

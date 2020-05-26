@@ -1,5 +1,5 @@
-$(function() {
-    $('form').submit(function() {
+$(function () {
+    $('form[data-save="true"]').submit(function () {
         $('span.error').fadeOut(200);
         $.blockUI();
 
@@ -16,7 +16,7 @@ $(function() {
                 $.alert(response.error);
             } else if (response.errors) {
                 for (var field in response.errors) {
-                    $('span.error[name="' + field + '"]')
+                    $('span.error[data-name="' + field + '"]')
                         .html(response.errors[field])
                         .fadeIn(200);
                 }

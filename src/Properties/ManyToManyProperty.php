@@ -2,61 +2,57 @@
 
 namespace Moonlight\Properties;
 
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
-use Moonlight\Main\Item;
-use Moonlight\Main\Element;
+use Illuminate\Support\Facades\App;
 
 class ManyToManyProperty extends BaseProperty
 {
-	protected $relatedClass = null;
+    protected $relatedClass = null;
     protected $relatedMethod = null;
     protected $order = null;
+    protected $list = [];
+    protected $parent = null;
 
-	protected $list = [];
-	protected $parent = null;
+    public function __construct($name)
+    {
+        parent::__construct($name);
 
-	public function __construct($name) {
-		parent::__construct($name);
+        return $this;
+    }
 
-		return $this;
-	}
+    public static function create($name)
+    {
+        return new self($name);
+    }
 
-	public static function create($name)
-	{
-		return new self($name);
-	}
+    public function isSortable()
+    {
+        return false;
+    }
 
-	public function isSortable()
-	{
-		return false;
-	}
+    public function setRelatedClass($relatedClass)
+    {
+        $this->relatedClass = $relatedClass;
 
-	public function setRelatedClass($relatedClass)
-	{
-		Item::assertClass($relatedClass);
+        return $this;
+    }
 
-		$this->relatedClass = $relatedClass;
-
-		return $this;
-	}
-
-	public function getRelatedClass()
-	{
-		return $this->relatedClass;
-	}
+    public function getRelatedClass()
+    {
+        return $this->relatedClass;
+    }
 
     public function setRelatedMethod($relatedMethod)
-	{
-		$this->relatedMethod = $relatedMethod;
+    {
+        $this->relatedMethod = $relatedMethod;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function getRelatedMethod()
-	{
-		return $this->relatedMethod;
-	}
+    public function getRelatedMethod()
+    {
+        return $this->relatedMethod;
+    }
 
     public function setOrderField($order)
     {
@@ -70,58 +66,54 @@ class ManyToManyProperty extends BaseProperty
         return $this->order;
     }
 
-	public function setList($list)
-	{
-		$this->list = $list;
+    public function setList($list)
+    {
+        $this->list = $list;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function getList()
-	{
-		return $this->list;
-	}
+    public function getList()
+    {
+        return $this->list;
+    }
 
-	public function getIds()
-	{
-		$list = $this->getList();
+    public function getIds()
+    {
+        $list = $this->getList();
+        $ids = [];
 
-		$ids = [];
-
-		foreach ($list as $element) {
+        foreach ($list as $element) {
             $ids[] = $element->id;
-		}
+        }
 
-		return $ids;
-	}
+        return $ids;
+    }
 
     public function setElement(Model $element)
-	{
-		$name = $this->getName();
+    {
+        $name = $this->getName();
 
-		$this->element = $element;
-
+        $this->element = $element;
         $this->setList($this->element->{$name}()->get());
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function setRelation(Model $relation)
-	{
-		if ($this->getRelatedClass() == Element::getClass($relation)) {
-			$this->setList([$relation]);
-		}
+    public function setRelation(Model $relation)
+    {
+        $site = App::make('site');
 
-		return $this;
-	}
+        if ($this->getRelatedClass() == $site->getClass($relation)) {
+            $this->setList([$relation]);
+        }
+
+        return $this;
+    }
 
     public function set()
     {
-        if (
-            $this->getHidden()
-            || $this->getReadonly()
-            || ! $this->element->id
-        ) {
+        if (! $this->element->id) {
             return $this;
         }
 
@@ -134,11 +126,7 @@ class ManyToManyProperty extends BaseProperty
     }
 
     public function setAfterCreate()
-	{
-        if ($this->getHidden() || $this->getReadonly()) {
-            return $this;
-        }
-
+    {
         $name = $this->getName();
         $ids = $this->buildInput();
 
@@ -153,179 +141,165 @@ class ManyToManyProperty extends BaseProperty
 
         $this->element->{$name}()->sync($array);
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function drop()
-	{
-		$name = $this->getName();
+    public function drop()
+    {
+        $name = $this->getName();
 
         $this->element->{$name}()->detach();
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function find($id)
+    public function find($id)
     {
         $name = $this->getName();
 
         return $this->element->{$name}()->find($id);
     }
 
-	public function sync($ids)
-	{
+    public function sync($ids)
+    {
         $name = $this->getName();
 
         $this->element->{$name}()->sync($ids);
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function attach($id)
-	{
+    public function attach($id)
+    {
         $name = $this->getName();
 
         $this->element->{$name}()->attach($id);
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function detach($id)
-	{
+    public function detach($id)
+    {
         $name = $this->getName();
 
         $this->element->{$name}()->detach($id);
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function searchQuery($query)
-	{
-		$site = \App::make('site');
+    public function searchQuery($query)
+    {
+        $site = App::make('site');
 
-		$relatedClass = $this->getRelatedClass();
-		$relatedItem = $site->getItemByName($relatedClass);
-		$relatedMethod = $this->getRelatedMethod();
+        $relatedClass = $this->getRelatedClass();
+        $relatedItem = $site->getItemByClassName($relatedClass);
+        $relatedMethod = $this->getRelatedMethod();
         $request = $this->getRequest();
-		$name = $this->getName();
+        $name = $this->getName();
 
-		$value = (int)$request->input($name);
+        $value = (int) $request->input($name);
 
-		if ($value) {
-			$bind = $relatedItem->getClass()->find($value);
+        if ($value) {
+            $bind = $relatedItem->getClass()->find($value);
 
-			if ($bind && method_exists($bind, $relatedMethod)) {
-				$elements = $bind->{$relatedMethod}()->withTrashed()->get();
+            if ($bind && method_exists($bind, $relatedMethod)) {
+                $elements = $bind->{$relatedMethod}()->withTrashed()->get();
+                $ids = [];
 
-				$ids = [];
+                foreach ($elements as $element) {
+                    $ids[] = $element->id;
+                }
 
-				foreach ($elements as $element) {
-					$ids[] = $element->id;
-				}
+                if (sizeof($ids)) {
+                    $query->whereIn('id', $ids);
+                }
+            }
+        }
 
-				if ($ids) {
-					$query->whereIn('id', $ids);
-				}
-			}
-		}
-
-		return $query;
-	}
+        return $query;
+    }
 
     public function getListView()
-	{
-		$site = \App::make('site');
+    {
+        $site = App::make('site');
 
-		$relatedClass = $this->getRelatedClass();
-		$relatedItem = $site->getItemByName($relatedClass);
-		$mainProperty = $relatedItem->getMainProperty();
-		$list = $this->getList();
+        $relatedClass = $this->getRelatedClass();
+        $relatedItem = $site->getItemByClassName($relatedClass);
+        $mainProperty = $relatedItem->getMainProperty();
+        $list = $this->getList();
 
-		$elements = [];
+        $elements = [];
 
-		foreach ($list as $element) {
-            $elements[] = [
-                'id' => $element->id,
-                'classId' => Element::getClassId($element),
+        foreach ($list as $element) {
+            $elements[] = (object) [
+                'class_id' => $site->getClassId($element),
                 'name' => $element->{$mainProperty},
             ];
         }
 
-		$scope = [
+        return [
             'name' => $this->getName(),
-			'title' => $this->getTitle(),
-			'elements' => $elements,
-		];
-
-		return $scope;
-	}
+            'title' => $this->getTitle(),
+            'elements' => $elements,
+        ];
+    }
 
     public function getEditView()
-	{
-		$site = \App::make('site');
+    {
+        $site = App::make('site');
 
-		$relatedClass = $this->getRelatedClass();
-		$relatedItem = $site->getItemByName($relatedClass);
-		$mainProperty = $relatedItem->getMainProperty();
-		$list = $this->getList();
+        $relatedClass = $this->getRelatedClass();
+        $relatedItem = $site->getItemByClassName($relatedClass);
+        $mainProperty = $relatedItem->getMainProperty();
+        $list = $this->getList();
 
-		$elements = [];
+        $elements = [];
 
-		foreach ($list as $element) {
-            $elements[] = [
-                'id' => $element->id,
-                'classId' => Element::getClassId($element),
+        foreach ($list as $element) {
+            $elements[] = (object) [
+                'class_id' => $site->getClassId($element),
                 'name' => $element->{$mainProperty},
             ];
         }
 
-		$scope = [
-			'name' => $this->getName(),
-			'title' => $this->getTitle(),
-			'elements' => $elements,
-			'readonly' => $this->getReadonly(),
-			'required' => $this->getRequired(),
-			'relatedClass' => $relatedItem->getNameId(),
-			'relatedItem' => $relatedItem,
-		];
-
-		return $scope;
-	}
+        return [
+            'name' => $this->getName(),
+            'title' => $this->getTitle(),
+            'elements' => $elements,
+            'readonly' => $this->getReadonly(),
+            'required' => $this->getRequired(),
+            'relatedItem' => $relatedItem,
+        ];
+    }
 
     public function getSearchView()
-	{
-        $site = \App::make('site');
+    {
+        $site = App::make('site');
 
-		$request = $this->getRequest();
+        $request = $this->getRequest();
         $name = $this->getName();
-        $id = (int)$request->input($name);
         $relatedClass = $this->getRelatedClass();
-		$relatedItem = $site->getItemByName($relatedClass);
+        $relatedItem = $site->getItemByClassName($relatedClass);
         $mainProperty = $relatedItem->getMainProperty();
 
-		$element = $id
-            ? $relatedClass::find($id)
-            : null;
+        $id = (int) $request->input($name);
+        $element = $id ? $relatedClass::find($id) : null;
+        $value = $element ? (object) [
+            'id' => $element->id,
+            'name' => $element->{$mainProperty},
+        ] : null;
 
-        $value = $element
-            ? [
-                'id' => $element->id,
-                'name' => $element->{$mainProperty}
-            ] : null;
-
-		$scope = array(
-			'name' => $this->getName(),
-			'title' => $this->getTitle(),
-			'value' => $value,
-			'open' => $element !== null,
-            'relatedClass' => $relatedItem->getNameId(),
-		);
-
-		return $scope;
-	}
+        return [
+            'name' => $this->getName(),
+            'title' => $this->getTitle(),
+            'value' => $value,
+            'open' => $element !== null,
+            'relatedItem' => $relatedItem,
+        ];
+    }
 
     public function isManyToMany()
-	{
-		return true;
-	}
+    {
+        return true;
+    }
 }

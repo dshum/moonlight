@@ -1,5 +1,5 @@
 <td>
-@if ($value)
-<a href="{{ route('moonlight.element.edit', $value['classId']) }}">{{ $value['name'] }}</a>
-@endif
+    @if ($element)
+        <a href="{{ route('moonlight.element.edit', $element->class_id) }}">{{ $element->name }}</a>
+    @endif
 </td>

@@ -2,23 +2,23 @@
 
 @section('title', 'Moonlight')
 
-@section('css')
-<link media="all" type="text/css" rel="stylesheet" href="/packages/moonlight/css/home.min.css">
-@endsection
+@push('styles')
+    <link media="all" type="text/css" rel="stylesheet" href="{{ asset('packages/moonlight/css/home.min.css') }}">
+@endpush
 
-@section('js')
-<script src="/packages/moonlight/js/home.min.js"></script>
-@endsection
+@push('scripts')
+    <script src="{{ asset('packages/moonlight/js/home.min.js') }}"></script>
+@endpush
 
 @section('body')
-<div class="main">
-    <div class="container">
-        @if ($homePluginView)
-            {!! $homePluginView !!}
-        @endif
-        <div class="leaf">
-            {!! $rubrics !!}
+    <div class="main">
+        <div class="container">
+            @if ($homeComponentView)
+                {!! $homeComponentView !!}
+            @endif
+            <div class="leaf">
+                {!! $rubricsView !!}
+            </div>
         </div>
     </div>
-</div>
 @endsection

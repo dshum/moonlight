@@ -2,13 +2,14 @@
 
 namespace Moonlight\Controllers;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Moonlight\Components\RubricFavorites;
+use Moonlight\Components\RubricNode;
 use Moonlight\Main\Site;
-use Moonlight\Main\Item;
 use Moonlight\Main\Element;
-use Moonlight\Main\Rubric;
 use Moonlight\Models\FavoriteRubric;
 use Moonlight\Models\Favorite;
 
@@ -23,52 +24,64 @@ class RubricController extends Controller
      */
     public function getNode(Request $request)
     {
-        $scope = [];
-
         $loggedUser = Auth::guard('moonlight')->user();
+        $site = App::make('site');
 
         $rubricName = $request->input('rubric');
-        $bindName = $request->input('bind');
-        $classId = $request->input('classId');
+        $classId = $request->input('class_id');
 
-        $site = \App::make('site');
+        if (! $rubricName) {
+            return response()->json(['error' => 'Рубрика не указана.']);
+        }
 
         $rubric = $site->getRubricByName($rubricName);
 
         if (! $rubric) {
-            return response()->json([]);
+            return response()->json(['error' => 'Рубрика не найдена.']);
         }
 
-        $html = $this->node($rubric, $bindName, $classId);
+        if (! $classId) {
+            return response()->json(['error' => 'Элемент не указан.']);
+        }
 
-        cache()->forever("rubric_node_{$loggedUser->id}_{$rubricName}_{$classId}", true);
+        $parent = $site->getByClassId($classId);
 
-        return response()->json(['html' => $html]);
+        if (! $parent) {
+            return response()->json(['error' => 'Элемент не найден.']);
+        }
+
+        Cache::forever("rubric_node_{$loggedUser->id}_{$rubricName}_{$classId}", true);
+
+        $html = (new RubricNode($rubric, $parent, null))->render();
+
+        return response()->json(['html' => (string) $html]);
     }
 
     /**
      * Open closed rubric node.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function openNode(Request $request)
     {
-        $scope = [];
-
         $loggedUser = Auth::guard('moonlight')->user();
+        $site = App::make('site');
 
         $rubricName = $request->input('rubric');
         $classId = $request->input('classId');
 
-        $site = \App::make('site');
+        if (! $rubricName) {
+            return response()->json(['error' => 'Рубрика не указана.']);
+        }
 
         $rubric = $site->getRubricByName($rubricName);
 
         if (! $rubric) {
-            return response()->json([]);
+            return response()->json(['error' => 'Рубрика не найдена.']);
         }
 
-        cache()->forever("rubric_node_{$loggedUser->id}_{$rubricName}_{$classId}", true);
+        Cache::forever("rubric_node_{$loggedUser->id}_{$rubricName}_{$classId}", true);
 
         return response()->json([]);
     }
@@ -76,26 +89,28 @@ class RubricController extends Controller
     /**
      * Close opened rubric node.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function closeNode(Request $request)
     {
-        $scope = [];
-
         $loggedUser = Auth::guard('moonlight')->user();
+        $site = App::make('site');
 
         $rubricName = $request->input('rubric');
         $classId = $request->input('classId');
 
-        $site = \App::make('site');
+        if (! $rubricName) {
+            return response()->json(['error' => 'Рубрика не указана.']);
+        }
 
         $rubric = $site->getRubricByName($rubricName);
 
         if (! $rubric) {
-            return response()->json([]);
+            return response()->json(['error' => 'Рубрика не найдена.']);
         }
 
-        cache()->forget("rubric_node_{$loggedUser->id}_{$rubricName}_{$classId}");
+        Cache::forget("rubric_node_{$loggedUser->id}_{$rubricName}_{$classId}");
 
         return response()->json([]);
     }
@@ -103,17 +118,16 @@ class RubricController extends Controller
     /**
      * Get rubric.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Throwable
      */
     public function rubric(Request $request)
     {
-        $scope = [];
-
         $loggedUser = Auth::guard('moonlight')->user();
+        $site = App::make('site');
 
         $rubricName = $request->input('rubric');
-
-        $site = \App::make('site');
 
         $rubric = $site->getRubricByName($rubricName);
 
@@ -122,65 +136,33 @@ class RubricController extends Controller
         }
 
         if (! $rubric) {
-            return response()->json([]);
+            return response()->json(['error' => 'Рубрика не найдена.']);
         }
 
-        cache()->forever("rubric_{$loggedUser->id}_{$rubricName}", true);
-
-        $favorites = [];
-        $view = null;
+        Cache::forever("rubric_{$loggedUser->id}_{$rubricName}", true);
 
         if ($rubric instanceof FavoriteRubric) {
-            $favoriteList = Favorite::where('rubric_id', $rubric->id)->
-            orderBy('order')->
-            get();
-
-            foreach ($favoriteList as $favorite) {
-                $element = $favorite->getElement();
-
-                if ($element) {
-                    $item = Element::getItem($element);
-                    $mainProperty = $item->getMainProperty();
-
-                    $favorites[] = [
-                        'classId' => $favorite->class_id,
-                        'name' => $element->{$mainProperty},
-                    ];
-                }
-            }
+            $html = (new RubricFavorites($rubric, null))->render();
         } else {
-            $binds = $rubric->getBinds();
-
-            foreach ($binds as $bindName => $bind) {
-                $views[] = $this->node($rubric, $bindName, null);
-            }
-
-            $view = implode(PHP_EOL, $views);
+            $html = (new RubricNode($rubric, null, null))->render();
         }
 
-        $scope['rubric'] = $rubric;
-        $scope['favorites'] = $favorites;
-        $scope['view'] = $view;
-
-        $html = view('moonlight::rubrics.rubric', $scope)->render();
-
-        return response()->json(['html' => $html]);
+        return response()->json(['html' => (string) $html]);
     }
 
     /**
      * Open closed rubric.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
      */
     public function open(Request $request)
     {
-        $scope = [];
-
         $loggedUser = Auth::guard('moonlight')->user();
+        $site = App::make('site');
 
         $rubricName = $request->input('rubric');
-
-        $site = \App::make('site');
 
         $rubric = $site->getRubricByName($rubricName);
 
@@ -188,29 +170,26 @@ class RubricController extends Controller
             $rubric = FavoriteRubric::find($rubricName);
         }
 
-        if (! $rubric) {
-            return response()->json([]);
+        if ($rubric) {
+            Cache::forever("rubric_{$loggedUser->id}_{$rubricName}", true);
         }
 
-        cache()->forever("rubric_{$loggedUser->id}_{$rubricName}", true);
-
-        return response()->json([]);
+        return response()->json(['opened' => $rubricName]);
     }
 
     /**
      * Close opened rubric.
      *
-     * @return Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
      */
     public function close(Request $request)
     {
-        $scope = [];
-
         $loggedUser = Auth::guard('moonlight')->user();
+        $site = App::make('site');
 
         $rubricName = $request->input('rubric');
-
-        $site = \App::make('site');
 
         $rubric = $site->getRubricByName($rubricName);
 
@@ -218,51 +197,54 @@ class RubricController extends Controller
             $rubric = FavoriteRubric::find($rubricName);
         }
 
-        if (! $rubric) {
-            return response()->json([]);
+        if ($rubric) {
+            Cache::forget("rubric_{$loggedUser->id}_{$rubricName}");
         }
 
-        cache()->forget("rubric_{$loggedUser->id}_{$rubricName}");
-
-        return response()->json([]);
+        return response()->json(['closed' => $rubricName]);
     }
 
-    public function sidebar($currentClassId = null)
+    public function sidebar($currentElement = null)
     {
         $scope = [];
 
         $loggedUser = Auth::guard('moonlight')->user();
-
-        $site = \App::make('site');
+        $site = App::make('site');
 
         $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)
             ->orderBy('order')
             ->get();
 
-        $favorites = [];
+        $favorites = Favorite::where('user_id', $loggedUser->id)
+            ->orderBy('order')
+            ->get();
+
+        $favoriteMap = [];
 
         foreach ($favoriteRubrics as $favoriteRubric) {
-            $open = cache()->get("rubric_{$loggedUser->id}_{$favoriteRubric->id}", false);
+            $open = Cache::get("rubric_{$loggedUser->id}_{$favoriteRubric->id}", false);
 
             if (! $open) continue;
 
-            $favoriteList = Favorite::where('rubric_id', $favoriteRubric->id)
-                ->where('user_id', $loggedUser->id)
-                ->orderBy('order')
-                ->get();
+            $favoriteMap[$favoriteRubric->id] = [];
 
-            foreach ($favoriteList as $favorite) {
-                $element = $favorite->getElement();
+            foreach ($favorites as $favorite) {
+                if ($favorite->rubric_id != $favoriteRubric->id) {
+                    continue;
+                }
+
+                $element = $favorite->element;
 
                 if ($element) {
-                    $item = Element::getItem($element);
+                    $item = $site->getItemByElement($element);
                     $mainProperty = $item->getMainProperty();
 
-                    $favorites[$favoriteRubric->id][] = [
-                        'classId' => $favorite->class_id,
-                        'itemId' => $item->getNameId(),
-                        'itemName' => $item->getTitle(),
-                        'name' => $element->{$mainProperty},
+                    $favoriteMap[$favoriteRubric->id][] = (object) [
+                        'itemTitle' => $item->getTitle(),
+                        'browseUrl' => $site->getBrowseUrl($element),
+                        'editUrl' => $site->getEditUrl($element),
+                        'elementTypeId' => $site->getClassId($element),
+                        'elementName' => $element->{$mainProperty},
                     ];
                 }
             }
@@ -275,14 +257,16 @@ class RubricController extends Controller
         foreach ($rubrics as $k => $rubric) {
             $rubricName = $rubric->getName();
 
-            $open = cache()->get("rubric_{$loggedUser->id}_{$rubricName}", false);
+            $open = Cache::get("rubric_{$loggedUser->id}_{$rubricName}", false);
 
-            if (! $open) continue;
+            if (! $open) {
+                continue;
+            }
 
             $binds = $rubric->getBinds();
 
             foreach ($binds as $bindName => $bind) {
-                if ($node = $this->node($rubric, $bindName, null, $currentClassId)) {
+                if ($node = $this->node($rubric, $bindName, null, $currentElement)) {
                     $views[$rubricName][] = $node;
                 }
             }
@@ -292,11 +276,13 @@ class RubricController extends Controller
             }
         }
 
+        $currentTypeId = $currentElement ? $site->getClassId($currentElement) : null;
+
         $scope['favoriteRubrics'] = $favoriteRubrics;
-        $scope['favorites'] = $favorites;
+        $scope['favoriteMap'] = $favoriteMap;
         $scope['rubrics'] = $rubrics;
         $scope['views'] = $views;
-        $scope['classId'] = $currentClassId;
+        $scope['currentTypeId'] = $currentTypeId;
 
         return view('moonlight::rubrics.sidebar', $scope);
     }
@@ -306,32 +292,35 @@ class RubricController extends Controller
         $scope = [];
 
         $loggedUser = Auth::guard('moonlight')->user();
-
-        $site = \App::make('site');
+        $site = App::make('site');
 
         $favoriteRubrics = FavoriteRubric::where('user_id', $loggedUser->id)
             ->orderBy('order')
             ->get();
 
-        $favorites = [];
+        $favorites = Favorite::where('user_id', $loggedUser->id)
+            ->orderBy('order')
+            ->get();
+
+        $favoriteMap = [];
 
         foreach ($favoriteRubrics as $favoriteRubric) {
-            $favorites[$favoriteRubric->id] = [];
+            $favoriteMap[$favoriteRubric->id] = [];
 
-            $favoriteList = Favorite::where('rubric_id', $favoriteRubric->id)
-                ->where('user_id', $loggedUser->id)
-                ->orderBy('order')
-                ->get();
+            foreach ($favorites as $favorite) {
+                if ($favorite->rubric_id != $favoriteRubric->id) {
+                    continue;
+                }
 
-            foreach ($favoriteList as $favorite) {
-                $element = $favorite->getElement();
+                $element = $favorite->element;
 
                 if ($element) {
-                    $item = Element::getItem($element);
+                    $item = $site->getItemByElement($element);
                     $mainProperty = $item->getMainProperty();
 
-                    $favorites[$favoriteRubric->id][] = [
-                        'classId' => $favorite->class_id,
+                    $favoriteMap[$favoriteRubric->id][] = [
+                        'type' => $item->getName(),
+                        'id' => $element->id,
                         'name' => $element->{$mainProperty},
                     ];
                 }
@@ -341,6 +330,7 @@ class RubricController extends Controller
         $rubricList = $site->getRubricList();
 
         $rubrics = [];
+        $views = [];
 
         foreach ($rubricList as $rubric) {
             $rubricName = $rubric->getName();
@@ -370,7 +360,6 @@ class RubricController extends Controller
         $views = [];
 
         $loggedUser = Auth::guard('moonlight')->user();
-
         $site = \App::make('site');
 
         $bind = $rubric->getBindByName($bindName);
@@ -544,8 +533,6 @@ class RubricController extends Controller
         $item = $site->getItemByName($className);
 
         if (! $item) return 0;
-
-        $mainProperty = $item->getMainProperty();
 
         if (! $loggedUser->isSuperUser()) {
             $permissionDenied = true;
