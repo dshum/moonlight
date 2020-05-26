@@ -1,6 +1,6 @@
 @stack('styles')
 @stack('scripts')
-@if ($itemComponentView)
+@if (isset($itemComponentView) && $itemComponentView)
     {!! $itemComponentView !!}
 @endif
 @if ($total)
@@ -52,7 +52,7 @@
             </li>
         @endif
     </ul>
-    @if ($filterComponentView)
+    @if (isset($filterComponentView) && $filterComponentView)
         {!! $filterComponentView !!}
     @endif
     <div class="list-container">
