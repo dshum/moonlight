@@ -257,6 +257,7 @@ class ManyToManyProperty extends BaseProperty
 
         foreach ($list as $element) {
             $elements[] = (object) [
+                'id' => $element->id,
                 'class_id' => $site->getClassId($element),
                 'name' => $element->{$mainProperty},
             ];
