@@ -129,6 +129,10 @@ class RubricController extends Controller
 
         $rubricName = $request->input('rubric');
 
+        if (! $rubricName) {
+            return response()->json(['error' => 'Рубрика не указана.']);
+        }
+
         $rubric = $site->getRubricByName($rubricName);
 
         if (! $rubric) {
@@ -164,6 +168,10 @@ class RubricController extends Controller
 
         $rubricName = $request->input('rubric');
 
+        if (! $rubricName) {
+            return response()->json(['error' => 'Рубрика не указана.']);
+        }
+
         $rubric = $site->getRubricByName($rubricName);
 
         if (! $rubric) {
@@ -190,6 +198,10 @@ class RubricController extends Controller
         $site = App::make('site');
 
         $rubricName = $request->input('rubric');
+
+        if (! $rubricName) {
+            return response()->json(['error' => 'Рубрика не указана.']);
+        }
 
         $rubric = $site->getRubricByName($rubricName);
 
