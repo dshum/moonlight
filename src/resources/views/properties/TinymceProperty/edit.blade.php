@@ -2,5 +2,5 @@
 @if ($readonly)
     <div class="richtext">{!! $value ? $value : '<span class="grey">Не определено</span>' !!}</div>
 @else
-    <textarea name="{{ $name }}" tinymce="true" toolbar="{{ $toolbar }}">{!! $value !!}</textarea>
+    <textarea name="{{ $name }}" data-tinymce="true" data-toolbar="{{ $toolbar }}" class="tinymce">{!! $value !!}</textarea>
 @endif

@@ -196,12 +196,12 @@ $(function () {
     });
 
     $('textarea[data-tinymce="true"]').each(function () {
-        var name = $(this).data('name');
+        var name = $(this).attr('name');
         var toolbar = $(this).data('toolbar')
             || 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | subscript superscript code';
 
         tinymce.init({
-            selector: 'textarea[data-tinymce="true"][data-name="' + name + '"]',
+            selector: 'textarea[data-tinymce="true"][name="' + name + '"]',
             themes: 'modern',
             skin: 'custom',
             language: 'ru',
