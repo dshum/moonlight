@@ -8,7 +8,6 @@ use Moonlight\Middleware\SessionNameMiddleware;
 use Moonlight\Middleware\GuestMiddleware;
 use Moonlight\Middleware\AuthMiddleware;
 use Moonlight\Middleware\HistoryMiddleware;
-use Moonlight\Middleware\QueryLogMiddleware;
 
 Route::group([
     'middleware' => [
@@ -35,7 +34,6 @@ Route::group([
         StartSession::class,
         AuthMiddleware::class,
         VerifyCsrfToken::class,
-        QueryLogMiddleware::class,
     ],
 ], function () {
     Route::get('/', 'HomeController@index')->name('moonlight.home');
