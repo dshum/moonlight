@@ -1028,7 +1028,7 @@ $(function () {
         });
     });
 
-    $('body').on('keyup change', 'li.column-toggler .dropdown ul > li.perpage input', $.debounce(function () {
+    $('body').on('keyup change', 'li.column-toggler .dropdown .perpage input', $.debounce(function () {
         var itemContainer = $(this).parents('div.item[data-item]');
         var item = itemContainer.data('item');
         var classId = itemContainer.attr('classId');
@@ -1042,7 +1042,7 @@ $(function () {
         });
     }, 500));
 
-    $('body').on('keypress', 'li.column-toggler .dropdown ul > li.perpage input', function (event) {
+    $('body').on('keypress', 'li.column-toggler .dropdown .perpage input', function (event) {
         var itemContainer = $(this).parents('div.item[data-item]');
         var item = itemContainer.data('item');
         var classId = itemContainer.data('class-id');
