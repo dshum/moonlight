@@ -130,7 +130,7 @@ class ManyToManyProperty extends BaseProperty
         $name = $this->getName();
         $ids = $this->buildInput();
 
-        if ($this->getOrderField()) {
+        if ($this->getOrderField() && is_array($ids)) {
             $array = [];
             foreach ($ids as $id) {
                 $array[$id] = [$this->getOrderField() => $this->element->id];

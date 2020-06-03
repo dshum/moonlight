@@ -53,7 +53,7 @@ class OrderProperty extends BaseProperty
 
         if ($this->element->$name === null) {
             $order = $this->element->max($name);
-            $this->element->$name = $order ? $order + 1 : 0;
+            $this->element->$name = $order === null ? 0 : $order + 1;
         }
 
         return $this;
