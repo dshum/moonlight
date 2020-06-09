@@ -214,14 +214,11 @@ $(function () {
     });
 
     $('body').on('click', 'table.elements td.editable', function () {
-        var td = $(this);
-        var tr = td.parent();
         var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
+        var td = $(this);
         var mode = td.data('mode');
-        var elementId = tr.data('element-id');
 
-        if (mode == 'edit') {
+        if (mode === 'edit') {
             td.data('mode', 'view');
 
             td.find('.view-container').show();
@@ -264,8 +261,6 @@ $(function () {
     $('body').on('click', 'table.elements td.editable div.checkbox', function (e) {
         var checkbox = $(this);
         var td = checkbox.parents('td');
-        var tr = td.parent();
-        var name = checkbox.data('name');
         var input = td.find('input:hidden');
 
         if (input.val() == 1) {
@@ -289,6 +284,8 @@ $(function () {
         if (! count) {
             return false;
         }
+
+        itemContainer.find('td.editable.invalid').removeClass('invalid');
 
         $.blockUI();
 
@@ -329,6 +326,8 @@ $(function () {
                 if (! count) {
                     itemContainer.find('.button.save:not(.disabled)').removeClass('enabled');
                 }
+
+                $(document).trigger('item-saved', [item]);
             }
         }).fail(function (response) {
             $.unblockUI();
@@ -895,7 +894,7 @@ $(function () {
             var code = event.which;
         }
 
-        if (code == 13) {
+        if (code === 13) {
             $.post('/moonlight/perpage', {
                 item: item,
                 perpage: perpage

@@ -225,19 +225,15 @@ $(function () {
     });
 
     $('body').on('click', 'table.elements td.editable', function () {
-        var td = $(this);
-        var tr = td.parent();
         var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
+        var td = $(this);
         var mode = td.data('mode');
-        var elementId = tr.data('element-id');
 
-        if (mode == 'edit') {
+        if (mode === 'edit') {
             td.data('mode', 'view');
 
             td.find('.view-container').show();
             td.find('.edit-container').hide();
-
             td.find('.edit-container').find('input,select,textarea')
                 .attr('disabled', 'disabled');
         } else {
@@ -245,13 +241,14 @@ $(function () {
 
             td.find('.view-container').hide();
             td.find('.edit-container').show();
-
             td.find('.edit-container').find('input,select,textarea')
                 .removeAttr('disabled')
                 .focus();
         }
 
-        var count = itemContainer.find('td.editable[data-mode="edit"]').length;
+        var count = itemContainer.find('td.editable').filter(function () {
+            return $(this).data('mode') === 'edit';
+        }).length;
 
         if (count) {
             itemContainer.find('.button.save:not(.disabled)').addClass('enabled');
@@ -275,8 +272,6 @@ $(function () {
     $('body').on('click', 'table.elements td.editable div.checkbox', function (e) {
         var checkbox = $(this);
         var td = checkbox.parents('td');
-        var tr = td.parent();
-        var name = checkbox.attr('name');
         var input = td.find('input:hidden');
 
         if (input.val() == 1) {
@@ -293,12 +288,17 @@ $(function () {
     $('body').on('submit', 'form[name="save"]', function () {
         var itemContainer = $(this).parents('div.item[data-item]');
         var item = itemContainer.data('item');
-        var classId = itemContainer.data('clas-id');
-        var count = itemContainer.find('td.editable[data-mode="edit"]').length;
+        var count = itemContainer.find('td.editable').filter(function () {
+            return $(this).data('mode') === 'edit';
+        }).length;
 
-        if (! count) return false;
+        if (! count) {
+            return false;
+        }
 
         itemContainer.find('td.editable.invalid').removeClass('invalid');
+
+        $.blockUI();
 
         $.ajax({
             url: this.action,
@@ -316,7 +316,7 @@ $(function () {
             if (response.errors) {
                 for (var id in response.errors) {
                     for (var name in response.errors[id]) {
-                        itemContainer.find('table.elements tr[elementId="' + id + '"] td.editable[name="' + name + '"]')
+                        itemContainer.find('table.elements tr[data-element-id="' + id + '"] td.editable[data-name="' + name + '"]')
                             .addClass('invalid');
                     }
                 }
@@ -325,14 +325,16 @@ $(function () {
             if (response.views) {
                 for (var id in response.views) {
                     for (var name in response.views[id]) {
-                        itemContainer.find('table.elements tr[elementId="' + id + '"] td.editable[name="' + name + '"]')
+                        itemContainer.find('table.elements tr[data-element-id="' + id + '"] td.editable[data-name="' + name + '"]')
                             .replaceWith(response.views[id][name]);
                     }
                 }
 
-                var count = itemContainer.find('td.editable[data-mode="edit"]').length;
+                var count = itemContainer.find('td.editable').filter(function () {
+                    return $(this).data('mode') === 'edit';
+                }).length;
 
-                if (!count) {
+                if (! count) {
                     itemContainer.find('.button.save:not(.disabled)').removeClass('enabled');
                 }
 
@@ -1057,7 +1059,7 @@ $(function () {
             var code = event.which;
         }
 
-        if (code == 13) {
+        if (code === 13) {
             $.post('/moonlight/perpage', {
                 item: item,
                 classId: classId,

@@ -397,7 +397,7 @@ $(function () {
             var code = event.which;
         }
 
-        if (code == 13) {
+        if (code === 13) {
             $.post('/moonlight/perpage', {
                 item: item,
                 perpage: perpage
