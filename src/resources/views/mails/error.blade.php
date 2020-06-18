@@ -1,26 +1,37 @@
 <p>
-Class: {{ $exception }}<br>
-Message: {{ $e->getMessage() }}<br>
-File: {{ $e->getFile() }}<br>
-Line: {{ $e->getLine() }}<br>
-Code: {{ $e->getCode() }}
+    Class: {{ $exception }}<br>
+    Message: {{ $e->getMessage() }}<br>
+    File: {{ $e->getFile() }}<br>
+    Line: {{ $e->getLine() }}<br>
+    Code: {{ $e->getCode() }}
 </p>
 
 <p><small>{!! nl2br($e->getTraceAsString()) !!}</small></p>
 
 @if ($count)
-<p>{{ $count }} error(s) per {{ $diff }} sec</p>
+    <p>{{ $count }} error(s) per {{ $diff }} sec</p>
 @endif
 
 <p>
-Server: {{ $server }}<br>
-URI: {{ $uri }}<br>
-IP: {{ $ip }}<br>
-IP2: {{ $ip2 }}<br>
-UserAgent: {{ $useragent }}<br>
-Referer: {{ $referer }}<br>
-Request method: {{ $method }}
+    Server: {{ $server }}<br>
+    URI: {{ $uri }}<br>
+    IP: {{ $ip }}<br>
+    IP2: {{ $ip2 }}<br>
+    UserAgent: {{ $useragent }}<br>
+    Referer: {{ $referer }}<br>
+    Request method: {{ $method }}
 </p>
+
+@if ($admin && $user)
+    <p>
+        Admin: {{ $admin->id }}<br>
+        User: {{ $user->id }}
+    </p>
+@elseif ($admin)
+    <p>Admin: {{ $admin->id }}</p>
+@elseif ($user)
+    <p>User: {{ $user->id }}</p>
+@endif
 
 <p>GET: <small>{!! nl2br($get) !!}</small></p>
 
