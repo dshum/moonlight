@@ -16,6 +16,7 @@ use Moonlight\Properties\OrderProperty;
 use Moonlight\Properties\FileProperty;
 use Moonlight\Properties\ImageProperty;
 use Moonlight\Properties\ManyToManyProperty;
+use Moonlight\Properties\PasswordProperty;
 use Moonlight\Properties\VirtualProperty;
 
 class EditController extends Controller
@@ -400,21 +401,21 @@ class EditController extends Controller
         }
 
         foreach ($propertyList as $propertyName => $property) {
-            if ($property->getHidden() || $property->getReadonly()) {
-                continue;
+            if (
+                $property instanceof OrderProperty
+                || $property instanceof PasswordProperty
+                || (! $property->getHidden() && ! $property->getReadonly())
+            ) {
+                $property->setRequest($request)->setElement($element)->set();
             }
-
-            $property->setRequest($request)->setElement($element)->set();
         }
 
         $element->save();
 
         foreach ($propertyList as $propertyName => $property) {
-            if ($property->getHidden() || $property->getReadonly()) {
-                continue;
+            if (! $property->getHidden() && ! $property->getReadonly()) {
+                $property->setElement($element)->setAfterCreate();
             }
-
-            $property->setElement($element)->setAfterCreate();
         }
 
         UserAction::log(
