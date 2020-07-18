@@ -362,10 +362,7 @@ class EditController extends Controller
         $messages = [];
 
         foreach ($propertyList as $propertyName => $property) {
-            if (
-                $property->getHidden()
-                || $property->getReadonly()
-            ) {
+            if ($property->getHidden() || $property->getReadonly()) {
                 continue;
             }
 
@@ -403,12 +400,20 @@ class EditController extends Controller
         }
 
         foreach ($propertyList as $propertyName => $property) {
+            if ($property->getHidden() || $property->getReadonly()) {
+                continue;
+            }
+
             $property->setRequest($request)->setElement($element)->set();
         }
 
         $element->save();
 
         foreach ($propertyList as $propertyName => $property) {
+            if ($property->getHidden() || $property->getReadonly()) {
+                continue;
+            }
+
             $property->setElement($element)->setAfterCreate();
         }
 
