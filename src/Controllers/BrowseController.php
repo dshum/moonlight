@@ -1238,12 +1238,6 @@ class BrowseController extends Controller
         $itemComponent = $site->getItemComponent($currentItem);
         $itemComponentView = $itemComponent ? (new $itemComponent($currentItem))->render() : null;
 
-        // Filter component
-        $filterComponent = $site->getFilterComponent($currentItem);
-        \Log::info($filterComponent);
-        $filterComponentView = $filterComponent ? (new $filterComponent($currentItem))->render() : null;
-        \Log::info($filterComponentView);
-
         $parentClass = $parent ? $site->getClass($parent) : null;
         $parentItem = $parent ? $site->getItemByElement($parent) : null;
         $parentCid = $parent ? $site->getClassId($parent) : Site::ROOT;
@@ -1585,7 +1579,6 @@ class BrowseController extends Controller
         $scope = [
             'currentItem' => $currentItem,
             'itemComponentView' => $itemComponentView,
-            'filterComponentView' => $filterComponentView,
             'properties' => $properties,
             'columns' => $columns,
             'columnsCount' => $columnsCount,

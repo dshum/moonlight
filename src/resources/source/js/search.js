@@ -346,6 +346,14 @@ $(function () {
         return false;
     });
 
+    $('body').on('mouseover', 'table.elements td.check', function () {
+        $(this).parent().addClass('hover');
+    });
+
+    $('body').on('mouseout', 'table.elements td.check', function () {
+        $(this).parent().removeClass('hover');
+    });
+
     $('body').on('click', 'th.check', function () {
         var tr = $(this).parent();
         var table = tr.parents('table');

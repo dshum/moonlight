@@ -247,6 +247,7 @@ class TrashController extends Controller
         if (! $total) {
             return view('moonlight::elements', [
                 'total' => 0,
+                'itemComponentView' => null,
                 'mode' => 'trash',
             ])->render();
         }
@@ -320,6 +321,7 @@ class TrashController extends Controller
 
         return view('moonlight::elements', [
             'currentItem' => $currentItem,
+            'itemComponentView' => null,
             'properties' => $properties,
             'columns' => $columns,
             'columnsCount' => $columnsCount,

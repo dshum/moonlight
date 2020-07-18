@@ -67,10 +67,6 @@ class Site
     /**
      * @var array
      */
-    protected $filterComponents = [];
-    /**
-     * @var array
-     */
     protected $editComponents = [];
 
     /**
@@ -189,40 +185,6 @@ class Site
     public function getItemComponent(Item $item)
     {
         return $this->itemComponents[$item->getClassName()] ?? null;
-    }
-
-    /**
-     * @param string $className
-     * @param string $component
-     * @return $this
-     */
-    public function addFilterComponent(string $className, string $component)
-    {
-        $this->filterComponents[$className] = $component;
-
-        return $this;
-    }
-
-    /**
-     * @param array $components
-     * @return $this
-     */
-    public function setFilterComponents(array $components)
-    {
-        foreach ($components as $className => $component) {
-            $this->filterComponents[$className] = $component;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param \Moonlight\Main\Item $item
-     * @return mixed|null
-     */
-    public function getFilterComponent(Item $item)
-    {
-        return $this->filterComponents[$item->getClassName()] ?? null;
     }
 
     /**

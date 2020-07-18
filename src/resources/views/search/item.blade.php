@@ -48,9 +48,6 @@
                 </div>
             </form>
             <div class="item active" data-item="{{ $currentItem->getName() }}" data-url="{{ route('moonlight.search.list') }}">
-                @if ($itemComponentView)
-                    {!! $itemComponentView !!}
-                @endif
                 @if ($action == 'search')
                     {!! $elements !!}
                 @endif

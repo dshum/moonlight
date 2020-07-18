@@ -298,6 +298,7 @@ class SearchController extends Controller
         if (! $total) {
             return view('moonlight::elements', [
                 'total' => 0,
+                'itemComponentView' => null,
                 'mode' => 'search',
             ])->render();
         }
@@ -454,6 +455,7 @@ class SearchController extends Controller
 
         return view('moonlight::elements', [
             'currentItem' => $currentItem,
+            'itemComponentView' => null,
             'properties' => $properties,
             'columns' => $columns,
             'columnsCount' => $columnsCount,
@@ -505,10 +507,6 @@ class SearchController extends Controller
         // Item component
         $itemComponent = $site->getItemComponent($currentItem);
         $itemComponentView = $itemComponent ? (new $itemComponent($currentItem))->render() : null;
-
-        // Filter component
-        $filterComponent = $site->getFilterComponent($currentItem);
-        $filterComponentView = $filterComponent ? (new $filterComponent($currentItem))->render() : null;
 
         $currentItemClass = $currentItem->getClass();
         $propertyList = $currentItem->getPropertyList();
@@ -597,7 +595,6 @@ class SearchController extends Controller
             'items' => $items,
             'currentItem' => $currentItem,
             'itemComponentView' => $itemComponentView,
-            'filterComponentView' => $filterComponentView,
             'properties' => $properties,
             'actives' => $actives,
             'links' => $links,

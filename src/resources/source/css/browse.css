@@ -1,5 +1,5 @@
 div.edit-link {
-  margin-bottom: 2rem;
+    margin-bottom: 2rem;
 }
 
 div.edit-link .fa {
@@ -8,12 +8,8 @@ div.edit-link .fa {
     margin-right: 0.5rem;
     width: 1rem;
     color: goldenrod;
-  }
-
-div.add-element a {
-  margin-left: 0.25rem;
 }
 
-div.browse-plugin {
-  margin: 2rem 0 0 0;
+div.add-element a {
+    margin-left: 0.25rem;
 }

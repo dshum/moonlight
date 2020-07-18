@@ -1,8 +1,12 @@
 @stack('styles')
 @stack('scripts')
-@if (isset($itemComponentView) && $itemComponentView)
-    {!! $itemComponentView !!}
+
+@if ($itemComponentView)
+    <div class="item-component">
+        {!! $itemComponentView !!}
+    </div>
 @endif
+
 @if ($total)
     <ul class="header">
         <li class="h2" data-display="show">
@@ -46,15 +50,14 @@
                 </div>
             </div>
         </li>
+
         @if ($mode == 'browse' && $lastPage > 1)
             <li class="search-link">
                 <a href="{{ route('moonlight.search.item', ['item' => $currentItem->getName(), 'action' => 'search']) }}">Поиск</a>
             </li>
         @endif
     </ul>
-    @if (isset($filterComponentView) && $filterComponentView)
-        {!! $filterComponentView !!}
-    @endif
+
     <div class="list-container">
         @if (sizeof($elements))
             <div class="buttons">
@@ -154,6 +157,7 @@
             <div class="empty">Элементов не найдено.</div>
         @endif
     </div>
+
     @includeWhen($copyPropertyView, 'moonlight::components.browse.confirm.copy')
     @includeWhen($movePropertyView, 'moonlight::components.browse.confirm.move')
     @includeWhen(($mode === 'trash'), 'moonlight::components.browse.confirm.restore')
@@ -161,6 +165,15 @@
     @includeWhen($unbindPropertyViews, 'moonlight::components.browse.confirm.unbind')
     @includeWhen(($mode !== 'trash'), 'moonlight::components.browse.confirm.favorite')
     @include('moonlight::components.browse.confirm.delete')
+@elseif ($itemComponentView)
+    <ul class="header">
+        <li class="h2">
+            <span>{{ $currentItem->getTitle() }}</span>
+        </li>
+        <li class="total">
+            <span>Всего 0 элементов.</span>
+        </li>
+    </ul>
 @elseif ($mode !== 'browse')
     <div class="empty">Элементов не найдено.</div>
 @endif

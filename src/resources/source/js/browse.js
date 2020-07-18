@@ -357,15 +357,11 @@ $(function () {
     });
 
     $('body').on('mouseover', 'table.elements td.check', function () {
-        var tr = $(this).parent();
-
-        tr.addClass('hover');
+        $(this).parent().addClass('hover');
     });
 
     $('body').on('mouseout', 'table.elements td.check', function () {
-        var tr = $(this).parent();
-
-        tr.removeClass('hover');
+        $(this).parent().removeClass('hover');
     });
 
     $('body').on('click', 'th.check', function () {
@@ -1015,7 +1011,7 @@ $(function () {
         var name = li.data('name');
         var show = li.data('show');
 
-        if (show == true) {
+        if (show === true) {
             li.data('show', false).removeClass('checked');
             show = false;
         } else {
