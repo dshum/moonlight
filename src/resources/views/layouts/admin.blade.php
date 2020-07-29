@@ -8,7 +8,7 @@
         <li><a href="{{ route('moonlight.search') }}">Поиск</a></li>
         <li><a href="{{ route('moonlight.trash') }}">Корзина</a></li>
         @if ($loggedUser->hasAccess('admin'))
-        <li class="users active"><a href="{{ route('moonlight.users') }}">Пользователи</a></li>
+        <li class="users active"><a href="{{ route('moonlight.users.index') }}">Пользователи</a></li>
         @endif
     </ul>
     <div class="avatar">

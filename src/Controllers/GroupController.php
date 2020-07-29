@@ -3,14 +3,25 @@
 namespace Moonlight\Controllers;
 
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Moonlight\Middleware\AdminMiddleware;
 use Moonlight\Models\UserActionType;
 use Moonlight\Models\Group;
 use Moonlight\Models\UserAction;
+use Moonlight\Requests\GroupRequest;
 
 class GroupController extends Controller
 {
+    /**
+     * Instantiate a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware(AdminMiddleware::class);
+    }
+
     /**
      * Delete group.
      *
@@ -18,153 +29,107 @@ class GroupController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function delete(Request $request, int $id)
+    public function destroy(Request $request, int $id)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
-
         $group = Group::find($id);
 
-        if (! $loggedUser->hasAccess('admin')) {
-            $error = 'У вас нет прав на управление пользователями.';
-        } elseif (! $group) {
-            $error = 'Группа не найдена.';
-        } elseif ($loggedUser->inGroup($group)) {
-            $error = 'Нельзя удалить группу, в которой вы состоите.';
-        } else {
-            $error = null;
+        if (! $group) {
+            return response()->json(['error' => 'Группа не найдена.'], 404);
         }
 
-        if ($error) {
-            return response()->json(['error' => $error]);
+        $loggedUser = Auth::guard('moonlight')->user();
+
+        // Check if user belongs to the group
+        if ($loggedUser->inGroup($group)) {
+            return response()->json(['error' => 'Нельзя удалить группу, в которой вы состоите.'], 403);
         }
 
+        // Detach users from group
         $group->users()->detach();
+
+        // Delete group
         $group->delete();
 
+        // Log user action
         UserAction::log(
             UserActionType::ACTION_TYPE_DROP_GROUP_ID,
-            'Group.'.$group->id.', '.$group->name
+            "Group.{$group->id}, {$group->name}"
         );
 
-        return response()->json(['group' => $group->id]);
+        return response()->json(['deleted' => $group->id]);
     }
 
     /**
-     * Add group.
+     * Store group.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param \Moonlight\Requests\GroupRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function add(Request $request)
+    public function store(GroupRequest $request)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
+        // Validate request
+        $validated = $request->validated();
 
-        if (! $loggedUser->hasAccess('admin')) {
-            return response()->json(['error' => 'У вас нет прав на управление пользователями.']);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-            'default_permission' => 'required|in:deny,view,update,delete',
-        ], [
-            'name.required' => 'Введите название',
-            'default_permission.required' => 'Укажите доступ к элементам',
-            'default_permission.in' => 'Некорректный доступ',
-        ]);
-
-        if ($validator->fails()) {
-            $messages = $validator->errors();
-            $errors = [];
-
-            foreach ([
-                         'name',
-                         'default_permission',
-                     ] as $field) {
-                if ($messages->has($field)) {
-                    $errors[$field] = $messages->first($field);
-                }
-            }
-
-            return response()->json(['errors' => $errors]);
-        }
-
+        // Store group
         $group = new Group;
 
-        $group->name = $request->input('name');
-        $group->default_permission = $request->input('default_permission');
+        $group->name = $validated['name'];
+        $group->default_permission = $validated['default_permission'];
 
-        $group->setPermission('admin', $request->has('admin'));
+        $group->setPermission('admin', $validated['admin'] ?? false);
         $group->save();
 
+        // Log user action
         UserAction::log(
             UserActionType::ACTION_TYPE_ADD_GROUP_ID,
-            'Group.'.$group->id.', '.$group->name
+            "Group.{$group->id}, {$group->name}"
         );
 
-        return response()->json(['added' => $group->id]);
+        return response()->json([
+            'added' => $group->id,
+            'redirect_url' => route('moonlight.groups.index'),
+        ]);
     }
 
     /**
-     * Save group.
+     * Update group.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param $id
+     * @param \Moonlight\Requests\GroupRequest $request
+     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function save(Request $request, $id)
+    public function update(GroupRequest $request, int $id)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
+        \Log::info("update $id");
+        \Log::info(print_r($request->all(), true));
 
         $group = Group::find($id);
 
-        if (! $loggedUser->hasAccess('admin')) {
-            $error = 'У вас нет прав на управление пользователями.';
-        } elseif (! $group) {
-            $error = 'Группа не найдена.';
-        } elseif ($loggedUser->inGroup($group)) {
-            $error = 'Нельзя редактировать группу, в которой вы состоите.';
-        } else {
-            $error = null;
+        if (! $group) {
+            return response()->json(['error' => 'Группа не найдена.'], 404);
         }
 
-        if ($error) {
-            return response()->json(['error' => $error]);
+        $loggedUser = Auth::guard('moonlight')->user();
+
+        // Check if user belongs to the group
+        if ($loggedUser->inGroup($group)) {
+            return response()->json(['error' => 'Нельзя редактировать группу, в которой вы состоите.'], 403);
         }
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-            'default_permission' => 'required|in:deny,view,update,delete',
-        ], [
-            'name.required' => 'Введите название',
-            'default_permission.required' => 'Укажите доступ к элементам',
-            'default_permission.in' => 'Некорректный доступ',
-        ]);
+        // Validate request
+        $validated = $request->validated();
 
-        if ($validator->fails()) {
-            $messages = $validator->errors();
-            $errors = [];
+        // Update group
+        $group->name = $validated['name'];
+        $group->default_permission = $validated['default_permission'];
 
-            foreach ([
-                         'name',
-                         'default_permission',
-                     ] as $field) {
-                if ($messages->has($field)) {
-                    $errors[$field] = $messages->first($field);
-                }
-            }
-
-            return response()->json(['errors' => $errors]);
-        }
-
-        $group->name = $request->input('name');
-        $group->default_permission = $request->input('default_permission');
-
-        $group->setPermission('admin', $request->has('admin'));
+        $group->setPermission('admin', $validated['admin'] ?? false);
         $group->save();
 
+        // Log user action
         UserAction::log(
             UserActionType::ACTION_TYPE_SAVE_GROUP_ID,
-            'Group.'.$group->id.', '.$group->name
+            "Group.{$group->id}, {$group->name}"
         );
 
         return response()->json(['saved' => $group->id]);
@@ -178,12 +143,6 @@ class GroupController extends Controller
      */
     public function create(Request $request)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
-
-        if (! $loggedUser->hasAccess('admin')) {
-            return redirect()->route('moonlight.home');
-        }
-
         return view('moonlight::groups.edit', ['group' => null]);
     }
 
@@ -196,16 +155,10 @@ class GroupController extends Controller
      */
     public function edit(Request $request, int $id)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
-
-        if (! $loggedUser->hasAccess('admin')) {
-            return redirect()->route('moonlight.home');
-        }
-
         $group = Group::find($id);
 
         if (! $group) {
-            return redirect()->route('users');
+            return redirect()->route('moonlight.groups.index');
         }
 
         return view('moonlight::groups.edit', ['group' => $group]);
@@ -217,14 +170,8 @@ class GroupController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function groups(Request $request)
+    public function index(Request $request)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
-
-        if (! $loggedUser->hasAccess('admin')) {
-            return redirect()->route('moonlight.home');
-        }
-
         $groups = Group::orderBy('name', 'asc')->get();
 
         return view('moonlight::groups.index', ['groups' => $groups]);

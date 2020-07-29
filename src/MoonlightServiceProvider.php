@@ -68,6 +68,7 @@ class MoonlightServiceProvider extends ServiceProvider
     public function map()
     {
         Route::prefix('/moonlight')
+            ->name('moonlight.')
             ->namespace($this->namespace)
             ->group(__DIR__.'/routes.php');
     }

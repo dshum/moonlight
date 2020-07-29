@@ -3,19 +3,20 @@
 @section('title', $group ? $group->name : 'Новая группа')
 
 @push('scripts')
-    <script src="{{ asset('packages/moonlight/js/group.min.js') }}"></script>
+    <script src="{{ asset('packages/moonlight/js/groups.min.js') }}"></script>
 @endpush
 
 @section('body')
     <div class="main">
         <div class="container">
             <div class="path">
-                <div class="part"><a href="{{ route('moonlight.groups') }}">Группы</a></div>
+                <div class="part"><a href="{{ route('moonlight.groups.index') }}">Группы</a></div>
                 <div class="divider">/</div>
                 <div class="part"><span>{{ $group ? $group->name : 'Новая группа' }}</span></div>
             </div>
-            <form data-save="true" action="{{ $group ? route('moonlight.group.save', $group->id) : route('moonlight.group.add') }}" autocomplete="off" method="POST">
-                <input type="hidden" name="back" value="{{ route('moonlight.groups') }}">
+            <form data-save="true"
+                  action="{{ $group ? route('moonlight.groups.update', [$group->id, '_method' => 'PUT']) : route('moonlight.groups.store') }}"
+                  method="POST" autocomplete="off">
                 <div class="edit">
                     <div class="row">
                         <label>Название:</label><span data-name="name" class="error"></span><br>
@@ -66,16 +67,5 @@
 @endsection
 
 @section('sidebar')
-    <div class="sidebar">
-        <div class="container">
-            <ul class="menu">
-                <li class="active"><a href="{{ route('moonlight.groups') }}"><i class="fa fa-folder-open"></i>Группы</a></li>
-                <li><a href="{{ route('moonlight.users') }}"><i class="fa fa-user"></i>Пользователи</a></li>
-                <li><a href="{{ route('moonlight.log') }}"><i class="fa fa-clock-o"></i>Журнал</a></li>
-                <li><a href="{{ route('moonlight.profile') }}"><i class="fa fa-pencil"></i>Редактировать профиль</a></li>
-                <li><a href="{{ route('moonlight.password') }}"><i class="fa fa-lock"></i>Сменить пароль</a></li>
-                <li><a href="{{ route('moonlight.logout') }}"><i class="fa fa-sign-out"></i>Выход</a></li>
-            </ul>
-        </div>
-    </div>
+    @include('moonlight::components.sidebar.admin', ['active' => 'groups'])
 @endsection

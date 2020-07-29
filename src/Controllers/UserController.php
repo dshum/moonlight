@@ -5,16 +5,27 @@ namespace Moonlight\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Moonlight\Mail\Register;
+use Moonlight\Middleware\AdminMiddleware;
 use Moonlight\Models\UserActionType;
 use Moonlight\Models\Group;
 use Moonlight\Models\User;
 use Moonlight\Models\UserAction;
+use Moonlight\Requests\UserRequest;
 
 class UserController extends Controller
 {
+    /**
+     * Instantiate a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware(AdminMiddleware::class);
+    }
+
     /**
      * Delete user.
      *
@@ -22,114 +33,80 @@ class UserController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function delete(Request $request, int $id)
+    public function destroy(Request $request, int $id)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
-
         $user = User::find($id);
 
-        if (! $loggedUser->hasAccess('admin')) {
-            $error = 'У вас нет прав на управление пользователями.';
-        } elseif (! $user) {
-            $error = 'Пользователь не найден.';
-        } elseif ($user->id == $loggedUser->id) {
-            $error = 'Нельзя удалить свою учетную запись.';
-        } elseif ($user->isSuperUser()) {
-            $error = 'Нельзя удалить учетную запись суперпользователя.';
-        } else {
-            $error = null;
+        if (! $user) {
+            return response()->json(['error' => 'Пользователь не найден.'], 404);
         }
 
-        if ($error) {
-            return response()->json(['error' => $error]);
+        $loggedUser = Auth::guard('moonlight')->user();
+
+        // Check if user tries to delete himself
+        if ($user->id === $loggedUser->id) {
+            return response()->json(['error' => 'Нельзя удалить свою учетную запись.'], 403);
         }
 
+        // Check if user tries to delete super user
+        if ($user->isSuperUser()) {
+            return response()->json(['error' => 'Нельзя удалить учетную запись суперпользователя.'], 403);
+        }
+
+        // Delete user avatar
         if ($user->photoExists()) {
             unlink($user->getPhotoAbsPath());
         }
 
+        // Detach user from groups
         $user->groups()->detach();
+
+        // Delete user
         $user->delete();
 
+        // Log user action
         UserAction::log(
             UserActionType::ACTION_TYPE_DROP_USER_ID,
             'User.'.$user->id.', '.$user->login
         );
 
-        return response()->json(['user' => $user->id]);
+        return response()->json(['deleted' => $user->id]);
     }
 
     /**
-     * Add user.
+     * Store user.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param \Moonlight\Requests\UserRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function add(Request $request)
+    public function store(UserRequest $request)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
+        // Validate request
+        $validated = $request->validated();
 
-        if (! $loggedUser->hasAccess('admin')) {
-            return response()->json(['error' => 'У вас нет прав на управление пользователями.']);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'login' => 'required|max:25',
-            'first_name' => 'required|max:255',
-            'last_name' => 'required|max:255',
-            'email' => 'required|email',
-            'groups' => 'array',
-        ], [
-            'login.required' => 'Введите логин',
-            'login.max' => 'Слишком длинный логин',
-            'first_name.required' => 'Введите имя',
-            'first_name.max' => 'Слишком длинное имя',
-            'last_name.required' => 'Введите фамилию',
-            'last_name.max' => 'Слишком длинная фамилия',
-            'email.required' => 'Введите адрес электронной почты',
-            'email.email' => 'Некорректный адрес электронной почты',
-            'groups.array' => 'Некорректные группы',
-        ]);
-
-        if ($validator->fails()) {
-            $errors = [];
-            $messages = $validator->errors();
-
-            foreach ([
-                         'login',
-                         'first_name',
-                         'last_name',
-                         'email',
-                     ] as $field) {
-                if ($messages->has($field)) {
-                    $errors[$field] = $messages->first($field);
-                }
-            }
-
-            return response()->json(['errors' => $errors]);
-        }
-
+        // Generate password
         $password = Str::random(8);
 
+        // Store user
         $user = User::create([
-            'login' => $request->input('login'),
-            'first_name' => $request->input('first_name'),
-            'last_name' => $request->input('last_name'),
-            'email' => $request->input('email'),
-            'banned' => $request->has('banned'),
+            'login' => $validated['login'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'email' => $validated['email'],
+            'banned' => $validated['banned'] ?? false,
             'password' => password_hash($password, PASSWORD_DEFAULT),
         ]);
 
         // Set groups
-        $groups = $request->input('groups');
+        $user->groups()->attach($validated['groups'] ?? []);
 
-        $user->groups()->attach($groups);
-
+        // Log user action
         UserAction::log(
             UserActionType::ACTION_TYPE_ADD_USER_ID,
             'User.'.$user->id.', '.$user->login
         );
 
+        // Send mail to the stored user
         Mail::send(new Register([
             'login' => $user->login,
             'password' => $password,
@@ -138,87 +115,55 @@ class UserController extends Controller
             'email' => $user->email,
         ]));
 
-        return response()->json(['added' => $user->id]);
+        return response()->json([
+            'added' => $user->id,
+            'redirect_url' => route('moonlight.users.index'),
+        ]);
     }
 
     /**
-     * Save user.
+     * Update user.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param \Moonlight\Requests\UserRequest $request
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function save(Request $request, int $id)
+    public function update(UserRequest $request, int $id)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
-
         $user = User::find($id);
 
-        if (! $loggedUser->hasAccess('admin')) {
-            $error = 'У вас нет прав на управление пользователями.';
-        } elseif (! $user) {
-            $error = 'Пользователь не найден.';
-        } elseif ($user->id == $loggedUser->id) {
-            $error = 'Нельзя редактировать самого себя.';
-        } elseif ($user->isSuperUser()) {
-            $error = 'Нельзя редактировать суперпользователя.';
-        } else {
-            $error = null;
+        if (! $user) {
+            return response()->json(['error' => 'Пользователь не найден.'], 404);
         }
 
-        if ($error) {
-            return response()->json(['error' => $error]);
+        $loggedUser = Auth::guard('moonlight')->user();
+
+        // Check if user tries to update himself
+        if ($user->id === $loggedUser->id) {
+            return response()->json(['error' => 'Нельзя редактировать самого себя.'], 403);
         }
 
-        $validator = Validator::make($request->all(), [
-            'login' => 'required|max:25',
-            'first_name' => 'required|max:255',
-            'last_name' => 'required|max:255',
-            'email' => 'required|email',
-            'groups' => 'array',
-        ], [
-            'login.required' => 'Введите логин',
-            'login.max' => 'Слишком длинный логин',
-            'first_name.required' => 'Введите имя',
-            'first_name.max' => 'Слишком длинное имя',
-            'last_name.required' => 'Введите фамилию',
-            'last_name.max' => 'Слишком длинная фамилия',
-            'email.required' => 'Введите адрес электронной почты',
-            'email.email' => 'Некорректный адрес электронной почты',
-            'groups.array' => 'Некорректные группы',
-        ]);
-
-        if ($validator->fails()) {
-            $errors = [];
-            $messages = $validator->errors();
-
-            foreach ([
-                         'login',
-                         'first_name',
-                         'last_name',
-                         'email',
-                     ] as $field) {
-                if ($messages->has($field)) {
-                    $errors[$field] = $messages->first($field);
-                }
-            }
-
-            return response()->json(['errors' => $errors]);
+        // Check if user tries to update super user
+        if ($user->isSuperUser()) {
+            return response()->json(['error' => 'Нельзя редактировать суперпользователя.'], 403);
         }
 
+        // Validate request
+        $validated = $request->validated();
+
+        // Update user
         $user->update([
-            'login' => $request->input('login'),
-            'first_name' => $request->input('first_name'),
-            'last_name' => $request->input('last_name'),
-            'email' => $request->input('email'),
-            'banned' => $request->has('banned'),
+            'login' => $validated['login'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'email' => $validated['email'],
+            'banned' => $validated['banned'] ?? false,
         ]);
 
         // Set groups
-        $groups = $request->input('groups');
+        $user->groups()->sync($validated['groups'] ?? []);
 
-        $user->groups()->sync($groups);
-
+        // Log user action
         UserAction::log(
             UserActionType::ACTION_TYPE_SAVE_USER_ID,
             'User.'.$user->id.', '.$user->login
@@ -235,12 +180,6 @@ class UserController extends Controller
      */
     public function create(Request $request)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
-
-        if (! $loggedUser->hasAccess('admin')) {
-            return redirect()->route('moonlight.home');
-        }
-
         $groups = Group::orderBy('name', 'asc')->get();
 
         return view('moonlight::users.edit', [
@@ -258,12 +197,6 @@ class UserController extends Controller
      */
     public function edit(Request $request, int $id)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
-
-        if (! $loggedUser->hasAccess('admin')) {
-            return redirect()->route('moonlight.home');
-        }
-
         $user = User::find($id);
 
         if (! $user) {
@@ -284,14 +217,8 @@ class UserController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function users(Request $request)
+    public function index(Request $request)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
-
-        if (! $loggedUser->hasAccess('admin')) {
-            return redirect()->route('moonlight.home');
-        }
-
         $users = User::orderBy('login', 'asc')->with('groups')->get();
 
         return view('moonlight::users.index', ['users' => $users]);

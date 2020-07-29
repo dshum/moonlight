@@ -11,12 +11,12 @@
             <li class="search active"><a href="{{ route('moonlight.search') }}">Поиск</a></li>
             <li><a href="{{ route('moonlight.trash') }}">Корзина</a></li>
             @if ($loggedUser->hasAccess('admin'))
-                <li><a href="{{ route('moonlight.users') }}">Пользователи</a></li>
+                <li><a href="{{ route('moonlight.users.index') }}">Пользователи</a></li>
             @endif
         </ul>
         <div class="avatar">
             @if ($loggedUser->photoExists())
-                <img src="{{ $loggedUser->getPhotoSrc() }}">
+                <img src="{{ $loggedUser->getPhotoSrc() }}" alt="">
             @else
                 <div class="round-letter" style="background-color: {{ $loggedUser->hex_color }}">{{ $loggedUser->initials }}</div>
             @endif

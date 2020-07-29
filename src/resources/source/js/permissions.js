@@ -3,30 +3,16 @@ jQuery.expr[':'].contains = function (a, i, m) {
 };
 
 $(function () {
-    $('#filter').keyup(function () {
-        var str = $(this).val();
+    $('#filter').on('keyup change', function () {
+        let str = $(this).val();
+        let contains = $('table.permissions.elements > tbody > tr:contains("' + str + '")');
+        let not_contains = $('table.permissions.elements > tbody > tr:not(:contains("' + str + '"))');
 
         if (str.length > 0) {
-            $('table.permissions.elements tbody tr:not(:contains("' + str + '"))').hide();
-            $('table.permissions.elements tbody tr:contains("' + str + '")').show();
+            not_contains.hide();
+            contains.show();
 
-            if ($('table.permissions.elements tbody tr:contains("' + str + '")').length > 0) {
-                $('table.permissions.elements').fadeIn(200);
-            } else {
-                $('table.permissions.elements').fadeOut(200);
-            }
-        } else {
-            $('table.permissions.elements').fadeIn(200);
-            $('table.permissions.elements tbody tr').show();
-        }
-    }).change(function () {
-        var str = $(this).val();
-
-        if (str.length > 0) {
-            $('table.permissions.elements tbody tr:not(:contains("' + str + '"))').hide();
-            $('table.permissions.elements tbody tr:contains("' + str + '")').show();
-
-            if ($('table.permissions.elements tbody tr:contains("' + str + '")').length > 0) {
+            if (contains.length > 0) {
                 $('table.permissions.elements').fadeIn(200);
             } else {
                 $('table.permissions.elements').fadeOut(200);
@@ -37,27 +23,33 @@ $(function () {
         }
     });
 
-    $('table.permissions.elements tbody tr td[data-permission]').click(function () {
+    $('table.permissions.elements > tbody > tr > td[data-permission]').click(function () {
         if ($(this).hasClass('active')) return false;
 
-        var url = $('input[name="url"]').val();
-        var group = $('input[name="group"]').val();
-        var item = $(this).parent('tr').data('item');
-        var permission = $(this).data('permission');
+        let self = $(this);
+        let parent = self.parent('tr');
 
         $.blockUI();
 
-        $.post(url, {
-            item: item,
-            permission: permission
-        }, function (response) {
+        $.ajax({
+            url: parent.data('url'),
+            method: 'PUT',
+            data: {
+                permission: self.data('permission')
+            }
+        }).done(function () {
             $.unblockUI();
 
-            if (response.error) {
-                $.alert(response.error);
+            parent.find('td').removeClass('active');
+            self.addClass('active');
+        }).fail(function (response) {
+            $.unblockUI();
+
+            /** @param response.responseJSON */
+            if (response.responseJSON.error) {
+                $.alert(response.responseJSON.error);
             } else {
-                $('table.permissions.elements tbody tr[data-item="' + item + '"] td[data-permission]').removeClass('active');
-                $('table.permissions.elements tbody tr[data-item="' + item + '"] td[data-permission="' + permission + '"]').addClass('active');
+                $.alert(response.statusText);
             }
         });
     });

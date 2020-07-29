@@ -314,7 +314,7 @@ abstract class BaseProperty
 
     public function addRule($rule, $message = null)
     {
-        $this->rules[$rule] = $message ?? $rule;
+        $this->rules[$rule] = $message;
 
         return $this;
     }

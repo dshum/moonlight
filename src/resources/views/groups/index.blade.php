@@ -31,11 +31,11 @@
                         </thead>
                         <tbody>
                         @foreach ($groups as $group)
-                            <tr data-group="{{ $group->id }}">
-                                <td><a href="{{ route('moonlight.group', $group->id) }}">{{ $group->name }}</a></td>
+                            <tr data-group="{{ $group->id }}" data-name="{{ $group->name }}" data-delete-url="{{ route('moonlight.groups.destroy', $group->id) }}">
+                                <td><a href="{{ route('moonlight.groups.edit', $group->id) }}">{{ $group->name }}</a></td>
                                 <td>
                                     <div>
-                                        <a href="{{ route('moonlight.group.items', $group->id) }}">{{ $group->getPermissionTitle() }}</a>
+                                        <a href="{{ route('moonlight.groups.items.index', $group->id) }}">{{ $group->getPermissionTitle() }}</a>
                                     </div>
                                     @if ($group->hasAccess('admin'))
                                         <div><small>Управление пользователями</small></div>
@@ -44,7 +44,7 @@
                                 <td>{{ $group->created_at->format('d.m.Y') }}
                                     <br><small>{{ $group->created_at->format('H:i:s') }}</small>
                                 </td>
-                                <td class="remove" data-name="{{ $group->name }}" data-url="{{ route('moonlight.group.delete', $group->id) }}">
+                                <td class="remove">
                                     <i class="fa fa-times-circle"></i>
                                 </td>
                             </tr>
@@ -54,35 +54,12 @@
                 </div>
             @endif
             <div>
-                <a href="{{ route('moonlight.group.create') }}" class="addnew">Добавить группу<i class="fa fa-arrow-right"></i></a>
+                <a href="{{ route('moonlight.groups.create') }}" class="addnew">Добавить группу<i class="fa fa-arrow-right"></i></a>
             </div>
         </div>
     </div>
-    <div class="confirm">
-        <div class="wrapper">
-            <div class="container">
-                <div class="content"></div>
-                <div class="bottom">
-                    <input type="button" value="Удалить" class="btn danger remove">
-                    <input type="button" value="Отмена" class="btn cancel">
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('moonlight::components.groups.confirm.delete')
 @endsection
 @section('sidebar')
-    <div class="sidebar">
-        <div class="container">
-            <ul class="menu">
-                <li class="active"><a href="{{ route('moonlight.groups') }}"><i class="fa fa-folder-open"></i>Группы</a>
-                </li>
-                <li><a href="{{ route('moonlight.users') }}"><i class="fa fa-user"></i>Пользователи</a></li>
-                <li><a href="{{ route('moonlight.log') }}"><i class="fa fa-clock-o"></i>Журнал</a></li>
-                <li><a href="{{ route('moonlight.profile') }}"><i class="fa fa-pencil"></i>Редактировать профиль</a>
-                </li>
-                <li><a href="{{ route('moonlight.password') }}"><i class="fa fa-lock"></i>Сменить пароль</a></li>
-                <li><a href="{{ route('moonlight.logout') }}"><i class="fa fa-sign-out"></i>Выход</a></li>
-            </ul>
-        </div>
-    </div>
+    @include('moonlight::components.sidebar.admin', ['active' => 'groups'])
 @endsection

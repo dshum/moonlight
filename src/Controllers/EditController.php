@@ -18,6 +18,7 @@ use Moonlight\Properties\ImageProperty;
 use Moonlight\Properties\ManyToManyProperty;
 use Moonlight\Properties\PasswordProperty;
 use Moonlight\Properties\VirtualProperty;
+use Moonlight\Requests\ElementRequest;
 
 class EditController extends Controller
 {
@@ -334,6 +335,26 @@ class EditController extends Controller
         }
 
         return response()->json(['error' => 'Не удалось удалить элемент.']);
+    }
+
+    public function add2(ElementRequest $request, string $itemName)
+    {
+        $loggedUser = Auth::guard('moonlight')->user();
+        $site = App::make('site');
+
+        $currentItem = $site->getItemByName($itemName);
+
+        if (! $currentItem) {
+            return response()->json(['error' => 'Класс элемента не найден.']);
+        }
+
+        $element = $currentItem->getClass();
+        $propertyList = $currentItem->getPropertyList();
+
+        $request->item = $currentItem;
+        $request->properties = $propertyList;
+
+        $validated = $request->validated();
     }
 
     /**

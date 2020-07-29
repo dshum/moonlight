@@ -31,13 +31,14 @@
                         </thead>
                         <tbody>
                         @foreach ($users as $user)
-                            <tr data-user="{{ $user->id }}">
-                                <td><a href="{{ route('moonlight.user', $user->id) }}">{{ $user->login }}</a></td>
-                                <td>{{ $user->first_name }} {{ $user->last_name }}<br><small>{{ $user->email }}</small></td>
+                            <tr data-user="{{ $user->id }}" data-name="{{ $user->first_name }} {{ $user->last_name }}" data-delete-url="{{ route('moonlight.users.destroy', $user->id) }}">
+                                <td><a href="{{ route('moonlight.users.edit', $user->id) }}">{{ $user->login }}</a></td>
+                                <td>{{ $user->first_name }} {{ $user->last_name }}<br><small>{{ $user->email }}</small>
+                                </td>
                                 <td>
                                     @foreach ($user->groups as $group)
                                         <div>
-                                            <a href="{{ route('moonlight.group', $group->id) }}">{{ $group->name }}</a>
+                                            <a href="{{ route('moonlight.groups.edit', $group->id) }}">{{ $group->name }}</a>
                                         </div>
                                     @endforeach
                                     @if ($user->isSuperUser())
@@ -45,10 +46,10 @@
                                     @endif
                                 </td>
                                 <td>{{ $user->banned ? 'Заблокирован' : 'Активен' }}</td>
-                                <td>{{ $user->created_at->format('d.m.Y') }}
-                                    <br><small>{{ $user->created_at->format('H:i:s') }}</small>
+                                <td>{{ $user->created_at->format('d.m.Y') }}<br>
+                                    <small>{{ $user->created_at->format('H:i:s') }}</small>
                                 </td>
-                                <td class="remove" data-name="{{ $user->first_name }} {{ $user->last_name }}" data-url="{{ route('moonlight.user.delete', $user->id) }}">
+                                <td class="remove">
                                     <i class="fa fa-times-circle"></i>
                                 </td>
                             </tr>
@@ -58,34 +59,13 @@
                 </div>
             @endif
             <div>
-                <a href="{{ route('moonlight.user.create') }}" class="addnew">Добавить пользователя<i class="fa fa-arrow-right"></i></a>
+                <a href="{{ route('moonlight.users.create') }}" class="addnew">Добавить пользователя<i class="fa fa-arrow-right"></i></a>
             </div>
         </div>
     </div>
-    <div class="confirm">
-        <div class="wrapper">
-            <div class="container">
-                <div class="content"></div>
-                <div class="bottom">
-                    <input type="button" value="Удалить" class="btn danger remove">
-                    <input type="button" value="Отмена" class="btn cancel">
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('moonlight::components.groups.confirm.delete')
 @endsection
 
 @section('sidebar')
-    <div class="sidebar">
-        <div class="container">
-            <ul class="menu">
-                <li><a href="{{ route('moonlight.groups') }}"><i class="fa fa-folder-open"></i>Группы</a></li>
-                <li class="active"><a href="{{ route('moonlight.users') }}"><i class="fa fa-user"></i>Пользователи</a></li>
-                <li><a href="{{ route('moonlight.log') }}"><i class="fa fa-clock-o"></i>Журнал</a></li>
-                <li><a href="{{ route('moonlight.profile') }}"><i class="fa fa-pencil"></i>Редактировать профиль</a></li>
-                <li><a href="{{ route('moonlight.password') }}"><i class="fa fa-lock"></i>Сменить пароль</a></li>
-                <li><a href="{{ route('moonlight.logout') }}"><i class="fa fa-sign-out"></i>Выход</a></li>
-            </ul>
-        </div>
-    </div>
+    @include('moonlight::components.sidebar.admin', ['active' => 'users'])
 @endsection
