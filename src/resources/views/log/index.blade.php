@@ -69,8 +69,8 @@
     <div class="sidebar">
         <div class="container">
             <ul class="menu">
-                <li><a href="{{ route('moonlight.groups') }}"><i class="fa fa-folder-open"></i>Группы</a></li>
-                <li><a href="{{ route('moonlight.users') }}"><i class="fa fa-user"></i>Пользователи</a></li>
+                <li><a href="{{ route('moonlight.groups.index') }}"><i class="fa fa-folder-open"></i>Группы</a></li>
+                <li><a href="{{ route('moonlight.users.index') }}"><i class="fa fa-user"></i>Пользователи</a></li>
                 <li class="active"><a href="{{ route('moonlight.log') }}"><i class="fa fa-clock-o"></i>Журнал</a></li>
                 <li><a href="{{ route('moonlight.profile') }}"><i class="fa fa-pencil"></i>Редактировать профиль</a></li>
                 <li><a href="{{ route('moonlight.password') }}"><i class="fa fa-lock"></i>Сменить пароль</a></li>
