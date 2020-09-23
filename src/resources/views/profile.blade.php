@@ -18,7 +18,7 @@
                         <div class="row">
                             Состоит в группах:
                             @foreach ($user->groups as $group)
-                                <div><a href="{{ route('moonlight.group', $group->id) }}">{{ $group->name }}</a></div>
+                                <div><a href="{{ route('moonlight.groups.edit', $group->id) }}">{{ $group->name }}</a></div>
                             @endforeach
                         </div>
                     @endif
@@ -82,8 +82,8 @@
         <div class="container">
             <ul class="menu">
                 @if ($user->hasAccess('admin'))
-                    <li><a href="{{ route('moonlight.groups') }}"><i class="fa fa-folder-open"></i>Группы</a></li>
-                    <li><a href="{{ route('moonlight.users') }}"><i class="fa fa-user"></i>Пользователи</a></li>
+                    <li><a href="{{ route('moonlight.groups.index') }}"><i class="fa fa-folder-open"></i>Группы</a></li>
+                    <li><a href="{{ route('moonlight.users.index') }}"><i class="fa fa-user"></i>Пользователи</a></li>
                     <li><a href="{{ route('moonlight.log') }}"><i class="fa fa-clock-o"></i>Журнал</a></li>
                 @endif
                 <li class="active">
