@@ -55,9 +55,11 @@ class MoonlightServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        App::singleton('site', function ($app): Site {
+        $this->app->singleton('site', function (): Site {
             return new Site;
         });
+
+        parent::register();
     }
 
     /**
