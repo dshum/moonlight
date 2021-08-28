@@ -85,6 +85,8 @@ $(function () {
                 onSelect: function (suggestion) {
                     element = suggestion;
                     parent.find('span.element-container[name="' + name + '"]').html(suggestion.value);
+                    console.log("input.many");
+                    console.log(element);
                 },
                 width: width,
                 minChars: 0
@@ -157,12 +159,12 @@ $(function () {
         var elements = $('.many.elements[data-name="' + name + '"]');
 
         if (element.id) {
-            var checkbox = $('input:checkbox[name="' + name + '[]"][id="' + element.classId + '"]');
+            var checkbox = $('input:checkbox[name="' + name + '[]"][id="' + element.class_id + '"]');
 
             if (checkbox.length) {
                 checkbox.prop('checked', true);
             } else {
-                elements.append('<p><input type="checkbox" name="' + name + '[]" id="' + element.classId + '" checked value="' + element.id + '"><label for="' + element.classId + '">' + element.value + '</label></p>');
+                elements.append('<p><input type="checkbox" name="' + name + '[]" id="' + element.class_id + '" checked value="' + element.id + '"><label for="' + element.class_id + '">' + element.value + '</label></p>');
             }
 
             element = {};
