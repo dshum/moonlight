@@ -54,7 +54,7 @@ class SearchController extends Controller
 
     /**
      * @param \Moonlight\Main\Item|null $currentItem
-     * @return array|string
+     * @return string
      * @throws \Throwable
      */
     protected function itemListView(Item $currentItem = null)
@@ -62,13 +62,7 @@ class SearchController extends Controller
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
-        $itemList = $site->getItemList();
-
-        foreach ($itemList as $key => $item) {
-            if (! $loggedUser->hasViewDefaultAccess($item)) {
-                $itemList->forget($key);
-            }
-        }
+        $itemList = $loggedUser->getItemList();
 
         $search = Cache::get("search_items_{$loggedUser->id}", []);
         $sort = $search['sort'] ?? 'default';
@@ -96,8 +90,7 @@ class SearchController extends Controller
                 $items[$item->getName()] = $item;
             }
         } elseif ($sort == 'rate') {
-            $sortRate = isset($search['sortRate'])
-                ? $search['sortRate'] : [];
+            $sortRate = $search['sortRate'] ?? [];
 
             arsort($sortRate);
 
@@ -182,7 +175,7 @@ class SearchController extends Controller
     /**
      * @param \Illuminate\Http\Request $request
      * @param \Moonlight\Main\Item $currentItem
-     * @return array|string
+     * @return string
      * @throws \Throwable
      */
     protected function elementListView(Request $request, Item $currentItem)
@@ -285,6 +278,10 @@ class SearchController extends Controller
             $perPage = $currentItem->getPerPage();
         } else {
             $perPage = static::PER_PAGE;
+        }
+
+        foreach ($propertyList as $property) {
+            $criteria = $property->with($criteria);
         }
 
         $elements = $criteria->paginate($perPage);

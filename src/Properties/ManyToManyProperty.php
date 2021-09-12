@@ -80,22 +80,14 @@ class ManyToManyProperty extends BaseProperty
 
     public function getIds()
     {
-        $list = $this->getList();
-        $ids = [];
-
-        foreach ($list as $element) {
-            $ids[] = $element->id;
-        }
-
-        return $ids;
+        return $this->getList()->pluck('id');
     }
 
     public function setElement(Model $element)
     {
-        $name = $this->getName();
-
         $this->element = $element;
-        $this->setList($this->element->{$name}()->get());
+
+        $this->setList($this->element->{$this->getName()});
 
         return $this;
     }
@@ -117,17 +109,15 @@ class ManyToManyProperty extends BaseProperty
             return $this;
         }
 
-        $name = $this->getName();
         $ids = $this->buildInput();
 
-        $this->element->{$name}()->sync($ids);
+        $this->element->{$this->getName()}()->sync($ids);
 
         return $this;
     }
 
     public function setAfterCreate()
     {
-        $name = $this->getName();
         $ids = $this->buildInput();
 
         if ($this->getOrderField() && is_array($ids)) {
@@ -139,81 +129,63 @@ class ManyToManyProperty extends BaseProperty
             $array = $ids;
         }
 
-        $this->element->{$name}()->sync($array);
+        $this->element->{$this->getName()}()->sync($array);
 
         return $this;
     }
 
     public function drop()
     {
-        $name = $this->getName();
-
-        $this->element->{$name}()->detach();
+        $this->element->{ $this->getName()}()->detach();
 
         return $this;
     }
 
     public function find($id)
     {
-        $name = $this->getName();
-
-        return $this->element->{$name}()->find($id);
+        return $this->element->{$this->getName()}()->find($id);
     }
 
     public function sync($ids)
     {
-        $name = $this->getName();
-
-        $this->element->{$name}()->sync($ids);
+        $this->element->{$this->getName()}()->sync($ids);
 
         return $this;
     }
 
     public function attach($id)
     {
-        $name = $this->getName();
-
-        $this->element->{$name}()->attach($id);
+        $this->element->{$this->getName()}()->attach($id);
 
         return $this;
     }
 
     public function detach($id)
     {
-        $name = $this->getName();
-
-        $this->element->{$name}()->detach($id);
+        $this->element->{$this->getName()}()->detach($id);
 
         return $this;
     }
 
+    public function with($query)
+    {
+        if (method_exists($this->element, $this->getName())) {
+            $query->with($this->getName());
+        }
+
+        return $query;
+    }
+
     public function searchQuery($query)
     {
-        $site = App::make('site');
-
-        $relatedClass = $this->getRelatedClass();
-        $relatedItem = $site->getItemByClassName($relatedClass);
-        $relatedMethod = $this->getRelatedMethod();
-        $request = $this->getRequest();
         $name = $this->getName();
 
-        $value = (int) $request->input($name);
+        $value = (int) $this->getRequest()->input($name);
 
         if ($value) {
-            $bind = $relatedItem->getClass()->find($value);
-
-            if ($bind && method_exists($bind, $relatedMethod)) {
-                $elements = $bind->{$relatedMethod}()->withTrashed()->get();
-                $ids = [];
-
-                foreach ($elements as $element) {
-                    $ids[] = $element->id;
-                }
-
-                if (sizeof($ids)) {
-                    $query->whereIn('id', $ids);
-                }
-            }
+            $query->whereHas($name, function($q) use ($name, $value) {
+                $q->where("{$name}.id", $value);
+            });
         }
 
         return $query;

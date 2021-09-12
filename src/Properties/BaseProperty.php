@@ -171,6 +171,11 @@ abstract class BaseProperty
         return $this->trashed;
     }
 
+    public function with($query)
+    {
+        return $query;
+    }
+
     public function searchQuery($query)
     {
         $request = $this->getRequest();

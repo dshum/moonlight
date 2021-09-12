@@ -1226,7 +1226,7 @@ class BrowseController extends Controller
     /**
      * @param \Moonlight\Main\Item $currentItem
      * @param \Illuminate\Database\Eloquent\Model|null $parent
-     * @return array|\Illuminate\Http\JsonResponse|string
+     * @return string
      * @throws \Throwable
      */
     protected function elementListView(Item $currentItem, Model $parent = null)

@@ -13,7 +13,7 @@ class Group extends Model
      */
     protected $table = 'admin_groups';
     /**
-     * All of the relationships to be touched.
+     * All the relationships to be touched.
      *
      * @var array
      */
@@ -37,7 +37,7 @@ class Group extends Model
 
     public function hasAccess($name)
     {
-        return $this->getPermission($name) ? true : false;
+        return (bool) $this->getPermission($name);
     }
 
     public function getDecodedPermissions()
@@ -122,9 +122,7 @@ class Group extends Model
     {
         $site = App::make('site');
 
-        $classId = $site->getClassId($element);
         $item = $site->getItemByElement($element);
-
         $elementPermission = $this->getElementPermission($element);
 
         if ($elementPermission) {

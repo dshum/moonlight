@@ -2,6 +2,8 @@
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Moonlight\Main\Item;
 
@@ -71,7 +73,7 @@ class User extends Authenticatable
      */
     public function isSuperUser()
     {
-        return $this->super_user ? true : false;
+        return (bool) $this->super_user;
     }
 
     /**
@@ -123,9 +125,9 @@ class User extends Authenticatable
     public function setParameter($name, $value)
     {
         try {
-            $unserializedParameters = $this->getUnserializedParameters();
+            $unserializedParameters        = $this->getUnserializedParameters();
             $unserializedParameters[$name] = $value;
-            $this->parameters = serialize($unserializedParameters);
+            $this->parameters              = serialize($unserializedParameters);
 
             $this->save();
         } catch (\Exception $e) {
@@ -208,7 +210,7 @@ class User extends Authenticatable
         foreach ($this->groups as $group) {
             $access = $group->getItemAccess($item);
 
-            if (in_array($access, ['delete'])) {
+            if ($access == 'delete') {
                 return true;
             }
         }
@@ -271,12 +273,42 @@ class User extends Authenticatable
         foreach ($this->groups as $group) {
             $access = $group->getElementAccess($element);
 
-            if (in_array($access, ['delete'])) {
+            if ($access == 'delete') {
                 return true;
             }
         }
 
         return false;
+    }
+
+    public function getItemList()
+    {
+        $site = App::make('site');
+
+        $viewPermissions       = new Collection();
+        $viewDefaultPermission = false;
+
+        foreach ($this->groups as $group) {
+            $viewPermissions = $viewPermissions->merge($group->itemPermissions->filter(function ($item) {
+                return in_array($item->permission, ['view', 'update', 'delete']);
+            })->transform(function ($item) {
+                return $item->element_type;
+            }));
+
+            if (in_array($group->default_permission, ['view', 'update', 'delete'])) {
+                $viewDefaultPermission = true;
+            }
+        }
+
+        return $site->getItemList()->filter(function ($item) use ($viewPermissions, $viewDefaultPermission) {
+            if ($this->isSuperUser()) {
+                return true;
+            } elseif ($viewPermissions->contains($item->getClass())) {
+                return true;
+            }
+
+            return $viewDefaultPermission;
+        });
     }
 
     /**
@@ -389,7 +421,7 @@ class User extends Authenticatable
     }
 
     /**
-     * @return false|string
+     * @return string
      */
     public function getHexColorAttribute()
     {

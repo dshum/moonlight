@@ -8,6 +8,7 @@ use Moonlight\Main\Site;
 
 class OneToOneProperty extends BaseProperty
 {
+    protected $relationName = null;
     protected $relatedClass = null;
     protected $parent = false;
 
@@ -23,6 +24,18 @@ class OneToOneProperty extends BaseProperty
     public static function create($name)
     {
         return new self($name);
+    }
+
+    public function setRelationName($relationName)
+    {
+        $this->relationName = $relationName;
+
+        return $this;
+    }
+
+    public function getRelationName()
+    {
+        return $this->relationName ?: str_replace('_id', '', $this->name);
     }
 
     public function setRelatedClass($relatedClass)
@@ -51,10 +64,15 @@ class OneToOneProperty extends BaseProperty
 
     public function setElement(Model $element)
     {
-        $relatedClass = $this->getRelatedClass();
-        $id = $element->{$this->getName()};
-        $this->value = $relatedClass && $id ? $relatedClass::find($id) : null;
         $this->element = $element;
+
+        if (method_exists($element, $this->getRelationName())) {
+            $this->value = $element->{$this->getRelationName()};
+        } else {
+            $relatedClass = $this->getRelatedClass();
+            $id = $element->{$this->getName()};
+            $this->value = $relatedClass && $id ? $relatedClass::find($id) : null;
+        }
 
         return $this;
     }
@@ -68,6 +86,17 @@ class OneToOneProperty extends BaseProperty
         }
 
         return $this;
+    }
+
+    public function with($query)
+    {
+        $instance = $this->getItemClass();
+
+        if (method_exists($instance, $this->getRelationName())) {
+            $query->with($this->getRelationName());
+        }
+
+        return $query;
     }
 
     public function searchQuery($query)
