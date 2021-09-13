@@ -16,8 +16,10 @@
             <div class="path">
                 <div class="part"><span>Корзина</span></div>
             </div>
+
             <div class="leaf">
                 <input type="text" id="filter" placeholder="Название">
+
                 <ul class="items" data-count-url="{{ route('moonlight.trash.count') }}">
                     @foreach ($items as $item)
                         <li data-item="{{ $item->name }}">

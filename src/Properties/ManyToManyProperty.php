@@ -249,14 +249,13 @@ class ManyToManyProperty extends BaseProperty
     {
         $site = App::make('site');
 
-        $request = $this->getRequest();
         $name = $this->getName();
         $relatedClass = $this->getRelatedClass();
         $relatedItem = $site->getItemByClassName($relatedClass);
         $mainProperty = $relatedItem->getMainProperty();
 
-        $id = (int) $request->input($name);
-        $element = $id ? $relatedClass::find($id) : null;
+        $id = (int) $this->getRequest()->input($name);
+        $element = $id ? (new $relatedClass)->find($id) : null;
         $value = $element ? (object) [
             'id' => $element->id,
             'name' => $element->{$mainProperty},

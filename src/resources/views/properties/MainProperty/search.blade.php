@@ -3,5 +3,5 @@
 </div>
 <div>
     <input type="hidden" name="{{ $name }}" value="{{ $id }}">
-    <input type="text" class="one" data-item="{{ $relatedItem->getName() }}" data-property="{{ $name }}" name="{{ $name }}_autocomplete" value="{{ $text }}" placeholder="ID или название">
+    <input type="text" class="mn one" data-item="{{ $relatedItem->getName() }}" data-property="{{ $name }}" name="{{ $name }}_autocomplete" value="{{ $text }}" placeholder="ID или название">
 </div>

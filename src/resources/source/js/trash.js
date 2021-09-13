@@ -3,23 +3,24 @@ jQuery.expr[':'].contains = function (a, i, m) {
 };
 
 $(function () {
-    var checked = {};
+    const checked = {};
+    const body = $('body');
 
-    var getElements = function (item, params) {
-        var form = $('form[name="search-form"]');
-        var itemContainer = $('div.item[data-item="' + item + '"]');
-        var url = itemContainer.data('url');
-        var formData = new FormData(form[0]);
-        var data = {
+    const getElements = function (item, params) {
+        let form = $('form[name="search-form"]');
+        let itemContainer = $('div.item[data-item="' + item + '"]');
+        let url = itemContainer.data('url');
+        let formData = new FormData(form[0]);
+        let data = {
             item: item
         };
 
-        for (var pair of formData.entries()) {
+        for (let pair of formData.entries()) {
             data[pair[0]] = pair[1];
         }
 
         if (params) {
-            for (var index in params) {
+            for (let index in params) {
                 data[index] = params[index];
             }
         }
@@ -41,15 +42,15 @@ $(function () {
         });
     };
 
-    var submit = function (item, page) {
-        var form = $('form[name="search-form"]');
+    const submit = function (item, page) {
+        let form = $('form[name="search-form"]');
 
         form.find('input:hidden[name="page"]').val(page);
         form.submit();
     };
 
-    $('body').on('keyup change', '#filter', function () {
-        var str = $(this).val();
+    body.on('keyup change', '#filter', function () {
+        let str = $(this).val();
 
         if (str.length > 0) {
             $('ul.items > li:not(:contains("' + str + '"))').hide();
@@ -60,10 +61,10 @@ $(function () {
     });
 
     $('.search-form-links div.link').click(function () {
-        var searchFormContainer = $(this).parents('div.search-form[data-item]');
-        var item = searchFormContainer.data('item');
-        var name = $(this).data('name');
-        var active = ! $(this).hasClass('active');
+        let searchFormContainer = $(this).parents('div.search-form[data-item]');
+        let item = searchFormContainer.data('item');
+        let name = $(this).data('name');
+        let active = ! $(this).hasClass('active');
 
         $(this).toggleClass('active');
         $('.search-form-params div.block[data-name="' + name + '"]').toggleClass('active');
@@ -80,15 +81,15 @@ $(function () {
 
         $.post('/moonlight/search/active', {
             item: item,
-            name: name,
+            property: name,
             active: active
         });
     });
 
     $('.search-form-params div.close').click(function () {
-        var searchFormContainer = $(this).parents('div.search-form[data-item]');
-        var item = searchFormContainer.data('item');
-        var name = $(this).data('name');
+        let searchFormContainer = $(this).parents('div.search-form[data-item]');
+        let item = searchFormContainer.data('item');
+        let name = $(this).data('name');
 
         $('.search-form-links div.link[data-name="' + name + '"]').removeClass('active');
         $('.search-form-params div.block[data-name="' + name + '"]').removeClass('active');
@@ -98,7 +99,7 @@ $(function () {
 
         $.post('/moonlight/search/active', {
             item: item,
-            name: name,
+            property: name,
             active: false
         });
     });
@@ -112,20 +113,23 @@ $(function () {
     });
 
     $('.search-form-params input.one').each(function () {
-        var searchFormContainer = $(this).parents('div.search-form[data-item]');
-        var item = searchFormContainer.data('item');
-        var parent = $(this).parents('div.row');
-        var name = $(this).data('property');
-        var width = $(this).outerWidth() - 2;
+        let parent = $(this).parents('div.row');
+        let relatedItem = $(this).data('item');
+        let propertyName = $(this).data('property');
+        let width = $(this).outerWidth() - 2;
+        let mode = $(this).hasClass('mn') ? 'onlyTrashed' : 'withTrashed';
 
         $(this).autocomplete({
             serviceUrl: '/moonlight/elements/autocomplete',
             params: {
-                item: item,
-                mode: 'trash'
+                item: relatedItem,
+                mode: mode
+            },
+            formatResult: function (suggestion, currentValue) {
+                return suggestion.value + ' <small>(' + suggestion.id + ')</small>';
             },
             onSelect: function (suggestion) {
-                parent.find('input:hidden[name="' + name + '"]').val(suggestion.id);
+                parent.find('input:hidden[name="' + propertyName + '"]').val(suggestion.id);
             },
             width: width,
             minChars: 0
@@ -133,27 +137,27 @@ $(function () {
     });
 
     $('.search-form-params .addition.unset[data-property]').click(function () {
-        var parent = $(this).parents('div.row');
-        var name = $(this).data('property');
+        let parent = $(this).parents('div.row');
+        let name = $(this).data('property');
 
         parent.find('input:hidden[name="' + name + '"]').val('');
         parent.find('input:text[name="' + name + '_autocomplete"]').val('');
     });
 
-    $('body').on('click', 'table.elements th span[data-reset-order]', function () {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
+    body.on('click', 'table.elements th span[data-reset-order]', function () {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
 
         getElements(item, {
             resetorder: true
         });
     });
 
-    $('body').on('click', 'table.elements th span[data-order][data-direction]', function () {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var order = $(this).data('order');
-        var direction = $(this).data('direction');
+    body.on('click', 'table.elements th span[data-order][data-direction]', function () {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let order = $(this).data('order');
+        let direction = $(this).data('direction');
 
         getElements(item, {
             order: order,
@@ -161,19 +165,19 @@ $(function () {
         });
     });
 
-    $('body').on('mouseover', 'table.elements td.check', function () {
+    body.on('mouseover', 'table.elements td.check', function () {
         $(this).parent().addClass('hover');
     });
 
-    $('body').on('mouseout', 'table.elements td.check', function () {
+    body.on('mouseout', 'table.elements td.check', function () {
         $(this).parent().removeClass('hover');
     });
 
-    $('body').on('click', 'th.check', function () {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var tr = $(this).parent();
-        var table = tr.parents('table');
+    body.on('click', 'th.check', function () {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let tr = $(this).parent();
+        let table = tr.parents('table');
 
         if (typeof checked[item] === 'undefined') {
             checked[item] = [];
@@ -191,8 +195,8 @@ $(function () {
             tr.addClass('checked');
 
             table.find('tbody tr').each(function () {
-                var elementId = $(this).data('element-id');
-                var index = checked[item].indexOf(elementId);
+                let elementId = $(this).data('element-id');
+                let index = checked[item].indexOf(elementId);
 
                 if (index === -1) {
                     checked[item].push(elementId);
@@ -211,17 +215,17 @@ $(function () {
         }
     });
 
-    $('body').on('click', 'td.check', function () {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var tr = $(this).parent();
-        var elementId = tr.data('element-id');
+    body.on('click', 'td.check', function () {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let tr = $(this).parent();
+        let elementId = tr.data('element-id');
 
         if (typeof checked[item] === 'undefined') {
             checked[item] = [];
         }
 
-        var index = checked[item].indexOf(elementId);
+        let index = checked[item].indexOf(elementId);
 
         if (tr.hasClass('checked')) {
             if (index > -1) {
@@ -246,25 +250,25 @@ $(function () {
         }
     });
 
-    $('body').on('click', '.button.restore.enabled', function () {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
+    body.on('click', '.button.restore.enabled', function () {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
 
         $.confirm(null, 'div.item[data-item="' + item + '"] .confirm[data-confirm-type="restore"]');
     });
 
-    $('body').on('click', '.button.delete.enabled', function () {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
+    body.on('click', '.button.delete.enabled', function () {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
 
         $.confirm(null, 'div.item[data-item="' + item + '"] .confirm[data-confirm-type="delete"]');
     });
 
-    $('body').on('click', '.confirm .btn.restore, .confirm .btn.remove', function () {
-        var confirmContainer = $(this).parents('.confirm');
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var url = confirmContainer.data('url');
+    body.on('click', '.confirm .btn.restore, .confirm .btn.remove', function () {
+        let confirmContainer = $(this).parents('.confirm');
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let url = confirmContainer.data('url');
 
         $.confirmClose();
         $.blockUI();
@@ -283,32 +287,32 @@ $(function () {
         });
     });
 
-    $('body').on('click', 'ul.pager > li[data-link="prev"].active', function () {
-        var itemContainer = li.parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var pager = $(this).parent();
-        var page = parseInt(pager.data('page')) - 1;
+    body.on('click', 'ul.pager > li[data-link="prev"].active', function () {
+        let itemContainer = li.parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let pager = $(this).parent();
+        let page = parseInt(pager.data('page')) - 1;
 
         if (page < 1) page = 1;
 
         submit(item, page);
     });
 
-    $('body').on('click', 'ul.pager > li[data-link="first"].active', function () {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var pager = $(this).parent();
+    body.on('click', 'ul.pager > li[data-link="first"].active', function () {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let pager = $(this).parent();
 
         submit(item, 1);
     });
 
-    $('body').on('keydown', 'ul.pager > li.page > input', function (event) {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var pager = $(this).parents('ul.pager');
-        var page = parseInt($(this).val());
-        var last = parseInt(pager.data('last'));
-        var code = event.keyCode || event.which;
+    body.on('keydown', 'ul.pager > li.page > input', function (event) {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let pager = $(this).parents('ul.pager');
+        let last = parseInt(pager.data('last'));
+        let code = event.keyCode || event.which;
+        let page = parseInt($(this).val());
 
         if (code === 13) {
             if (isNaN(page) || page < 1) page = 1;
@@ -318,33 +322,33 @@ $(function () {
         }
     });
 
-    $('body').on('click', 'ul.pager > li[data-link="last"].active', function () {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var pager = $(this).parent();
-        var last = pager.data('last');
+    body.on('click', 'ul.pager > li[data-link="last"].active', function () {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let pager = $(this).parent();
+        let last = pager.data('last');
 
         submit(item, last);
     });
 
-    $('body').on('click', 'ul.pager > li[data-link="next"].active', function () {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var pager = $(this).parent();
-        var page = parseInt(pager.data('page')) + 1;
-        var last = parseInt(pager.data('last'));
+    body.on('click', 'ul.pager > li[data-link="next"].active', function () {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let pager = $(this).parent();
+        let last = parseInt(pager.data('last'));
+        let page = parseInt(pager.data('page')) + 1;
 
         if (page > last) page = last;
 
         submit(item, page);
     });
 
-    $('body').on('click', 'li.column-toggler', function () {
-        var li = $(this);
-        var dropdown = li.find('.dropdown');
-        var display = li.data('display');
+    body.on('click', 'li.column-toggler', function () {
+        let li = $(this);
+        let dropdown = li.find('.dropdown');
+        let display = li.data('display');
 
-        if (display == 'show') {
+        if (display === 'show') {
             li.data('display', 'hide').removeClass('open');
             dropdown.fadeOut(200);
         } else {
@@ -353,18 +357,18 @@ $(function () {
         }
     });
 
-    $('body').on('click', 'li.column-toggler .dropdown', function (e) {
+    body.on('click', 'li.column-toggler .dropdown', function (e) {
         e.stopPropagation();
     });
 
-    $('body').on('click', 'li.column-toggler .dropdown ul > li', function (e) {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var li = $(this);
-        var name = li.data('name');
-        var show = li.data('show');
+    body.on('click', 'li.column-toggler .dropdown ul > li', function (e) {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let li = $(this);
+        let name = li.data('name');
+        let show = li.data('show');
 
-        if (show == true) {
+        if (show === true) {
             li.data('show', false).removeClass('checked');
             show = false;
         } else {
@@ -379,11 +383,11 @@ $(function () {
         });
     });
 
-    $('body').on('keyup change', 'li.column-toggler .dropdown .perpage input', $.debounce(function () {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var input = $(this);
-        var perpage = input.val();
+    body.on('keyup change', 'li.column-toggler .dropdown .perpage input', $.debounce(function () {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let input = $(this);
+        let perpage = input.val();
 
         $.post('/moonlight/perpage', {
             item: item,
@@ -391,18 +395,18 @@ $(function () {
         });
     }, 500));
 
-    $('body').on('keypress', 'li.column-toggler .dropdown .perpage input', function (event) {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var input = $(this);
-        var perpage = input.val();
+    body.on('keypress', 'li.column-toggler .dropdown .perpage input', function (event) {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let input = $(this);
+        let perpage = input.val();
 
         if (! event) event = window.event;
 
         if (event.keyCode) {
-            var code = event.keyCode;
+            let code = event.keyCode;
         } else if (event.which) {
-            var code = event.which;
+            let code = event.which;
         }
 
         if (code === 13) {
@@ -415,18 +419,18 @@ $(function () {
         }
     });
 
-    $('body').on('click', 'li.column-toggler .dropdown .btn', function (e) {
-        var itemContainer = $(this).parents('div.item[data-item]');
-        var item = itemContainer.data('item');
-        var li = $(this).parents('li.column-toggler');
-        var dropdown = li.find('.dropdown');
+    body.on('click', 'li.column-toggler .dropdown .btn', function (e) {
+        let itemContainer = $(this).parents('div.item[data-item]');
+        let item = itemContainer.data('item');
+        let li = $(this).parents('li.column-toggler');
+        let dropdown = li.find('.dropdown');
 
         li.data('display', 'hide');
 
         dropdown.fadeOut(200, function () {
-            var url = new URL(location.href);
-            var query_string = url.search;
-            var search_params = new URLSearchParams(query_string);
+            let url = new URL(location.href);
+            let query_string = url.search;
+            let search_params = new URLSearchParams(query_string);
 
             search_params.set('page', '1');
             url.search = search_params.toString();

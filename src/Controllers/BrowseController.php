@@ -1648,8 +1648,10 @@ class BrowseController extends Controller
 
         $criteria = $currentItem->getClass()->query();
 
-        if ($mode == 'trash') {
+        if ($mode == 'onlyTrashed') {
             $criteria->onlyTrashed();
+        } elseif ($mode == 'withTrashed') {
+            $criteria->withTrashed();
         }
 
         $criteria

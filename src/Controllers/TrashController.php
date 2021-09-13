@@ -130,7 +130,7 @@ class TrashController extends Controller
     /**
      * @param \Illuminate\Http\Request $request
      * @param \Moonlight\Main\Item $currentItem
-     * @return array|string
+     * @return string
      * @throws \Throwable
      */
     protected function elementListView(Request $request, Item $currentItem)
@@ -234,6 +234,10 @@ class TrashController extends Controller
             $perPage = $currentItem->getPerPage();
         } else {
             $perPage = static::PER_PAGE;
+        }
+
+        foreach ($propertyList as $property) {
+            $criteria = $property->with($criteria);
         }
 
         $elements = $criteria->paginate($perPage);
@@ -446,7 +450,6 @@ class TrashController extends Controller
      */
     public function view(Request $request, $classId)
     {
-        $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
         $element = $site->getByClassIdOnlyTrashed($classId);
@@ -472,38 +475,13 @@ class TrashController extends Controller
             }
         }
 
-        $itemList = $site->getItemList();
-
-        foreach ($itemList as $key => $item) {
-            if (! $loggedUser->hasViewDefaultAccess($item)) {
-                $itemList->forget($key);
-            }
-        }
-
-        $items = [];
-
-        foreach ($itemList as $item) {
-            $total = Cache::remember("trash_item_{$item->getName()}", 86400, function () use ($item) {
-                return $item->getClass()->onlyTrashed()->count();
-            });
-
-            if ($total) {
-                $items[$item->getName()] = (object) [
-                    'name' => $item->getName(),
-                    'class_name' => $item->getClassBaseName(),
-                    'title' => $item->getTitle(),
-                    'total' => $total,
-                ];
-            }
-        }
-
         return view('moonlight::trash.view', [
             'element' => $element,
             'classId' => $classId,
             'mainProperty' => $mainProperty,
             'currentItem' => $currentItem,
             'views' => $views,
-            'items' => $items,
+            'items' => $this->getItems(),
         ]);
     }
 
@@ -524,31 +502,6 @@ class TrashController extends Controller
             return redirect()->route('moonlight.trash');
         } elseif (! $loggedUser->hasViewDefaultAccess($currentItem)) {
             return redirect()->route('moonlight.trash');
-        }
-
-        $itemList = $site->getItemList();
-
-        foreach ($itemList as $key => $item) {
-            if (! $loggedUser->hasViewDefaultAccess($item)) {
-                $itemList->forget($key);
-            }
-        }
-
-        $items = [];
-
-        foreach ($itemList as $item) {
-            $total = Cache::remember("trash_item_{$item->getName()}", 86400, function () use ($item) {
-                return $item->getClass()->onlyTrashed()->count();
-            });
-
-            if ($total) {
-                $items[$item->getName()] = (object) [
-                    'name' => $item->getName(),
-                    'class_name' => $item->getClassBaseName(),
-                    'title' => $item->getTitle(),
-                    'total' => $total,
-                ];
-            }
         }
 
         $propertyList = $currentItem->getPropertyList();
@@ -594,7 +547,7 @@ class TrashController extends Controller
             'links' => $links,
             'views' => $views,
             'elements' => $elements,
-            'items' => $items,
+            'items' => $this->getItems(),
         ]);
     }
 
@@ -603,36 +556,27 @@ class TrashController extends Controller
      */
     public function index()
     {
+        return view('moonlight::trash.index')
+            ->with('items', $this->getItems());
+    }
+
+    private function getItems()
+    {
         $loggedUser = Auth::guard('moonlight')->user();
-        $site = App::make('site');
 
-        $itemList = $site->getItemList();
-
-        foreach ($itemList as $key => $item) {
-            if (! $loggedUser->hasViewDefaultAccess($item)) {
-                $itemList->forget($key);
-            }
-        }
-
-        $items = [];
-
-        foreach ($itemList as $item) {
+        return $loggedUser->getItemList()->transform(function ($item) {
             $total = Cache::remember("trash_item_{$item->getName()}", 86400, function () use ($item) {
                 return $item->getClass()->onlyTrashed()->count();
             });
 
-            if ($total) {
-                $items[$item->getName()] = (object) [
-                    'name' => $item->getName(),
-                    'class_name' => $item->getClassBaseName(),
-                    'title' => $item->getTitle(),
-                    'total' => $total,
-                ];
-            }
-        }
-
-        $scope['items'] = $items;
-
-        return view('moonlight::trash.index', $scope);
+            return (object) [
+                'name' => $item->getName(),
+                'class_name' => $item->getClassBaseName(),
+                'title' => $item->getTitle(),
+                'total' => $total,
+            ];
+        })->filter(function ($item) {
+            return $item->total > 0;
+        });
     }
 }
