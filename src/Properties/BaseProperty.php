@@ -8,20 +8,21 @@ use Moonlight\Main\Item;
 
 abstract class BaseProperty
 {
-    protected $item = null;
-    protected $name = null;
-    protected $title = null;
-    protected $class = null;
+    protected $item;
+    protected $name;
+    protected $title;
+    protected $class;
+    protected $itemClass;
+    protected $element;
+    protected $value;
+    protected $request;
+    protected $listViewAttribute;
     protected $show = false;
     protected $required = false;
     protected $readonly = false;
     protected $hidden = false;
     protected $editable = false;
     protected $openItem = false;
-    protected $itemClass = null;
-    protected $element = null;
-    protected $value = null;
-    protected $request = null;
     protected $trashed = false;
     protected $rules = [];
     protected $captions = [];
@@ -238,15 +239,6 @@ abstract class BaseProperty
     {
     }
 
-    public function getListView()
-    {
-        return [
-            'name' => $this->getName(),
-            'title' => $this->getTitle(),
-            'value' => $this->getValue(),
-        ];
-    }
-
     public function getTitle()
     {
         return $this->title;
@@ -269,6 +261,33 @@ abstract class BaseProperty
         $this->value = $value;
 
         return $this;
+    }
+
+    public function setListViewAttribute(string $attribute)
+    {
+        $this->listViewAttribute = $attribute;
+
+        return $this;
+    }
+
+    public function getListViewAttribute()
+    {
+        return $this->listViewAttribute;
+    }
+
+    public function getListView()
+    {
+        $listViewAttribute = $this->getListViewAttribute();
+
+        $value = $this->element->hasGetMutator($listViewAttribute)
+            ? $this->element->{$listViewAttribute}
+            : $this->getValue();
+
+        return [
+            'name' => $this->getName(),
+            'title' => $this->getTitle(),
+            'value' => $value,
+        ];
     }
 
     public function getEditView()

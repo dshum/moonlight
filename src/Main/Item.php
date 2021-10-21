@@ -192,7 +192,7 @@ class Item
      * @param bool $value
      * @return $this
      */
-    public function setRoot($value = true)
+    public function setRoot(bool $value = true)
     {
         $this->root = $value;
 
@@ -211,7 +211,7 @@ class Item
      * @param bool $value
      * @return $this
      */
-    public function setCreate($value = true)
+    public function setCreate(bool $value = true)
     {
         $this->create = $value;
 
@@ -288,7 +288,7 @@ class Item
      * @param string $direction
      * @return $this
      */
-    public function addOrderBy($field, $direction = 'asc')
+    public function addOrderBy($field, string $direction = 'asc')
     {
         $this->orderBy[$field] = $direction;
 
@@ -321,7 +321,7 @@ class Item
      * @param string $direction
      * @return $this
      */
-    public function addOrder($name = 'order', $direction = 'asc')
+    public function addOrder(string $name = 'order', string $direction = 'asc')
     {
         $this
             ->addOrderBy($name, $direction)
@@ -336,7 +336,7 @@ class Item
      * @param bool $readonly
      * @return $this
      */
-    public function addTimestamps($readonly = true)
+    public function addTimestamps(bool $readonly = true)
     {
         $this
             ->addProperty(

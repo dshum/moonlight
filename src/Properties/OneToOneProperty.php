@@ -121,10 +121,20 @@ class OneToOneProperty extends BaseProperty
         $relatedItem = $site->getItemByClassName($relatedClass);
         $mainProperty = $relatedItem->getMainProperty();
 
-        $element = $this->value ? (object) [
-            'class_id' => $site->getClassId($this->value),
-            'name' => $this->value->{$mainProperty},
-        ] : null;
+        if ($this->value) {
+            $listViewAttribute = $this->getListViewAttribute();
+
+            $value = $this->value->hasGetMutator($listViewAttribute)
+                ? $this->value->{$listViewAttribute}
+                : $this->value->{$mainProperty};
+
+            $element = (object) [
+                'class_id' => $site->getClassId($this->value),
+                'name' => $value,
+            ];
+        } else {
+            $element = null;
+        }
 
         return [
             'name' => $this->getName(),
