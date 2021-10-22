@@ -279,7 +279,7 @@ abstract class BaseProperty
     {
         $listViewAttribute = $this->getListViewAttribute();
 
-        $value = $this->element->hasGetMutator($listViewAttribute)
+        $value = $listViewAttribute && $this->element->hasGetMutator($listViewAttribute)
             ? $this->element->{$listViewAttribute}
             : $this->getValue();
 

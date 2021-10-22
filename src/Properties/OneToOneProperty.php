@@ -124,7 +124,7 @@ class OneToOneProperty extends BaseProperty
         if ($this->value) {
             $listViewAttribute = $this->getListViewAttribute();
 
-            $value = $this->value->hasGetMutator($listViewAttribute)
+            $value = $listViewAttribute && $this->value->hasGetMutator($listViewAttribute)
                 ? $this->value->{$listViewAttribute}
                 : $this->value->{$mainProperty};
 
