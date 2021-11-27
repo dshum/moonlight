@@ -536,6 +536,9 @@ class EditController extends Controller
 
         $element->save();
 
+        // Refresh the element relations
+        $element->refresh();
+
         UserAction::log(
             UserActionType::ACTION_TYPE_SAVE_ELEMENT_ID,
             $site->getClassId($element)
