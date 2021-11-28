@@ -1260,7 +1260,11 @@ class BrowseController extends Controller
                 && $property->isOneToOne()
                 && $property->getRelatedClass() == $parentClass
             ) {
-                $criteria = $currentItem->getClass()->where($property->getName(), $parent->id);
+                if ($property->getRelatedMethod()) {
+                    $criteria = $parent->{$property->getRelatedMethod()}();
+                } else {
+                    $criteria = $currentItem->getClass()->where($property->getName(), $parent->id);
+                }
                 break;
             } elseif (
                 ! $parent

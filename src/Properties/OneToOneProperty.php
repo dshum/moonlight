@@ -10,6 +10,7 @@ class OneToOneProperty extends BaseProperty
 {
     protected $relationName = null;
     protected $relatedClass = null;
+    protected $relatedMethod = null;
     protected $parent = false;
 
     public function __construct($name)
@@ -48,6 +49,18 @@ class OneToOneProperty extends BaseProperty
     public function getRelatedClass()
     {
         return $this->relatedClass;
+    }
+
+    public function setRelatedMethod($relatedMethod)
+    {
+        $this->relatedMethod = $relatedMethod;
+
+        return $this;
+    }
+
+    public function getRelatedMethod()
+    {
+        return $this->relatedMethod;
     }
 
     public function setParent($parent = true)
