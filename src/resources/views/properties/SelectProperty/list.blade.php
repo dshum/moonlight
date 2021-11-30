@@ -1,1 +1,1 @@
-<td>{{ isset($list[$value]) ? $list[$value] : $value }}</td>
+<td>{{ $list[$value] ?? $value }}</td>
