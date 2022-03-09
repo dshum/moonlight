@@ -6,6 +6,7 @@ use Illuminate\Http\File;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Moonlight\Utils\Image;
+use Throwable;
 
 class ImageProperty extends BaseProperty
 {
@@ -134,12 +135,19 @@ class ImageProperty extends BaseProperty
             return 0;
         }
 
-        $path = $this->driver ? $this->src($name) : $this->abspath($name);
-        $imagesize = getimagesize($path);
+        try {
+            $path = $this->driver ? $this->src($name) : $this->abspath($name);
+            $imagesize = getimagesize($path);
 
-        Cache::put($key, $imagesize, self::GET_IMAGE_EXPIRE);
+            Cache::put($key, $imagesize, self::GET_IMAGE_EXPIRE);
 
-        return $imagesize[0];
+            return $imagesize[0];
+        } catch (Throwable $e) {
+        }
+
+        Cache::put($key, null, self::GET_IMAGE_EXPIRE);
+
+        return 0;
     }
 
     public function height($name = null)
@@ -156,12 +164,19 @@ class ImageProperty extends BaseProperty
             return 0;
         }
 
-        $path = $this->driver ? $this->src($name) : $this->abspath($name);
-        $imagesize = getimagesize($path);
+        try {
+            $path = $this->driver ? $this->src($name) : $this->abspath($name);
+            $imagesize = getimagesize($path);
 
-        Cache::put($key, $imagesize, self::GET_IMAGE_EXPIRE);
+            Cache::put($key, $imagesize, self::GET_IMAGE_EXPIRE);
 
-        return $imagesize[1];
+            return $imagesize[1];
+        } catch (Throwable $e) {
+        }
+
+        Cache::put($key, null, self::GET_IMAGE_EXPIRE);
+
+        return 0;
     }
 
     public function path($name = null)
