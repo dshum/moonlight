@@ -2,11 +2,14 @@
 
 namespace Moonlight\Controllers;
 
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Moonlight\Models\UserActionType;
+use Illuminate\View\View;
 use Moonlight\Models\UserAction;
+use Moonlight\Models\UserActionType;
 use Moonlight\Utils\Image;
 
 class ProfileController extends Controller
@@ -17,8 +20,8 @@ class ProfileController extends Controller
     /**
      * Save profile of logged user.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param  Request  $request
+     * @return JsonResponse
      */
     public function save(Request $request)
     {
@@ -131,8 +134,8 @@ class ProfileController extends Controller
     /**
      * Show profile of logged user.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @param  Request  $request
+     * @return Factory|View
      */
     public function index(Request $request)
     {
