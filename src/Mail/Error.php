@@ -30,7 +30,7 @@ class Error extends Mailable
      */
     public function build()
     {
-        $to = $this->scope['to'];
+        $to = explode(',', $this->scope['to']);
         $subject = $this->scope['subject'];
 
         return $this->
