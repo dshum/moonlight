@@ -30,12 +30,21 @@ class Error extends Mailable
      */
     public function build()
     {
-        $to = explode(',', $this->scope['to']);
+        $recipients = explode(',', $this->scope['to']);
+
+        $to = array_shift($recipients);
+        $cc = $recipients;
         $subject = $this->scope['subject'];
 
-        return $this->
-            to($to)->
-            subject($subject)->
-            view('moonlight::mails.error')->with($this->scope);
+        $mail = $this->to($to);
+
+        if ($cc) {
+            $mail->cc($cc);
+        }
+
+        return $mail
+                ->subject($subject)
+                ->view('moonlight::mails.error')
+                ->with($this->scope);
     }
 }
