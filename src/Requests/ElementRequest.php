@@ -3,6 +3,7 @@
 namespace Moonlight\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class ElementRequest extends FormRequest
 {
@@ -60,7 +61,7 @@ class ElementRequest extends FormRequest
     /**
      * Configure the validator instance.
      *
-     * @param \Illuminate\Validation\Validator $validator
+     * @param Validator $validator
      * @return void
      */
     public function withValidator($validator)
