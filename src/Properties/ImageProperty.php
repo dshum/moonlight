@@ -295,7 +295,7 @@ class ImageProperty extends BaseProperty
                     mkdir($folderPath, 0755);
                 }
 
-                $folderHash = method_exists($this->element, 'getFolderHash')
+                $folderHash = $this->element && method_exists($this->element, 'getFolderHash')
                     ? trim($this->element->getFolderHash(), DIRECTORY_SEPARATOR)
                     : '';
 

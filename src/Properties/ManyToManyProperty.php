@@ -169,7 +169,7 @@ class ManyToManyProperty extends BaseProperty
 
     public function with($query)
     {
-        if (method_exists($this->element, $this->getName())) {
+        if ($this->element && method_exists($this->element, $this->getName())) {
             $query->with($this->getName());
         }
 
