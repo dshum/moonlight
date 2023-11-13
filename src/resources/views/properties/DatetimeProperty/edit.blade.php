@@ -9,21 +9,19 @@
 @else
     <input type="hidden" name="{{ $name }}_date" data-property="{{ $name }}" value="{{ $value ? $value->format('Y-m-d') : '' }}" class="datetime">
     <input type="hidden" name="{{ $name }}_time" data-property="{{ $name }}" value="{{ $value ? $value->format('H:i:s') : '' }}" class="time">
-    @if ($value)
-        <div>
-            <label>{{ $title }}:</label>
+    <div>
+        <label>{{ $title }}:</label>
+        @if ($value)
             <span class="datetime-container" data-property="{{ $name }}">
                 <span class="datepicker" data-property="{{ $name }}">{{ $value->format('d.m.Y') }}</span>,
                 <span class="timepicker" data-property="{{ $name }}">{{ $value->format('H:i:s') }}</span>
             </span>
             <span data-name="{{ $name }}" class="error"></span>
-        </div>
-    @else
-        <div>
+        @else
             <span class="datepicker" data-property="{{ $name }}">Не определено</span>
             <span data-name="{{ $name }}" class="error"></span>
+       @endif
         </div>
-    @endif
     <div class="timepicker-popup" data-property="{{ $name }}">
         <div class="block">
             <div class="title hours">Часы</div>
