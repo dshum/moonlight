@@ -48,7 +48,7 @@
                     <a href="{{ route('moonlight.browse.element', $classId) }}" title="Открыть">{{ $element->$mainProperty }}</a>
                 </div>
             </div>
-            @if (method_exists($element, 'getWidget') && $element->getWidget())
+            @if (method_exists($element, 'getWidget'))
                 <div class="external-widget">
                     {!! $element->getWidget()->render() !!}
                 </div>
