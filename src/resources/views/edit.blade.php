@@ -48,6 +48,11 @@
                     <a href="{{ route('moonlight.browse.element', $classId) }}" title="Открыть">{{ $element->$mainProperty }}</a>
                 </div>
             </div>
+            @if (method_exists($element, 'getWidget') && $element->getWidget())
+                <div class="external-widget">
+                    {!! $element->getWidget()->render() !!}
+                </div>
+            @endif
             @if (method_exists($element, 'getHref') && $element->getHref())
                 <div class="external-link">
                     <a href="{{ $element->getHref() }}" target="_blank"><i class="fa fa-external-link"></i>Смотреть на сайте</a>
