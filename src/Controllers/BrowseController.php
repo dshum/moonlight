@@ -2,7 +2,11 @@
 
 namespace Moonlight\Controllers;
 
+use Exception;
+use Illuminate\Contracts\View\Factory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\App;
@@ -10,13 +14,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\View\View;
 use Moonlight\Components\SidebarRubrics;
 use Moonlight\Main\Item;
 use Moonlight\Main\Site;
+use Moonlight\Models\User;
 use Moonlight\Models\UserActionType;
 use Moonlight\Models\Favorite;
 use Moonlight\Models\FavoriteRubric;
 use Moonlight\Models\UserAction;
+use Throwable;
 
 /**
  * Class BrowseController
@@ -26,7 +33,7 @@ use Moonlight\Models\UserAction;
 class BrowseController extends Controller
 {
     /**
-     * Defalt number of elements per page.
+     * Default number of elements per page.
      */
     const PER_PAGE = 10;
     /**
@@ -37,12 +44,13 @@ class BrowseController extends Controller
     /**
      * Show/hide column.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Exception
+     * @param Request $request
+     * @return JsonResponse
+     * @throws Exception
      */
-    public function column(Request $request)
+    public function column(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -82,12 +90,13 @@ class BrowseController extends Controller
     /**
      * Set per page.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Exception
+     * @param Request $request
+     * @return JsonResponse
+     * @throws Exception
      */
-    public function perPage(Request $request)
+    public function perPage(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -121,11 +130,12 @@ class BrowseController extends Controller
     /**
      * Order elements.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function order(Request $request)
+    public function order(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -216,12 +226,13 @@ class BrowseController extends Controller
     /**
      * Save elements.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Throwable
+     * @param Request $request
+     * @return JsonResponse
+     * @throws Throwable
      */
-    public function save(Request $request)
+    public function save(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -361,11 +372,12 @@ class BrowseController extends Controller
     /**
      * Copy elements.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function copy(Request $request)
+    public function copy(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -467,11 +479,12 @@ class BrowseController extends Controller
     /**
      * Move elements.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function move(Request $request)
+    public function move(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -559,11 +572,12 @@ class BrowseController extends Controller
     /**
      * Bind element.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function bind(Request $request)
+    public function bind(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -654,11 +668,12 @@ class BrowseController extends Controller
     /**
      * Unbind element.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function unbind(Request $request)
+    public function unbind(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -737,11 +752,12 @@ class BrowseController extends Controller
     /**
      * Set favorites.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function favorite(Request $request)
+    public function favorite(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -870,11 +886,12 @@ class BrowseController extends Controller
     /**
      * Delete elements.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function delete(Request $request)
+    public function delete(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -982,11 +999,12 @@ class BrowseController extends Controller
     /**
      * Delete elements from trash.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function forceDelete(Request $request)
+    public function forceDelete(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -1050,11 +1068,12 @@ class BrowseController extends Controller
     /**
      * Restore elements from trash.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function restore(Request $request)
+    public function restore(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -1112,12 +1131,13 @@ class BrowseController extends Controller
     /**
      * Open closed item.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Exception
+     * @param Request $request
+     * @return JsonResponse
+     * @throws Exception
      */
-    public function open(Request $request)
+    public function open(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -1140,12 +1160,13 @@ class BrowseController extends Controller
     /**
      * Close opened item.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Exception
+     * @param Request $request
+     * @return JsonResponse
+     * @throws Exception
      */
-    public function close(Request $request)
+    public function close(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -1168,12 +1189,13 @@ class BrowseController extends Controller
     /**
      * Show element list.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Throwable
+     * @param Request $request
+     * @return JsonResponse
+     * @throws Throwable
      */
-    public function elements(Request $request)
+    public function elements(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -1224,13 +1246,14 @@ class BrowseController extends Controller
     }
 
     /**
-     * @param \Moonlight\Main\Item $currentItem
-     * @param \Illuminate\Database\Eloquent\Model|null $parent
+     * @param Item $currentItem
+     * @param Model|null $parent
      * @return string
-     * @throws \Throwable
+     * @throws Throwable
      */
-    protected function elementListView(Item $currentItem, Model $parent = null)
+    protected function elementListView(Item $currentItem, Model $parent = null): string
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -1370,21 +1393,21 @@ class BrowseController extends Controller
                 $relatedClass = $relatedProperty ? $relatedProperty->getRelatedClass() : null;
 
                 if (! $relatedClass || $relatedClass == $parentClass) {
-                    $criteria->orderBy($field, $direction);
+                    $criteria = $criteria->orderBy($field, $direction);
                     $orders[$field] = 'порядку';
                     $hasOrderProperty = true;
                 }
             } elseif ($property->getName() == $currentItemClass->getCreatedAtColumn()) {
-                $criteria->orderBy($field, $direction);
+                $criteria = $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате создания';
             } elseif ($property->getName() == $currentItemClass->getUpdatedAtColumn()) {
-                $criteria->orderBy($field, $direction);
+                $criteria = $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате изменения';
             } elseif ($property->getName() == $currentItemClass->getDeletedAtColumn()) {
-                $criteria->orderBy($field, $direction);
+                $criteria = $criteria->orderBy($field, $direction);
                 $orders[$field] = 'дате удаления';
             } else {
-                $criteria->orderBy($field, $direction);
+                $criteria = $criteria->orderBy($field, $direction);
                 $orders[$field] = 'полю &laquo;'.$property->getTitle().'&raquo;';
             }
         }
@@ -1612,11 +1635,12 @@ class BrowseController extends Controller
     /**
      * Show element list for autocomplete.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function autocomplete(Request $request)
+    public function autocomplete(Request $request): JsonResponse
     {
+        /** @var User $loggedUser */
         $loggedUser = Auth::guard('moonlight')->user();
         $site = App::make('site');
 
@@ -1727,11 +1751,11 @@ class BrowseController extends Controller
     /**
      * Show browse element.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      * @param string $classId
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return RedirectResponse|Factory|View
      */
-    public function element(Request $request, string $classId)
+    public function element(Request $request, string $classId): Factory|View|RedirectResponse
     {
         $site = App::make('site');
 
@@ -1809,10 +1833,10 @@ class BrowseController extends Controller
     /**
      * Show browse root.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @param Request $request
+     * @return Factory|View
      */
-    public function root(Request $request)
+    public function root(Request $request): Factory|View
     {
         $site = App::make('site');
 

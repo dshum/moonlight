@@ -1,12 +1,19 @@
 <?php namespace Moonlight\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Moonlight\Main\Item;
 
+/**
+ * @property int $id
+ * @property bool $super_user
+ * @property mixed $first_name
+ * @property mixed $last_name
+ */
 class User extends Authenticatable
 {
     /**
@@ -33,9 +40,9 @@ class User extends Authenticatable
      *
      * @var string
      */
-    protected $assetsName = 'assets';
+    protected string $assetsName = 'assets';
 
-    public static function boot()
+    public static function boot(): void
     {
         parent::boot();
 
@@ -63,7 +70,7 @@ class User extends Authenticatable
     /**
      * @return array
      */
-    public function getDates()
+    public function getDates(): array
     {
         return ['created_at', 'updated_at', 'last_login'];
     }
@@ -71,24 +78,24 @@ class User extends Authenticatable
     /**
      * @return bool
      */
-    public function isSuperUser()
+    public function isSuperUser(): bool
     {
         return (bool) $this->super_user;
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return BelongsToMany
      */
-    public function groups()
+    public function groups(): BelongsToMany
     {
         return $this->belongsToMany(Group::class, 'admin_users_groups_pivot');
     }
 
     /**
-     * @param \Moonlight\Models\Group $group
-     * @return mixed
+     * @param Group $group
+     * @return bool
      */
-    public function inGroup(Group $group)
+    public function inGroup(Group $group): bool
     {
         return $this->groups->contains($group->id);
     }
@@ -96,7 +103,7 @@ class User extends Authenticatable
     /**
      * @return mixed|null
      */
-    public function getUnserializedParameters()
+    public function getUnserializedParameters(): mixed
     {
         try {
             return unserialize($this->parameters);
@@ -110,7 +117,7 @@ class User extends Authenticatable
      * @param $name
      * @return mixed|null
      */
-    public function getParameter($name)
+    public function getParameter($name): mixed
     {
         $unserializedParameters = $this->getUnserializedParameters();
 
@@ -122,12 +129,12 @@ class User extends Authenticatable
      * @param $value
      * @return $this
      */
-    public function setParameter($name, $value)
+    public function setParameter($name, $value): static
     {
         try {
-            $unserializedParameters        = $this->getUnserializedParameters();
+            $unserializedParameters = $this->getUnserializedParameters();
             $unserializedParameters[$name] = $value;
-            $this->parameters              = serialize($unserializedParameters);
+            $this->parameters = serialize($unserializedParameters);
 
             $this->save();
         } catch (\Exception $e) {
@@ -140,7 +147,7 @@ class User extends Authenticatable
      * @param $name
      * @return bool
      */
-    public function hasAccess($name)
+    public function hasAccess($name): bool
     {
         if ($this->isSuperUser()) {
             return true;
@@ -156,10 +163,10 @@ class User extends Authenticatable
     }
 
     /**
-     * @param \Moonlight\Main\Item $item
+     * @param Item $item
      * @return bool
      */
-    public function hasViewDefaultAccess(Item $item)
+    public function hasViewDefaultAccess(Item $item): bool
     {
         if ($this->isSuperUser()) {
             return true;
@@ -177,10 +184,10 @@ class User extends Authenticatable
     }
 
     /**
-     * @param \Moonlight\Main\Item $item
+     * @param Item $item
      * @return bool
      */
-    public function hasUpdateDefaultAccess(Item $item)
+    public function hasUpdateDefaultAccess(Item $item): bool
     {
         if ($this->isSuperUser()) {
             return true;
@@ -198,10 +205,10 @@ class User extends Authenticatable
     }
 
     /**
-     * @param \Moonlight\Main\Item $item
+     * @param Item $item
      * @return bool
      */
-    public function hasDeleteDefaultAccess(Item $item)
+    public function hasDeleteDefaultAccess(Item $item): bool
     {
         if ($this->isSuperUser()) {
             return true;
@@ -219,10 +226,10 @@ class User extends Authenticatable
     }
 
     /**
-     * @param \Illuminate\Database\Eloquent\Model $element
+     * @param Model $element
      * @return bool
      */
-    public function hasViewAccess(Model $element)
+    public function hasViewAccess(Model $element): bool
     {
         if ($this->isSuperUser()) {
             return true;
@@ -240,10 +247,10 @@ class User extends Authenticatable
     }
 
     /**
-     * @param \Illuminate\Database\Eloquent\Model $element
+     * @param Model $element
      * @return bool
      */
-    public function hasUpdateAccess(Model $element)
+    public function hasUpdateAccess(Model $element): bool
     {
         if ($this->isSuperUser()) {
             return true;
@@ -261,10 +268,10 @@ class User extends Authenticatable
     }
 
     /**
-     * @param \Illuminate\Database\Eloquent\Model $element
+     * @param Model $element
      * @return bool
      */
-    public function hasDeleteAccess(Model $element)
+    public function hasDeleteAccess(Model $element): bool
     {
         if ($this->isSuperUser()) {
             return true;
@@ -285,7 +292,7 @@ class User extends Authenticatable
     {
         $site = App::make('site');
 
-        $viewPermissions       = new Collection();
+        $viewPermissions = new Collection();
         $viewDefaultPermission = false;
 
         foreach ($this->groups as $group) {
@@ -314,7 +321,7 @@ class User extends Authenticatable
     /**
      * @return string
      */
-    public function getAssetsName()
+    public function getAssetsName(): string
     {
         return $this->assetsName;
     }
@@ -322,7 +329,7 @@ class User extends Authenticatable
     /**
      * @return string
      */
-    public function getAssets()
+    public function getAssets(): string
     {
         return $this->getAssetsName();
     }
@@ -330,7 +337,7 @@ class User extends Authenticatable
     /**
      * @return string
      */
-    public function getAssetsPath()
+    public function getAssetsPath(): string
     {
         return
             public_path()
@@ -342,7 +349,7 @@ class User extends Authenticatable
     /**
      * @return string
      */
-    public function getFolderName()
+    public function getFolderName(): string
     {
         return $this->getTable();
     }
@@ -350,7 +357,7 @@ class User extends Authenticatable
     /**
      * @return string
      */
-    public function getFolder()
+    public function getFolder(): string
     {
         return
             $this->getAssetsName()
@@ -361,7 +368,7 @@ class User extends Authenticatable
     /**
      * @return string
      */
-    public function getFolderPath()
+    public function getFolderPath(): string
     {
         return
             public_path()
@@ -373,7 +380,7 @@ class User extends Authenticatable
     /**
      * @return mixed
      */
-    public function getPhoto()
+    public function getPhoto(): mixed
     {
         return $this->photo;
     }
@@ -381,7 +388,7 @@ class User extends Authenticatable
     /**
      * @return bool
      */
-    public function photoExists()
+    public function photoExists(): bool
     {
         return $this->getPhoto() && file_exists($this->getPhotoAbsPath());
     }
@@ -389,7 +396,7 @@ class User extends Authenticatable
     /**
      * @return string|null
      */
-    public function getPhotoAbsPath()
+    public function getPhotoAbsPath(): ?string
     {
         return $this->getPhoto()
             ? $this->getFolderPath().$this->getPhoto()
@@ -399,7 +406,7 @@ class User extends Authenticatable
     /**
      * @return string|null
      */
-    public function getPhotoSrc()
+    public function getPhotoSrc(): ?string
     {
         return
             $this->getPhoto()
@@ -409,9 +416,9 @@ class User extends Authenticatable
     }
 
     /**
-     * @return bool|false|string|string[]|null
+     * @return string
      */
-    public function getInitialsAttribute()
+    public function getInitialsAttribute(): string
     {
         return mb_strtoupper(
             mb_substr($this->first_name, 0, 1)
@@ -423,14 +430,13 @@ class User extends Authenticatable
     /**
      * @return string
      */
-    public function getHexColorAttribute()
+    public function getHexColorAttribute(): string
     {
         $c = ['4', '6', '8', 'A', 'C'];
 
         $code = base_convert(crc32("{$this->first_name} {$this->last_name}"), 10, 5);
         $code = substr($code, -3, 3);
-        $code = '#'.$c[$code[0]].$c[$code[1]].$c[$code[2]];
 
-        return $code;
+        return '#'.$c[$code[0]].$c[$code[1]].$c[$code[2]];
     }
 }

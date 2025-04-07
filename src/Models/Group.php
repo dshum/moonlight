@@ -1,9 +1,17 @@
 <?php namespace Moonlight\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\App;
 use Moonlight\Main\Item;
 
+/**
+ * @property int $id
+ * @property string $permissions
+ * @property string $default_permission
+ */
 class Group extends Model
 {
     /**
@@ -18,24 +26,24 @@ class Group extends Model
      * @var array
      */
     protected $touches = ['users'];
-    private $permissionTitles = [
+    private array $permissionTitles = [
         'deny' => 'Доступ закрыт',
         'view' => 'Просмотр элементов',
         'update' => 'Изменение элементов',
         'delete' => 'Удаление элементов',
     ];
 
-    public function getDates()
+    public function getDates(): array
     {
         return ['created_at', 'updated_at'];
     }
 
-    public function users()
+    public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'admin_users_groups_pivot');
     }
 
-    public function hasAccess($name)
+    public function hasAccess($name): bool
     {
         return (bool) $this->getPermission($name);
     }
@@ -52,7 +60,7 @@ class Group extends Model
         return $permissions[$name] ?? null;
     }
 
-    public function setPermission($name, $value)
+    public function setPermission($name, $value): static
     {
         $permissions = json_decode($this->permissions, true);
 
@@ -70,32 +78,32 @@ class Group extends Model
         return $this->permissionTitles[$name] ?? null;
     }
 
-    public function itemPermissions()
+    public function itemPermissions(): HasMany
     {
         return $this->hasMany(GroupItemPermission::class);
     }
 
-    public function elementPermissions()
+    public function elementPermissions(): HasMany
     {
         return $this->hasMany(GroupElementPermission::class);
     }
 
-    public function getItemPermission(Item $item)
+    public function getItemPermission(Item $item): Model|null
     {
         return $this->itemPermissions()->where('element_type', $item->getClassName())->first();
     }
 
-    public function getElementPermissions()
+    public function getElementPermissions(): Collection
     {
         return $this->elementPermissions()->get();
     }
 
-    public function getElementPermissionsByItem(Item $item)
+    public function getElementPermissionsByItem(Item $item): Collection
     {
         return $this->elementPermissions()->where('element_type', $item->getClassName())->get();
     }
 
-    public function getElementPermission(Model $element)
+    public function getElementPermission(Model $element): Model|null
     {
         $site = App::make('site');
 
