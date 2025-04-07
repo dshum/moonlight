@@ -9,12 +9,15 @@
         }
     ],
     "require": {
-        "php": ">=7.1.3"
+        "php": ">=8.2"
     },
     "autoload": {
         "psr-4": {
-            "Moonlight\\": "src"
-        }
+            "Moonlight\\": "src/"
+        },
+        "classmap": [
+            "src/database"
+        ]
     },
     "minimum-stability": "dev",
     "extra": {

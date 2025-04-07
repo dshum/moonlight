@@ -1,17 +1,17 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeds;
 
 use Illuminate\Database\Seeder;
 
-class MoonlightDatabaseSeeder extends Seeder {
-
+class MoonlightDatabaseSeeder extends Seeder
+{
     /**
      * Run the database seeds.
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         $this->call(MoonlightUserTableSeeder::class);
     }
