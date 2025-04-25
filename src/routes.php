@@ -120,6 +120,7 @@ Route::group([
         Route::get('/browse', 'BrowseController@root')->name('browse');
         Route::get('/browse/root', 'BrowseController@root')->name('browse.root');
         Route::get('/browse/{class_id}', 'BrowseController@element')->name('browse.element');
+        Route::get('/browse/{class_id}/component', 'BrowseController@component')->name('browse.component');
     });
 });
 

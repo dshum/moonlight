@@ -36,20 +36,30 @@
                     @endforeach
                 </div>
             @endif
-            @if ($browseComponentView)
-                <div class="browse-plugin">
-                    {!! $browseComponentView !!}
-                </div>
+            @if ($browseComponent)
+                <div class="browse-plugin" data-url="{{ route('moonlight.browse.component', $classId) }}"></div>
             @endif
             @foreach ($items as $item)
                 <div class="item active hidden" data-item="{{ $item->getName() }}" data-class-id="{{ $classId }}"
                      data-url="{{ route('moonlight.elements.list') }}"></div>
             @endforeach
-            @if (! $browseComponentView)
+            @if (! $browseComponent)
                 <div class="empty{{ sizeof($items) > 0 ? ' dnone' : '' }}">Элементов не найдено.</div>
             @endif
         </div>
     </div>
+
+    <script>
+        $(function () {
+            const pluginElement = $('.browse-plugin');
+            if (pluginElement) {
+                const url = pluginElement.data('url');
+                $.get(url, function (data) {
+                    pluginElement.html(data);
+                })
+            }
+        });
+    </script>
 @endsection
 
 @section('sidebar')

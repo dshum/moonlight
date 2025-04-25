@@ -1749,6 +1749,23 @@ class BrowseController extends Controller
     }
 
     /**
+     * Show browse component.
+     *
+     * @param Request $request
+     * @param string $classId
+     * @return Factory|View|null
+     */
+    public function component(Request $request, string $classId): Factory|View|null
+    {
+        $site = App::make('site');
+
+        $element = $site->getByClassId($classId);
+        $browseComponent = $element ? $site->getBrowseComponent($element) : null;
+
+        return $browseComponent ? new $browseComponent($request, $element)->render() : null;
+    }
+
+    /**
      * Show browse element.
      *
      * @param Request $request
@@ -1783,7 +1800,6 @@ class BrowseController extends Controller
 
         // Browse component
         $browseComponent = $site->getBrowseComponent($element);
-        $browseComponentView = $browseComponent ? new $browseComponent($request, $element)->render() : null;
 
         $items = [];
         $creates = [];
@@ -1823,7 +1839,7 @@ class BrowseController extends Controller
             'mainProperty' => $mainProperty,
             'parents' => $parents,
             'currentItem' => $currentItem,
-            'browseComponentView' => $browseComponentView,
+            'browseComponent' => $browseComponent,
             'items' => $items,
             'creates' => $creates,
             'rubrics' => $rubrics,
