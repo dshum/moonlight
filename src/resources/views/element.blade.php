@@ -37,7 +37,9 @@
                 </div>
             @endif
             @if ($browseComponent)
-                <div class="browse-plugin" data-url="{{ route('moonlight.browse.component', $classId) }}"></div>
+                <div class="browse-plugin" data-url="{{ route('moonlight.browse.component', $classId) }}">
+                    <span class="grey">Плагин загружается...</span>
+                </div>
             @endif
             @foreach ($items as $item)
                 <div class="item active hidden" data-item="{{ $item->getName() }}" data-class-id="{{ $classId }}"
