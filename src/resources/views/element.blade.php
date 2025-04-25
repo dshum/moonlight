@@ -23,7 +23,9 @@
                     <div class="divider">/</div>
                 @endforeach
                 <div class="part">
-                    <span>{{ $element->$mainProperty }}</span><a href="{{ route('moonlight.element.edit', $classId) }}" class="edit" title="Редактировать"><i class="fa fa-pencil"></i></a>
+                    <span>{{ $element->$mainProperty }}</span><a href="{{ route('moonlight.element.edit', $classId) }}"
+                                                                 class="edit" title="Редактировать"><i
+                            class="fa fa-pencil"></i></a>
                 </div>
             </div>
             @if ($creates)
@@ -40,7 +42,8 @@
                 </div>
             @endif
             @foreach ($items as $item)
-                <div class="item active hidden" data-item="{{ $item->getName() }}" data-class-id="{{ $classId }}" data-url="{{ route('moonlight.elements.list') }}"></div>
+                <div class="item active hidden" data-item="{{ $item->getName() }}" data-class-id="{{ $classId }}"
+                     data-url="{{ route('moonlight.elements.list') }}"></div>
             @endforeach
             @if (! $browseComponentView)
                 <div class="empty{{ sizeof($items) > 0 ? ' dnone' : '' }}">Элементов не найдено.</div>

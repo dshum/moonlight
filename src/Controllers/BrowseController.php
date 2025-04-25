@@ -1783,7 +1783,7 @@ class BrowseController extends Controller
 
         // Browse component
         $browseComponent = $site->getBrowseComponent($element);
-        $browseComponentView = $browseComponent ? (new $browseComponent($request, $element))->render() : null;
+        $browseComponentView = $browseComponent ? new $browseComponent($request, $element)->render() : null;
 
         $items = [];
         $creates = [];
@@ -1815,7 +1815,7 @@ class BrowseController extends Controller
             }
         }
 
-        $rubrics = (new SidebarRubrics($element))->render();
+        $rubrics = new SidebarRubrics($element)->render();
 
         return view('moonlight::element', [
             'element' => $element,
@@ -1857,7 +1857,7 @@ class BrowseController extends Controller
             }
         }
 
-        $rubrics = (new SidebarRubrics())->render();
+        $rubrics = new SidebarRubrics()->render();
 
         return view('moonlight::root', [
             'items' => $items,
