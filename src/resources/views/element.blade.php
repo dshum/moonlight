@@ -56,7 +56,10 @@
             const pluginElement = $('.browse-plugin');
             if (pluginElement) {
                 const url = pluginElement.data('url');
-                $.get(url, function (data) {
+                const params = Object.fromEntries(
+                    new URLSearchParams(window.location.search)
+                )
+                $.get(url, params, function (data) {
                     pluginElement.html(data);
                 })
             }
