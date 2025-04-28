@@ -113,7 +113,7 @@
                     </thead>
                     <tbody>
                     @foreach ($elements as $element)
-                        <tr data-element-id="{{ $element->id }}" data-rubrics="{{ $elementFavoriteRubrics[$element->id] }}">
+                        <tr data-element-id="{{ $element->id }}" data-rubrics="{{ $elementFavoriteRubrics[$element->id] ?? null }}">
                             @if ($mode == 'browse')
                                 <td class="browse">
                                     <a href="{{ route('moonlight.browse.element', class_id($element)) }}"><i class="fa fa-angle-right"></i></a>

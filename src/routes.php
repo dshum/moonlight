@@ -105,6 +105,7 @@ Route::group([
     Route::post('/browse/{class_id}/move', 'EditController@move')->name('element.move');
     Route::post('/browse/{class_id}/favorite', 'EditController@favorite')->name('element.favorite');
     Route::post('/browse/{class_id}/delete', 'EditController@delete')->name('element.delete');
+    Route::get('/browse/{class_id}/component', 'BrowseController@component')->name('browse.component');
 
     Route::post('/order', 'BrowseController@order')->name('order');
     Route::post('/column', 'BrowseController@column')->name('column');
@@ -120,7 +121,6 @@ Route::group([
         Route::get('/browse', 'BrowseController@root')->name('browse');
         Route::get('/browse/root', 'BrowseController@root')->name('browse.root');
         Route::get('/browse/{class_id}', 'BrowseController@element')->name('browse.element');
-        Route::get('/browse/{class_id}/component', 'BrowseController@component')->name('browse.component');
     });
 });
 
