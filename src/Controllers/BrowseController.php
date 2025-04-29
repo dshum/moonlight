@@ -1753,9 +1753,9 @@ class BrowseController extends Controller
      *
      * @param Request $request
      * @param string $classId
-     * @return Factory|View|null
+     * @return Factory|View|RedirectResponse|null
      */
-    public function component(Request $request, string $classId): Factory|View|null
+    public function component(Request $request, string $classId): Factory|View|RedirectResponse|null
     {
         $site = App::make('site');
 
