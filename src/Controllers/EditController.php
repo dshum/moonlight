@@ -439,6 +439,8 @@ class EditController extends Controller
             }
         }
 
+        event('eloquent.createdRelations: '.get_class($element), $element);
+
         UserAction::log(
             UserActionType::ACTION_TYPE_ADD_ELEMENT_ID,
             $site->getClassId($element)
