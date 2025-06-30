@@ -154,7 +154,7 @@ class Site
     }
 
     /**
-     * @param string$className
+     * @param string $className
      * @param string $component
      * @return $this
      */
@@ -502,7 +502,13 @@ class Site
     public function bindToElements(string $class, array $bindings)
     {
         foreach ($bindings as $id => $binding) {
-            $this->elementBonds[$class][$id][$binding] = $binding;
+            if (is_array($binding)) {
+                foreach ($binding as $b) {
+                    $this->elementBonds[$class][$id][$b] = $b;
+                }
+            } else {
+                $this->elementBonds[$class][$id][$binding] = $binding;
+            }
         }
 
         return $this;
