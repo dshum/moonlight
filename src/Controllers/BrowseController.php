@@ -1800,6 +1800,13 @@ class BrowseController extends Controller
 
         // Browse component
         $browseComponent = $site->getBrowseComponent($element);
+        $browseComponentView = null;
+        if ($browseComponent) {
+            $browseComponentInstance = new $browseComponent($request, $element);
+            if (empty($browseComponentInstance->isAjax)) {
+                $browseComponentView = $browseComponentInstance->render();
+            }
+        }
 
         $items = [];
         $creates = [];
@@ -1840,6 +1847,7 @@ class BrowseController extends Controller
             'parents' => $parents,
             'currentItem' => $currentItem,
             'browseComponent' => $browseComponent,
+            'browseComponentView' => $browseComponentView,
             'items' => $items,
             'creates' => $creates,
             'rubrics' => $rubrics,

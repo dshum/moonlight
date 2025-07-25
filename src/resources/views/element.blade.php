@@ -25,7 +25,7 @@
                 <div class="part">
                     <span>{{ $element->$mainProperty }}</span><a href="{{ route('moonlight.element.edit', $classId) }}"
                                                                  class="edit" title="Редактировать"><i
-                            class="fa fa-pencil"></i></a>
+                                class="fa fa-pencil"></i></a>
                 </div>
             </div>
             @if ($creates)
@@ -36,8 +36,12 @@
                     @endforeach
                 </div>
             @endif
-            @if ($browseComponent)
-                <div class="browse-plugin" data-url="{{ route('moonlight.browse.component', $classId) }}">
+            @if ($browseComponentView)
+                <div class="browse-plugin">
+                    {!! $browseComponentView !!}
+                </div>
+            @elseif ($browseComponent)
+                <div class="browse-plugin load" data-url="{{ route('moonlight.browse.component', $classId) }}">
                     <span class="grey">Плагин загружается...</span>
                 </div>
             @endif
@@ -53,7 +57,7 @@
 
     <script>
         $(function () {
-            const pluginElement = $('.browse-plugin');
+            const pluginElement = $('.browse-plugin.load');
             if (pluginElement) {
                 const url = pluginElement.data('url');
                 const params = Object.fromEntries(
